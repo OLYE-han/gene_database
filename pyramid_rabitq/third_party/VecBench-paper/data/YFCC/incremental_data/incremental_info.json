@@ -1,0 +1,9 @@
+{
+  "total_size": 20000,
+  "vec_dim": 1920,
+  "chunk_rows": 20000,
+  "min_inc_id": 100001,
+  "max_inc_id": 120000,
+  "seed": 42,
+  "ratio": 0.2
+}

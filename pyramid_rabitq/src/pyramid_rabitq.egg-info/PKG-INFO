@@ -1,0 +1,14 @@
+Metadata-Version: 2.2
+Name: pyramid-rabitq
+Version: 0.6.0
+Summary: Pyramid-style HNSW routing with sharded RaBitQ IVF search
+Requires-Python: >=3.10
+Requires-Dist: numpy<3,>=1.26
+Requires-Dist: scipy<2,>=1.11
+Requires-Dist: h5py<4,>=3.10
+Requires-Dist: faiss-cpu<2,>=1.8
+Requires-Dist: PyYAML<7,>=6
+Requires-Dist: fastapi<1,>=0.115
+Requires-Dist: uvicorn<1,>=0.30
+Provides-Extra: metis
+Requires-Dist: pymetis>=2023.1; extra == "metis"

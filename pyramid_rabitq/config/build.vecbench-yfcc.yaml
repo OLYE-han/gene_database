@@ -1,0 +1,23 @@
+dimension: 1920
+metric: l2
+num_partitions: 8
+seed: 42
+batch_size: 4096
+hnsw:
+  sample_size: 30000
+  sample_ratio: 0.30
+  m: 32
+  ef_construction: 200
+  ef_search: 128
+  route_nodes: 64
+  route_partitions: 2
+  partition_backend: kaffpa
+  kaffpa_executable: .local/kahip-v3.25/bin/kaffpa
+  kaffpa_preconfiguration: strong
+  require_kaffpa: true
+ivf:
+  target_vectors_per_list: 384
+  nprobe: 2
+  train_size: 100000
+  candidate_multiplier: 8
+  scan_block_size: 4096

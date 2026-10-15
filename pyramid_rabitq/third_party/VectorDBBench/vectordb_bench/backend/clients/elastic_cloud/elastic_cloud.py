@@ -1,0 +1,340 @@
+import logging
+import time
+from collections.abc import Iterable
+from contextlib import contextmanager
+
+from elasticsearch.helpers import bulk
+
+from vectordb_bench.backend.filter import Filter, FilterOp
+from vectordb_bench.backend.payload import PayloadProfile
+
+from ..api import VectorDB
+from .config import ElasticCloudFtsConfig, ElasticCloudIndexConfig
+
+for logger in ("elasticsearch", "elastic_transport"):
+    logging.getLogger(logger).setLevel(logging.WARNING)
+
+log = logging.getLogger(__name__)
+
+
+SECONDS_WAITING_FOR_FORCE_MERGE_API_CALL_SEC = 30
+
+
+class ElasticCloud(VectorDB):
+    supported_filter_types: list[FilterOp] = [
+        FilterOp.NonFilter,
+        FilterOp.NumGE,
+        FilterOp.StrEqual,
+    ]
+
+    def __init__(
+        self,
+        dim: int,
+        db_config: dict,
+        db_case_config: ElasticCloudIndexConfig | ElasticCloudFtsConfig,
+        indice: str = "vdb_bench_indice",  # must be lowercase
+        id_col_name: str = "id",
+        label_col_name: str = "label",
+        vector_col_name: str = "vector",
+        drop_old: bool = False,
+        with_scalar_labels: bool = False,
+        **kwargs,
+    ):
+        self.dim = dim
+        self.db_config = db_config
+        self.case_config = db_case_config
+        self.indice = indice
+        self.id_col_name = id_col_name
+        self.label_col_name = label_col_name
+        self.vector_col_name = vector_col_name
+        self.with_scalar_labels = with_scalar_labels
+        self._is_fts = isinstance(db_case_config, ElasticCloudFtsConfig)
+        self.text_col_name = "text"
+        self.filter_id_col_name = "filter_id"
+        if self._is_fts:
+            self.id_col_name = "doc_id"
+
+        from elasticsearch import Elasticsearch
+
+        client = Elasticsearch(**self.db_config)
+
+        if drop_old:
+            log.info(f"Elasticsearch client drop_old indices: {self.indice}")
+            is_existed_res = client.indices.exists(index=self.indice)
+            if is_existed_res.raw:
+                client.indices.delete(index=self.indice)
+            self._create_indice(client)
+
+    @classmethod
+    def supports_full_text_search(cls) -> bool:
+        return True
+
+    def has_text_field(self) -> bool:
+        return bool(getattr(self, "_is_fts", False) and getattr(self, "text_col_name", None))
+
+    @contextmanager
+    def init(self) -> None:
+        """connect to elasticsearch"""
+        from elasticsearch import Elasticsearch
+
+        self.client = Elasticsearch(**self.db_config, request_timeout=180)
+
+        yield
+        self.client = None
+        del self.client
+
+    def _create_indice(self, client: any) -> None:
+        if self._is_fts:
+            mappings = self.case_config.index_param()
+            index_settings = {
+                "number_of_shards": self.case_config.number_of_shards,
+                "number_of_replicas": self.case_config.number_of_replicas,
+                "refresh_interval": self.case_config.refresh_interval,
+            }
+            index_settings.update(self.case_config.similarity_settings())
+            settings = {"index": index_settings}
+            client.indices.create(index=self.indice, mappings=mappings, settings=settings)
+            return
+
+        mappings = {
+            "_source": {"excludes": [self.vector_col_name]},
+            "properties": {
+                self.id_col_name: {"type": "integer", "store": True},
+                self.vector_col_name: {
+                    "dims": self.dim,
+                    **self.case_config.index_param(),
+                },
+            },
+        }
+        settings = {
+            "index": {
+                "number_of_shards": self.case_config.number_of_shards,
+                "number_of_replicas": self.case_config.number_of_replicas,
+                "refresh_interval": self.case_config.refresh_interval,
+                "merge.scheduler.max_thread_count": self.case_config.merge_max_thread_count,
+            }
+        }
+
+        try:
+            client.indices.create(index=self.indice, mappings=mappings, settings=settings)
+        except Exception as e:
+            log.warning(f"Failed to create indice: {self.indice} error: {e!s}")
+            raise e from None
+
+    def insert_embeddings(
+        self,
+        embeddings: Iterable[list[float]],
+        metadata: list[int],
+        labels_data: list[str] | None = None,
+        **kwargs,
+    ) -> tuple[int, Exception]:
+        """Insert the embeddings to the elasticsearch."""
+        assert self.client is not None, "should self.init() first"
+
+        insert_data = (
+            [
+                (
+                    {
+                        "_index": self.indice,
+                        "_source": {
+                            self.id_col_name: metadata[i],
+                            self.label_col_name: labels_data[i],
+                            self.vector_col_name: embeddings[i],
+                        },
+                        "_routing": labels_data[i],
+                    }
+                    if self.case_config.use_routing
+                    else {
+                        "_index": self.indice,
+                        "_source": {
+                            self.id_col_name: metadata[i],
+                            self.label_col_name: labels_data[i],
+                            self.vector_col_name: embeddings[i],
+                        },
+                    }
+                )
+                for i in range(len(embeddings))
+            ]
+            if self.with_scalar_labels
+            else [
+                {
+                    "_index": self.indice,
+                    "_source": {
+                        self.id_col_name: metadata[i],
+                        self.vector_col_name: embeddings[i],
+                    },
+                }
+                for i in range(len(embeddings))
+            ]
+        )
+        try:
+            bulk_insert_res = bulk(self.client, insert_data)
+            return (bulk_insert_res[0], None)
+        except Exception as e:
+            log.warning(f"Failed to insert data: {self.indice} error: {e!s}")
+            return (0, e)
+
+    def insert_documents(
+        self,
+        texts: Iterable[str],
+        doc_ids: list[str],
+        **kwargs,
+    ) -> tuple[int, Exception | None]:
+        if not getattr(self, "_is_fts", False):
+            msg = "ElasticCloud full-text insert requires ElasticCloudFtsConfig"
+            raise RuntimeError(msg)
+        assert self.client is not None, "should self.init() first"
+        docs = list(texts)
+        if len(docs) != len(doc_ids):
+            msg = f"Mismatch between texts ({len(docs)}) and doc_ids ({len(doc_ids)}) lengths"
+            raise ValueError(msg)
+        filter_ids = kwargs.get("filter_ids")
+        if filter_ids is not None and len(filter_ids) != len(docs):
+            msg = f"Mismatch between texts ({len(docs)}) and filter_ids ({len(filter_ids)}) lengths"
+            raise ValueError(msg)
+
+        actions = []
+        for i, doc in enumerate(docs):
+            source = {
+                self.id_col_name: str(doc_ids[i]),
+                self.text_col_name: doc,
+            }
+            if filter_ids is not None:
+                source[self.filter_id_col_name] = int(filter_ids[i])
+            actions.append(
+                {
+                    "_index": self.indice,
+                    "_id": str(doc_ids[i]),
+                    "_source": source,
+                }
+            )
+        try:
+            result = bulk(self.client, actions)
+            return result[0], None
+        except Exception as e:
+            log.warning(f"Failed to insert FTS docs: {self.indice} error: {e!s}")
+            return 0, e
+
+    def prepare_filter(self, filters: Filter):
+        self.routing_key = None
+        if filters.type == FilterOp.NonFilter:
+            self.filter = None if self._is_fts else []
+        elif filters.type == FilterOp.NumGE:
+            if self._is_fts:
+                if getattr(filters, "int_field", None) != self.filter_id_col_name:
+                    msg = f"ElasticCloud FTS filters only support int_field='{self.filter_id_col_name}'"
+                    raise ValueError(msg)
+                self.filter = {"range": {self.filter_id_col_name: {"gte": filters.int_value}}}
+            else:
+                self.filter = {"range": {self.id_col_name: {"gt": filters.int_value}}}
+        elif filters.type == FilterOp.StrEqual:
+            if self._is_fts:
+                msg = f"Not support Filter for ElasticCloud FTS - {filters}"
+                raise ValueError(msg)
+            self.filter = {"term": {self.label_col_name: filters.label_value}}
+            if self.case_config.use_routing:
+                self.routing_key = filters.label_value
+        else:
+            msg = f"Not support Filter for Milvus - {filters}"
+            raise ValueError(msg)
+
+    def search_embedding(
+        self,
+        query: list[float],
+        k: int = 100,
+        **kwargs,
+    ) -> list[int]:
+        """Get k most similar embeddings to query vector.
+
+        Args:
+            query(list[float]): query embedding to look up documents similar to.
+            k(int): Number of most similar embeddings to return. Defaults to 100.
+
+        Returns:
+            list[tuple[int, float]]: list of k most similar embeddings in (id, score) tuple to the query embedding.
+        """
+        assert self.client is not None, "should self.init() first"
+
+        knn = {
+            "field": self.vector_col_name,
+            "k": k,
+            "num_candidates": self.case_config.num_candidates,
+            "filter": self.filter,
+            "query_vector": query,
+        }
+        if self.case_config.use_rescore:
+            knn["rescore_vector"] = {"oversample": self.case_config.oversample_ratio}
+        size = k
+
+        res = self.client.search(
+            index=self.indice,
+            knn=knn,
+            routing=self.routing_key,
+            size=size,
+            _source=False,
+            docvalue_fields=[self.id_col_name],
+            stored_fields="_none_",
+            filter_path=[f"hits.hits.fields.{self.id_col_name}"],
+        )
+        return [h["fields"][self.id_col_name][0] for h in res["hits"]["hits"]]
+
+    def search_documents(
+        self,
+        query: str,
+        k: int = 100,
+        payload_profile: PayloadProfile = PayloadProfile.IDS_ONLY,
+        **kwargs,
+    ) -> list[str]:
+        if not getattr(self, "_is_fts", False):
+            msg = "ElasticCloud full-text search requires ElasticCloudFtsConfig"
+            raise RuntimeError(msg)
+        if not self.supports_document_payload_profile(payload_profile):
+            msg = f"ElasticCloud does not support document payload_profile={payload_profile.value}"
+            raise NotImplementedError(msg)
+        assert self.client is not None, "should self.init() first"
+        source = [self.text_col_name] if payload_profile == PayloadProfile.TEXT else False
+        filter_path = ["hits.hits._id", f"hits.hits.fields.{self.id_col_name}"]
+        if payload_profile == PayloadProfile.TEXT:
+            filter_path.append(f"hits.hits._source.{self.text_col_name}")
+        query_clause = {"match": {self.text_col_name: query}}
+        if getattr(self, "filter", None):
+            query_clause = {"bool": {"must": query_clause, "filter": self.filter}}
+        search_kwargs = {
+            "index": self.indice,
+            "query": query_clause,
+            "size": k,
+            "_source": source,
+            "docvalue_fields": [self.id_col_name],
+            "filter_path": filter_path,
+        }
+        if payload_profile != PayloadProfile.TEXT:
+            search_kwargs["stored_fields"] = "_none_"
+        res = self.client.search(**search_kwargs)
+        doc_ids = []
+        for hit in res.get("hits", {}).get("hits", []):
+            if hit.get("_id") is not None:
+                doc_ids.append(str(hit["_id"]))
+                continue
+
+            fields = hit.get("fields", {})
+            values = fields.get(self.id_col_name, [])
+            if values:
+                doc_ids.append(str(values[0]))
+        return doc_ids
+
+    def optimize(self, data_size: int | None = None):
+        """optimize will be called between insertion and search in performance cases."""
+        assert self.client is not None, "should self.init() first"
+        self.client.indices.refresh(index=self.indice)
+        if self.case_config.use_force_merge:
+            force_merge_task_id = self.client.indices.forcemerge(
+                index=self.indice,
+                max_num_segments=1,
+                wait_for_completion=False,
+            )["task"]
+            log.info(f"Elasticsearch force merge task id: {force_merge_task_id}")
+            while True:
+                time.sleep(SECONDS_WAITING_FOR_FORCE_MERGE_API_CALL_SEC)
+                task_status = self.client.tasks.get(task_id=force_merge_task_id)
+                if task_status["completed"]:
+                    return

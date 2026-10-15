@@ -1,0 +1,10 @@
+numpy<3,>=1.26
+scipy<2,>=1.11
+h5py<4,>=3.10
+faiss-cpu<2,>=1.8
+PyYAML<7,>=6
+fastapi<1,>=0.115
+uvicorn<1,>=0.30
+
+[metis]
+pymetis>=2023.1

@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=69", "wheel", "numpy>=1.26,<3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyramid-rabitq"
+version = "0.6.0"
+description = "Pyramid-style HNSW routing with sharded RaBitQ IVF search"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy>=1.26,<3",
+  "scipy>=1.11,<2",
+  "h5py>=3.10,<4",
+  "faiss-cpu>=1.8,<2",
+  "PyYAML>=6,<7",
+  "fastapi>=0.115,<1",
+  "uvicorn>=0.30,<1",
+]
+
+[project.optional-dependencies]
+metis = ["pymetis>=2023.1"]
+
+[project.scripts]
+pyramid-rabitq = "pyramid_rabitq.cli:main"
+pyramid-rabitq-server = "pyramid_rabitq.api:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

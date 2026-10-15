@@ -1,0 +1,444 @@
+#include "rabitqlib/utils/space.hpp"
+
+#include <gtest/gtest.h>
+
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
+#include <limits>
+#include <stdexcept>
+#include <vector>
+
+#include "rabitqlib/core/detail/simd/space_dispatch.hpp"
+#include "rabitqlib/core/detail/simd/warmup_dispatch.hpp"
+#include "rabitqlib/utils/bitops.hpp"
+#include "rabitqlib/utils/cpu_features.hpp"
+#include "rabitqlib/utils/warmup_space.hpp"
+
+using namespace rabitqlib;
+
+TEST(SpaceHelpers, CentroidSupportsRequestedWorkerCounts) {
+    const std::array<float, 12> data{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+    for (size_t workers : {0U, 1U, 2U, 64U}) {
+        const auto centroid = compute_centroid(data.data(), 4, 3, workers);
+        ASSERT_EQ(centroid.size(), 3U);
+        EXPECT_FLOAT_EQ(centroid[0], 5.5F);
+        EXPECT_FLOAT_EQ(centroid[1], 6.5F);
+        EXPECT_FLOAT_EQ(centroid[2], 7.5F);
+    }
+}
+
+TEST(BitOps, Popcount64MatchesBitReference) {
+    const auto check = [](uint64_t value) {
+        unsigned expected = 0;
+        for (size_t bit = 0; bit < 64; ++bit) {
+            expected += static_cast<unsigned>((value >> bit) & 1U);
+        }
+        EXPECT_EQ(bitops::popcount64(value), expected) << value;
+    };
+    check(0);
+    check(std::numeric_limits<uint64_t>::max());
+    for (size_t bit = 0; bit < 64; ++bit) {
+        check(uint64_t{1} << bit);
+        check(~(uint64_t{1} << bit));
+    }
+    uint64_t value = 17;
+    for (size_t i = 0; i < 1024; ++i) {
+        value = value * 6364136223846793005ULL + 1442695040888963407ULL;
+        check(value);
+    }
+}
+
+TEST(BitOps, CompactWordLoadsZeroExtendWithoutReadingPastInput) {
+    for (size_t bytes = 1; bytes <= 8; ++bytes) {
+        for (size_t offset : {0U, 1U}) {
+            SCOPED_TRACE(bytes);
+            SCOPED_TRACE(offset);
+            std::vector<uint8_t> storage(bytes + offset);
+            uint64_t expected = 0;
+            for (size_t i = 0; i < bytes; ++i) {
+                const auto value = static_cast<uint8_t>(0x80U + i * 17U);
+                storage[offset + i] = value;
+                expected |= uint64_t{value} << (8 * i);
+            }
+            EXPECT_EQ(bitops::load_word(storage.data() + offset, bytes), expected);
+        }
+    }
+}
+
+TEST(PackBinary, SupportsUnalignedOutput) {
+    constexpr size_t dim = 128;
+    std::array<int, dim> binary_code{};
+    for (size_t i = 0; i < dim; ++i) {
+        binary_code[i] = (i % 3) == 0;
+    }
+
+    alignas(uint64_t) std::array<uint8_t, (2 * sizeof(uint64_t)) + 1> storage{};
+    auto* output = storage.data() + 1;
+    ASSERT_NE(reinterpret_cast<uintptr_t>(output) % alignof(uint64_t), 0U);
+    pack_binary_to_bytes<uint64_t>(binary_code.data(), output, dim);
+
+    const std::array<uint64_t, 2> packed{
+        load_unaligned_u64(storage.data() + 1),
+        load_unaligned_u64(storage.data() + 1 + sizeof(uint64_t)),
+    };
+    for (size_t i = 0; i < dim; ++i) {
+        const size_t word = i / 64;
+        const auto bit = static_cast<int>((packed[word] >> (63 - (i % 64))) & 1U);
+        EXPECT_EQ(bit, binary_code[i]) << "bit " << i;
+    }
+}
+
+TEST(PackBinary, AllWordSizesPreserveFullAndPartialWordLayout) {
+    const auto check = [](auto word_type) {
+        using Word = decltype(word_type);
+        constexpr size_t kWordBits = sizeof(Word) * 8;
+        for (size_t dim : {8U, 16U, 24U, 32U, 48U, 64U, 80U, 96U, 112U, 128U}) {
+            SCOPED_TRACE(kWordBits);
+            SCOPED_TRACE(dim);
+            std::vector<int> signs(dim);
+            // All zeros, all ones, and each isolated bit catch order and tail errors.
+            for (size_t pattern = 0; pattern < dim + 2; ++pattern) {
+                for (size_t i = 0; i < dim; ++i) {
+                    signs[i] = pattern == dim + 1 || i == pattern;
+                }
+                std::vector<uint8_t> output(dim / 8 + 2, 0xA5);
+                pack_binary_to_bytes<Word>(signs.data(), output.data() + 1, dim);
+                EXPECT_EQ(output.front(), 0xA5);
+                EXPECT_EQ(output.back(), 0xA5);
+                for (size_t start = 0; start < dim; start += kWordBits) {
+                    const size_t width = std::min(kWordBits, dim - start);
+                    Word actual = 0;
+                    std::memcpy(&actual, output.data() + 1 + start / 8, width / 8);
+                    for (size_t bit = 0; bit < width; ++bit) {
+                        EXPECT_EQ((actual >> (width - 1 - bit)) & 1U, signs[start + bit]);
+                    }
+                }
+            }
+        }
+    };
+    check(uint8_t{});
+    check(uint16_t{});
+    check(uint32_t{});
+    check(uint64_t{});
+}
+
+TEST(MaskIpX0Q, SupportsUnalignedCodes) {
+    constexpr size_t dim = 128;
+    std::array<int, dim> binary_code{};
+    std::array<float, dim> query{};
+    float expected = 0;
+    for (size_t i = 0; i < dim; ++i) {
+        binary_code[i] = (i % 3) == 0;
+        query[i] = static_cast<float>(i + 1);
+        expected += binary_code[i] != 0 ? query[i] : 0;
+    }
+
+    alignas(uint64_t) std::array<uint8_t, (2 * sizeof(uint64_t)) + 1> storage{};
+    auto* codes = storage.data() + 1;
+    ASSERT_NE(reinterpret_cast<uintptr_t>(codes) % alignof(uint64_t), 0U);
+    pack_binary_to_bytes<uint64_t>(binary_code.data(), codes, dim);
+
+#if defined(__x86_64__) || defined(_M_X64)
+    if (cpu::has_avx2()) {
+        EXPECT_FLOAT_EQ(simd::mask_ip_x0_q_avx2(query.data(), codes, dim), expected);
+    }
+#endif
+#if defined(__x86_64__) || defined(_M_X64)
+    if (cpu::has_avx512_core()) {
+        EXPECT_FLOAT_EQ(simd::mask_ip_x0_q_avx512(query.data(), codes, dim), expected);
+    }
+#endif
+    EXPECT_FLOAT_EQ(mask_ip_x0_q(query.data(), codes, dim), expected);
+}
+
+TEST(WarmupIpX0Q, SupportsUnalignedCodes) {
+    constexpr float delta = 0.5F;
+    constexpr float vl = -0.25F;
+    for (size_t dim :
+         {0UL,
+          64UL,
+          96UL,
+          128UL,
+          160UL,
+          192UL,
+          224UL,
+          256UL,
+          288UL,
+          448UL,
+          512UL,
+          544UL,
+          576UL}) {
+        SCOPED_TRACE(dim);
+        std::vector<int> data_bits(dim);
+        size_t data_popcount = 0;
+        for (size_t i = 0; i < dim; ++i) {
+            data_bits[i] = (i % 3) == 0;
+            data_popcount += data_bits[i] != 0;
+        }
+
+        std::vector<uint8_t> storage((dim / 8) + 1);
+        auto* codes = storage.data() + 1;
+        ASSERT_NE(reinterpret_cast<uintptr_t>(codes) % alignof(uint64_t), 0U);
+        pack_binary_to_bytes<uint64_t>(data_bits.data(), codes, dim);
+
+        for (size_t b_query = 0; b_query <= 8; ++b_query) {
+            SCOPED_TRACE(b_query);
+            std::vector<uint8_t> query_values(dim);
+            size_t weighted_intersection = 0;
+            for (size_t i = 0; i < dim; ++i) {
+                query_values[i] =
+                    static_cast<uint8_t>((i * 37 + 11) & ((1U << b_query) - 1));
+                if (data_bits[i] != 0) {
+                    weighted_intersection += query_values[i];
+                }
+            }
+
+            std::vector<uint64_t> query(((dim + 63) / 64) * b_query, 0);
+            size_t query_offset = 0;
+            for (size_t block = 0; block < dim; block += 512) {
+                const size_t block_dim = (dim - block < 512) ? dim - block : 512;
+                const size_t chunks = (block_dim + 63) / 64;
+                for (size_t bit = 0; bit < b_query; ++bit) {
+                    for (size_t chunk = 0; chunk < chunks; ++chunk) {
+                        uint64_t packed = 0;
+                        const size_t width = std::min(size_t{64}, block_dim - chunk * 64);
+                        for (size_t k = 0; k < width; ++k) {
+                            const size_t i = block + chunk * 64 + k;
+                            packed |= static_cast<uint64_t>((query_values[i] >> bit) & 1U)
+                                      << (width - 1 - k);
+                        }
+                        query[query_offset + bit * chunks + chunk] = packed;
+                    }
+                }
+                query_offset += chunks * b_query;
+            }
+
+            const float expected = delta * static_cast<float>(weighted_intersection) +
+                                   vl * static_cast<float>(data_popcount);
+#if defined(__x86_64__) || defined(_M_X64)
+            if (cpu::has_avx2()) {
+                EXPECT_FLOAT_EQ(
+                    simd::warmup_ip_x0_q_512_avx2(
+                        codes, query.data(), delta, vl, dim, b_query
+                    ),
+                    expected
+                );
+                EXPECT_FLOAT_EQ(
+                    warmup_ip_x0_q_512(codes, query.data(), delta, vl, dim, b_query),
+                    expected
+                );
+            }
+#endif
+#if defined(__x86_64__) || defined(_M_X64)
+            if (cpu::has_avx512_popcnt()) {
+                EXPECT_FLOAT_EQ(
+                    simd::warmup_ip_x0_q_512_avx512(
+                        codes, query.data(), delta, vl, dim, b_query
+                    ),
+                    expected
+                );
+            }
+#endif
+        }
+    }
+}
+
+TEST(WarmupIpX0Q, RejectsQueryWidthsBeyondByte) {
+    const std::array<uint8_t, 8> data{};
+    const std::array<uint64_t, 9> query{};
+#if defined(__x86_64__) || defined(_M_X64)
+    if (cpu::has_avx2()) {
+        EXPECT_THROW(
+            simd::warmup_ip_x0_q_512_avx2(data.data(), query.data(), 1.0F, 0.0F, 64, 9),
+            std::invalid_argument
+        );
+    }
+#endif
+#if defined(__x86_64__) || defined(_M_X64)
+    if (cpu::has_avx512_popcnt()) {
+        EXPECT_THROW(
+            simd::warmup_ip_x0_q_512_avx512(data.data(), query.data(), 1.0F, 0.0F, 64, 9),
+            std::invalid_argument
+        );
+    }
+#endif
+}
+
+TEST(Select_IP_Func, returns_stable_function_pointer) {
+    auto ip_func = select_excode_ipfunc(0);
+    ASSERT_NE(ip_func, nullptr);
+    ASSERT_EQ(ip_func, select_excode_ipfunc(0));
+
+    ip_func = select_excode_ipfunc(1);
+    ASSERT_NE(ip_func, nullptr);
+    ASSERT_EQ(ip_func, select_excode_ipfunc(1));
+
+    ip_func = select_excode_ipfunc(2);
+    ASSERT_NE(ip_func, nullptr);
+    ASSERT_EQ(ip_func, select_excode_ipfunc(2));
+
+    ip_func = select_excode_ipfunc(3);
+    ASSERT_NE(ip_func, nullptr);
+    ASSERT_EQ(ip_func, select_excode_ipfunc(3));
+
+    ip_func = select_excode_ipfunc(4);
+    ASSERT_NE(ip_func, nullptr);
+    ASSERT_EQ(ip_func, select_excode_ipfunc(4));
+
+    ip_func = select_excode_ipfunc(5);
+    ASSERT_NE(ip_func, nullptr);
+    ASSERT_EQ(ip_func, select_excode_ipfunc(5));
+
+    ip_func = select_excode_ipfunc(6);
+    ASSERT_NE(ip_func, nullptr);
+    ASSERT_EQ(ip_func, select_excode_ipfunc(6));
+
+    ip_func = select_excode_ipfunc(7);
+    ASSERT_NE(ip_func, nullptr);
+    ASSERT_EQ(ip_func, select_excode_ipfunc(7));
+
+    ip_func = select_excode_ipfunc(8);
+    ASSERT_NE(ip_func, nullptr);
+#if defined(__x86_64__) || defined(_M_X64)
+    if (cpu::has_avx512_core()) {
+        ASSERT_EQ(ip_func, simd::excode_ipimpl::ip16_fxu8_avx512);
+    } else if (cpu::has_avx2()) {
+        ASSERT_EQ(ip_func, simd::excode_ipimpl::ip16_fxu8_avx2);
+    }
+#endif
+}
+
+TEST(Select_IP_Func, zero_ex_bits_contributes_nothing) {
+    constexpr size_t dim = 64;
+    std::vector<float> query(dim);
+    std::vector<uint8_t> codes(dim / 8);
+
+    for (size_t i = 0; i < dim; ++i) {
+        query[i] = static_cast<float>(i) + 1.0F;
+    }
+    for (size_t i = 0; i < codes.size(); ++i) {
+        codes[i] = 0xFF;
+    }
+
+    ex_ipfunc ip_func = select_excode_ipfunc(0);
+    ASSERT_NE(ip_func, nullptr);
+    ASSERT_EQ(ip_func(query.data(), codes.data(), dim), 0.0F);
+}
+
+constexpr size_t kScalarQuantizeTestDim = 33;
+
+TEST(ScalarQuantize, HalfValuesMatchScalarAcrossVectorBoundaries) {
+    constexpr size_t dim = kScalarQuantizeTestDim;
+    const std::array<float, 9> values{
+        0.5F,
+        1.5F,
+        2.5F,
+        3.5F,
+        4.5F,
+        std::nextafter(2.5F, 0.0F),
+        std::nextafter(2.5F, std::numeric_limits<float>::infinity()),
+        125.5F,
+        126.5F,
+    };
+    std::array<float, dim> input{};
+    std::array<uint8_t, dim> expected8{};
+    std::array<uint16_t, dim> expected16{};
+    for (size_t i = 0; i < dim; ++i) {
+        input[i] = (i == 8 || i == 16 || i == 32) ? 2.5F : values[i % values.size()];
+        expected8[i] = static_cast<uint8_t>(std::round(input[i]));
+        expected16[i] = static_cast<uint16_t>(std::round(input[i]));
+    }
+
+    const auto check = [&](auto quantize8, auto quantize16) {
+        std::array<uint8_t, kScalarQuantizeTestDim> actual8{};
+        std::array<uint16_t, kScalarQuantizeTestDim> actual16{};
+        quantize8(actual8.data(), input.data(), dim, 0.0F, 1.0F);
+        quantize16(actual16.data(), input.data(), dim, 0.0F, 1.0F);
+        EXPECT_EQ(actual8, expected8);
+        EXPECT_EQ(actual16, expected16);
+    };
+
+    check(simd::scalar_quantize_uint8, simd::scalar_quantize_uint16);
+#if defined(__x86_64__) || defined(_M_X64)
+    if (cpu::has_avx2()) {
+        check(simd::scalar_quantize_uint8_avx2, simd::scalar_quantize_uint16_avx2);
+    }
+#endif
+#if defined(__x86_64__) || defined(_M_X64)
+    if (cpu::has_avx512_core()) {
+        check(simd::scalar_quantize_uint8_avx512, simd::scalar_quantize_uint16_avx512);
+    }
+#endif
+}
+
+TEST(ip16_fxu1_avx, ip_works) {
+    constexpr size_t dim = 64;
+    float query[dim];
+    uint8_t codes[dim / 8];
+
+    for (size_t i = 0; i < dim; ++i) {
+        query[i] = static_cast<float>((i * 37 + 11) % 101) * 0.25F;
+    }
+
+    for (size_t i = 0; i < dim / 8; ++i) {
+        codes[i] = static_cast<uint8_t>(i * 53 + 19);
+    }
+
+    float expected = 0.0F;
+    for (size_t i = 0; i < dim; ++i) {
+        expected += query[i] * static_cast<float>((codes[i / 8] >> (i % 8)) & 1U);
+    }
+    ASSERT_NEAR(rabitqlib::excode_ipimpl::ip16_fxu1_avx(query, codes, dim), expected, 0.1F);
+}
+
+TEST(ip64_fxu2_avx, ip_works) {
+    constexpr size_t dim = 64 * 4;
+    float query[dim];
+    uint8_t codes[dim / 4];
+
+    for (size_t i = 0; i < dim; ++i) {
+        query[i] = static_cast<float>((i * 37 + 11) % 101) * 0.25F;
+    }
+
+    for (size_t i = 0; i < dim / 4; ++i) {
+        codes[i] = static_cast<uint8_t>(i * 53 + 19);
+    }
+
+    float expected = 0.0F;
+    for (size_t i = 0; i < dim; ++i) {
+        const uint8_t packed = codes[(i / 64) * 16 + (i % 16)];
+        const auto code = static_cast<uint8_t>((packed >> (2 * ((i % 64) / 16))) & 3U);
+        expected += query[i] * static_cast<float>(code);
+    }
+    ASSERT_NEAR(rabitqlib::excode_ipimpl::ip64_fxu2_avx(query, codes, dim), expected, 0.1F);
+}
+
+TEST(PackBinary, CompactTailWordsMatchBinaryArithmetic) {
+    for (size_t dim : {64U, 96U, 128U, 160U}) {
+        std::vector<int> signs(dim);
+        std::vector<uint16_t> values(dim);
+        std::vector<uint8_t> code(dim / 8 + 1, 0xA5);
+        std::vector<uint64_t> transposed((dim + 63) / 64 * 4);
+        unsigned expected_count = 0, expected_ip = 0;
+        for (size_t i = 0; i < dim; ++i) {
+            signs[i] = i % 3 != 0;
+            values[i] = (i * 7) % 16;
+            expected_count += signs[i];
+            expected_ip += signs[i] * values[i];
+        }
+        pack_binary_to_bytes<uint64_t>(signs.data(), code.data(), dim);
+        EXPECT_EQ(code.back(), 0xA5);
+        const auto* words = reinterpret_cast<const uint64_t*>(code.data());
+        EXPECT_EQ(popcount(words, dim), expected_count);
+        EXPECT_EQ(ip_bin_bin(words, words, dim), expected_count);
+        new_transpose_bin(values.data(), transposed.data(), dim, 4);
+        EXPECT_EQ(ip_x0_q(words, transposed.data(), 1, 0, dim, 4), expected_ip);
+        EXPECT_EQ(
+            rabitqlib::warmup_ip_x0_q<4>(words, transposed.data(), 1, 0, dim), expected_ip
+        );
+    }
+}

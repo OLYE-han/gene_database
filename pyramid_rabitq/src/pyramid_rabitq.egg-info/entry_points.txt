@@ -1,0 +1,3 @@
+[console_scripts]
+pyramid-rabitq = pyramid_rabitq.cli:main
+pyramid-rabitq-server = pyramid_rabitq.api:main

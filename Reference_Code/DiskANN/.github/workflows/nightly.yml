@@ -1,0 +1,150 @@
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT license.
+
+on:
+  schedule:
+    # Run nightly at 2 AM UTC.
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+name: Nightly
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+env:
+  RUST_CONFIG: 'build.rustflags=["-Dwarnings"]'
+  RUST_BACKTRACE: 1
+  CARGO_TERM_COLOR: always
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: read
+
+jobs:
+  clippy-default-features:
+    name: clippy-default-features (macos)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install Rust
+        run: rustup show && rustup component add clippy
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+      - name: "clippy --workspace --all-targets"
+        run: cargo clippy --locked --workspace --all-targets --no-deps --config "$RUST_CONFIG" -- -Dwarnings
+
+  clippy-features:
+    name: clippy-features (macos)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install Rust
+        run: rustup show && rustup component add clippy
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+      - name: "clippy --workspace --all-targets --features"
+        run: |
+          set -euxo pipefail
+          cargo clippy --locked --workspace \
+            --all-targets \
+            --all-features \
+            --no-deps \
+            --config "$RUST_CONFIG" \
+            -- -Dwarnings
+
+  test-workspace:
+    needs:
+      - clippy-default-features
+      - clippy-features
+    name: test workspace (macos)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          lfs: true
+
+      - name: Install Rust
+        run: rustup show
+
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@7623a79cdfecb99d681017af368ca353d9f49bb5 # v2.87.19
+        with:
+          tool: cargo-nextest
+
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+
+      - name: test workspace with nextest
+        run: |
+          set -euxo pipefail
+          cargo nextest run --locked --workspace --config "$RUST_CONFIG"
+          cargo test --locked --doc --workspace --config "$RUST_CONFIG"
+
+  test-workspace-features:
+    needs:
+      - clippy-default-features
+      - clippy-features
+    name: test workspace (macos, all features)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          lfs: true
+
+      - name: Install Rust
+        run: rustup show
+
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@7623a79cdfecb99d681017af368ca353d9f49bb5 # v2.87.19
+        with:
+          tool: cargo-nextest
+
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+
+      - name: test workspace with nextest
+        run: |
+          set -euxo pipefail
+          cargo nextest run --locked --workspace \
+            --all-features \
+            --config "$RUST_CONFIG"
+
+          cargo test --locked --doc --workspace --all-features --config "$RUST_CONFIG"
+
+  miri:
+    name: miri-test
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          lfs: true
+
+      - name: Install Rust nightly with miri
+        run: rustup toolchain install nightly --component miri
+
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@7623a79cdfecb99d681017af368ca353d9f49bb5 # v2.87.19
+        with:
+          tool: cargo-nextest
+
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+
+      - name: miri
+        run: |
+          cargo +nightly miri nextest run --locked \
+              --package diskann-quantization \
+              --package diskann-utils
+        env:
+          MIRIFLAGS: -Zmiri-disable-isolation -Zmiri-strict-provenance
+
+      - name: PiPNN top-k group loads
+        env:
+          MIRIFLAGS: -Zmiri-disable-isolation -Zmiri-strict-provenance
+        # One selection over two full groups and one pair scan over two full groups
+        # reach all three unsafe group loads in the top-k module.
+        run: |
+          cargo +nightly miri test --locked -p diskann --features pipnn --lib -- \
+            graph::pipnn::topk::tests::selection_returns_distinct_candidates_when_distances_tie \
+            graph::pipnn::topk::tests::a_single_pair_updates_exactly_its_two_endpoints::case_1_finite

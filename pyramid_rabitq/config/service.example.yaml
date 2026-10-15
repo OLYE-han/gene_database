@@ -1,0 +1,11 @@
+index_root: /absolute/path/to/pyramid-index
+cache_bytes: 8589934592
+host: 0.0.0.0
+port: 8080
+workers: 1
+top_k_limit: 1000
+partition_workers: 4
+max_inflight_queries: 4
+mmap_indexes: true
+require_native_scan: true
+require_fastscan: true

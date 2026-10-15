@@ -1,0 +1,22 @@
+name: Bug report
+description: Report a bug or installation problem.
+labels: [bug]
+assignees: [gouyt13]
+body:
+  - type: textarea
+    id: behavior
+    attributes:
+      label: What went wrong?
+      description: Tell us what happened and what you expected. Include any error message.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: How can we reproduce it? (optional)
+      description: Share steps or a small code example, if available.
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment (optional)
+      description: Share your RaBitQ version, OS, and how you installed it. Add Python or compiler details if relevant.

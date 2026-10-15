@@ -1,0 +1,962 @@
+/*
+ * Copyright (c) Microsoft Corporation.
+ * Licensed under the MIT license.
+ */
+
+//! Linear algebra operations used by DiskANN.
+
+use std::fmt;
+
+pub mod common;
+pub use common::Transpose;
+
+mod faer;
+use faer::{random_distance_preserving_matrix_impl, sgemm_impl, svd_into_impl};
+use rand::Rng;
+
+/// Matrix identifier for SGEMM operations.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum MatrixName {
+    A,
+    B,
+    C,
+}
+
+impl fmt::Display for MatrixName {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            MatrixName::A => write!(f, "a (m * k)"),
+            MatrixName::B => write!(f, "b (k * n)"),
+            MatrixName::C => write!(f, "c (m * n)"),
+        }
+    }
+}
+
+/// Error type for SGEMM operations.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SgemmError {
+    /// Matrix has incorrect dimensions.
+    InvalidMatrixDimensions {
+        matrix_name: MatrixName,
+        expected_rows: usize,
+        expected_cols: usize,
+        actual_len: usize,
+    },
+    /// Dimension overflow when computing matrix size.
+    DimensionOverflow {
+        matrix_name: MatrixName,
+        rows: usize,
+        cols: usize,
+    },
+}
+
+impl fmt::Display for SgemmError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            SgemmError::InvalidMatrixDimensions {
+                matrix_name,
+                expected_rows,
+                expected_cols,
+                actual_len,
+            } => write!(
+                f,
+                "expected {}x{} matrix {} to have length {}, instead got {}",
+                expected_rows,
+                expected_cols,
+                matrix_name,
+                expected_rows * expected_cols,
+                actual_len
+            ),
+            SgemmError::DimensionOverflow {
+                matrix_name,
+                rows,
+                cols,
+            } => write!(
+                f,
+                "dimension overflow in matrix {}: {} * {} would overflow usize",
+                matrix_name, rows, cols
+            ),
+        }
+    }
+}
+
+impl std::error::Error for SgemmError {}
+
+fn check_matrix(
+    matrix_name: MatrixName,
+    actual_len: usize,
+    rows: usize,
+    cols: usize,
+) -> Result<(), SgemmError> {
+    let expected_len = rows
+        .checked_mul(cols)
+        .ok_or(SgemmError::DimensionOverflow {
+            matrix_name,
+            rows,
+            cols,
+        })?;
+    if actual_len != expected_len {
+        return Err(SgemmError::InvalidMatrixDimensions {
+            matrix_name,
+            expected_rows: rows,
+            expected_cols: cols,
+            actual_len,
+        });
+    }
+    Ok(())
+}
+
+// Make the reference implementation available for internal testing.
+#[cfg(test)]
+mod reference;
+
+/// Matrix-matrix multiplication for implicit row-major matrices `a` and `b` using the
+/// implicit row-major matrix `c` as the destination.
+///
+/// Performs one of the following operations:
+/// ```text
+/// 1. c = [beta * c] + alpha * a * b
+/// 2. c = [beta * c] + alpha * a' * b
+/// 3. c = [beta * c] + alpha * a * b'
+/// 4. c = [beta * c] + alpha * a' * b'
+/// ```
+/// Where `x'` indicates the ordinary transpose of `x`.
+///
+/// If `beta` is `None`, the destination `c` is completely over-written.
+///
+/// * `atranspose`: Whether `a` should be interpreted as an in-place transpose.
+/// * `btranspose`: Whether `b` should be interpreted as an in-place transpose.
+/// * `m`: The number of rows in `c`. Additionally:
+///     - If `!atranspose.is_transpose()`, this is the number of rows in `a`.
+///     - If `atranspose.is_transpose()`, this is the number of rows in `a`.
+/// * `n`: The number of columns `c`. Additionally:
+///     - If `!btranspose.is_transpose()`, this is the number of columns in `b`.
+///     - If `btranspose.is_transpose()`, this is the number of columns in `b`.
+/// * `k`: The number of columns in matrix `a` and the number of rows in matrix `b`.
+/// * `k`: Refer to the following:
+///     - If `!atranspose.is_transpose()`, this is the number of columns in `a`.
+///       Otherwise, this is the number of rows in `a`.
+///     - If `!btranspose.is_transpose()`, this is the number of rows in `b`.
+///       Otherwise, this is the number of columns in `b`.
+/// * `alpha`: Scaling parameter for the operation `a * b`.
+/// * `a`: The matrix `a` with dimension `m x k` (potentially after transposing).
+/// * `b`: The matrix `b` with dimension `k x n` (potentially after transposing).
+/// * `beta`: Optional scaling parameter for the matrix `c`. If `None`, then `c` will be
+///   overwritten entirely.
+/// * `c`: The output matrix with dimension `m x n`.
+///
+/// # Note
+///
+/// This inteface is a simplified version of the full cblas `sgemm` interface, namely that it
+///
+/// 1. Does not support column-major layouts
+/// 2. Does not allow for arbitrary strides in the leading dimension of the matrices.
+///
+/// This is to support the common-case in DiskANN that uses a Row-Major layout and always
+/// uses dense matrices.
+///
+/// If the more esoteric features of the cblas `sgemm` API are needed, we can provide
+/// that as an interface extension.
+///
+/// # Errors
+///
+/// Returns an error if:
+/// * `m * k` would overflow `usize`
+/// * `k * n` would overflow `usize`
+/// * `m * n` would overflow `usize`
+/// * `a.len() != m * k`
+/// * `b.len() != k * n`
+/// * `c.len() != m * n`
+#[expect(clippy::too_many_arguments)]
+pub fn sgemm(
+    atranspose: Transpose,
+    btranspose: Transpose,
+    m: usize,
+    n: usize,
+    k: usize,
+    alpha: f32,
+    a: &[f32],
+    b: &[f32],
+    beta: Option<f32>,
+    c: &mut [f32],
+) -> Result<(), SgemmError> {
+    check_matrix(MatrixName::A, a.len(), m, k)?;
+    check_matrix(MatrixName::B, b.len(), k, n)?;
+    check_matrix(MatrixName::C, c.len(), m, n)?;
+
+    // Invoke the actual implementation.
+    sgemm_impl(atranspose, btranspose, m, n, k, alpha, a, b, beta, c);
+    Ok(())
+}
+
+/// Replace the lower triangle of `C` with $\alpha A A^\mathsf{T}$.
+///
+/// `A` is a dense row-major $m \times k$ matrix. `C` is a dense row-major
+/// $m \times m$ matrix backed by exactly `m * m` elements. The function does not
+/// change the upper triangle of `C`. Use this operation when `C` has no prior term.
+///
+/// # Errors
+///
+/// Returns an error if a size product overflows. It also returns an error if a
+/// slice length does not match its declared matrix shape.
+pub fn sgemm_aat_lower(
+    m: usize,
+    k: usize,
+    alpha: f32,
+    a: &[f32],
+    c: &mut [f32],
+) -> Result<(), SgemmError> {
+    check_matrix(MatrixName::A, a.len(), m, k)?;
+    check_matrix(MatrixName::C, c.len(), m, m)?;
+
+    faer::sgemm_aat_lower_impl(m, k, alpha, a, c);
+    Ok(())
+}
+
+/// Add the lower triangle of $\alpha A A^\mathsf{T}$ to `C`.
+///
+/// `A` is a dense row-major $m \times k$ matrix. `C` is a dense row-major
+/// $m \times m$ matrix backed by exactly `m * m` elements. The function changes
+/// only the lower triangle of `C`. Use this operation when `C` contains an initial term.
+///
+/// # Errors
+///
+/// Returns an error if a size product overflows. It also returns an error if a
+/// slice length does not match its declared matrix shape.
+pub fn sgemm_aat_lower_add(
+    m: usize,
+    k: usize,
+    alpha: f32,
+    a: &[f32],
+    c: &mut [f32],
+) -> Result<(), SgemmError> {
+    check_matrix(MatrixName::A, a.len(), m, k)?;
+    check_matrix(MatrixName::C, c.len(), m, m)?;
+
+    faer::sgemm_aat_lower_add_impl(m, k, alpha, a, c);
+    Ok(())
+}
+
+/// Compute the SVD of the provided matrix implicit row-major matrix `data`.
+///
+/// * `m`: The number of rows in `a`.
+/// * `n`: The number of columns in `a`.
+/// * `a`: The data matrix to decompose with dimensiuon `m x n` stored in Row-Major order [Note 1].
+/// * `singular_values`: Contains the singular values of `a` sorted so that
+///   `singular_values[i] ≥ singular_values[i+1]`.
+/// * `u`: Contains the `m x m` unitary matrix in Row-Major order.
+/// * `vt`: Contains the `n x n` unitary matrix in Column-Major order [Note 2].
+///
+/// # Notes
+///
+/// 1. Due to the contract offered by `lapacke`, callers of this function must assume that
+///    the contents of `a` are left in an undefined state after this function.
+///
+///    See: <https://netlib.org/lapack/explore-html//df/d22/group__gesdd_gab9ffdde22b38f0cc442e44cbea23818f.html>
+///
+/// 2. Similar to #1, the restriction that `vt` is transposed is a lapack byproduct.
+///
+/// # Panics
+///
+/// Panics if
+///
+/// * `a.len() != m * n`
+/// * `singular_values.len() != min(m, n)`
+/// * `u.len() != m * m`.
+/// * `vt.len() != n * n`.
+///
+/// Additionally, if MKL is used, panics if any either `m` or `n` is not representable
+/// as a signed 32-bit integer due to `cblas` limitations.
+pub fn svd_into(
+    m: usize,
+    n: usize,
+    a: &mut [f32],
+    singular_values: &mut [f32],
+    u: &mut [f32],
+    vt: &mut [f32],
+) -> Result<(), impl std::error::Error + 'static> {
+    // Check size requirements.
+    assert_eq!(a.len(), m * n);
+    assert_eq!(singular_values.len(), m.min(n));
+    assert_eq!(u.len(), m * m);
+    assert_eq!(vt.len(), n * n);
+
+    // Invoke the actual implementation.
+    svd_into_impl(m, n, a, singular_values, u, vt)
+}
+
+/// Construct a random `dim x dim` distance preserving matrix.
+///
+/// Practically speaking, the returned matrix should be orthogonal with a determinant of
+/// either +1 or -1.
+pub fn random_distance_preserving_matrix<T: Rng + ?Sized>(dim: usize, rng: &mut T) -> Vec<f32> {
+    random_distance_preserving_matrix_impl(dim, rng)
+}
+
+#[cfg(test)]
+mod tests {
+    use approx::{assert_abs_diff_eq, assert_relative_eq};
+    use rand::{distr::Distribution, rngs::StdRng, SeedableRng};
+    use rand_distr::StandardNormal;
+    use serde::Deserialize;
+
+    use super::*;
+    use crate::reference;
+
+    ////////////////////////
+    // Simple SGEMM tests //
+    ////////////////////////
+
+    #[test]
+    fn test_reference_implementation() {
+        let problems = reference::test_sgemm_problems();
+        for (i, problem) in problems.iter().enumerate() {
+            let result = problem.check(sgemm);
+            if let Err(err) = result {
+                panic!("{} on iteration {}. Problem: {:?}", err, i, problem);
+            }
+        }
+    }
+
+    #[test]
+    fn test_sgemm_invalid_matrix_a_dimensions() {
+        let mut c = [0.0f32; 6];
+        let err = sgemm(
+            Transpose::None,
+            Transpose::None,
+            2,
+            3,
+            4,
+            1.0,
+            &[0.0; 5], // Should be 2 * 4 = 8
+            &[0.0; 12],
+            None,
+            &mut c,
+        )
+        .unwrap_err();
+
+        assert_eq!(
+            err.to_string(),
+            "expected 2x4 matrix a (m * k) to have length 8, instead got 5"
+        );
+    }
+
+    #[test]
+    fn test_sgemm_invalid_matrix_b_dimensions() {
+        let mut c = [0.0f32; 6];
+        let err = sgemm(
+            Transpose::None,
+            Transpose::None,
+            2,
+            3,
+            4,
+            1.0,
+            &[0.0; 8],
+            &[0.0; 10], // Should be 4 * 3 = 12
+            None,
+            &mut c,
+        )
+        .unwrap_err();
+
+        assert_eq!(
+            err.to_string(),
+            "expected 4x3 matrix b (k * n) to have length 12, instead got 10"
+        );
+    }
+
+    #[test]
+    fn test_sgemm_invalid_matrix_c_dimensions() {
+        let mut c = [0.0f32; 5]; // Should be 2 * 3 = 6
+        let err = sgemm(
+            Transpose::None,
+            Transpose::None,
+            2,
+            3,
+            4,
+            1.0,
+            &[0.0; 8],
+            &[0.0; 12],
+            None,
+            &mut c,
+        )
+        .unwrap_err();
+
+        assert_eq!(
+            err.to_string(),
+            "expected 2x3 matrix c (m * n) to have length 6, instead got 5"
+        );
+    }
+
+    #[test]
+    fn test_sgemm_m_times_k_overflow() {
+        let mut c = [0.0f32];
+        let err = sgemm(
+            Transpose::None,
+            Transpose::None,
+            usize::MAX,
+            1,
+            2,
+            1.0,
+            &[],
+            &[0.0],
+            None,
+            &mut c,
+        )
+        .unwrap_err();
+
+        assert_eq!(
+            err.to_string(),
+            format!(
+                "dimension overflow in matrix a (m * k): {} * 2 would overflow usize",
+                usize::MAX
+            )
+        );
+    }
+
+    #[test]
+    fn test_sgemm_k_times_n_overflow() {
+        let mut c = vec![0.0f32; 10];
+        let err = sgemm(
+            Transpose::None,
+            Transpose::None,
+            1,
+            usize::MAX,
+            10,
+            1.0,
+            &[0.0f32; 10],
+            &[],
+            None,
+            &mut c,
+        )
+        .unwrap_err();
+
+        assert_eq!(
+            err.to_string(),
+            format!(
+                "dimension overflow in matrix b (k * n): 10 * {} would overflow usize",
+                usize::MAX
+            )
+        );
+    }
+
+    #[test]
+    fn test_sgemm_m_times_n_overflow() {
+        let mut c = [];
+        let err = sgemm(
+            Transpose::None,
+            Transpose::None,
+            2,
+            usize::MAX,
+            0,
+            1.0,
+            &[],
+            &[],
+            None,
+            &mut c,
+        )
+        .unwrap_err();
+
+        assert_eq!(
+            err.to_string(),
+            format!(
+                "dimension overflow in matrix c (m * n): 2 * {} would overflow usize",
+                usize::MAX
+            )
+        );
+    }
+
+    /// This test ensures the Result type doesn't grow unexpectedly.
+    /// A large Result size increases stack usage even for the Ok(()) case.
+    #[test]
+    fn test_sgemm_result_size() {
+        let mut c = [0.0f32; 6];
+        let result = sgemm(
+            Transpose::None,
+            Transpose::None,
+            2,
+            3,
+            4,
+            1.0,
+            &[0.0; 5],
+            &[0.0; 12],
+            None,
+            &mut c,
+        );
+
+        let result_size = std::mem::size_of_val(&result);
+        const EXPECTED_RESULT_SIZE: usize = 32;
+        assert_eq!(
+            result_size, EXPECTED_RESULT_SIZE,
+            "Result size is {} bytes, does not match the expected size of {} bytes.",
+            result_size, EXPECTED_RESULT_SIZE
+        );
+    }
+
+    ///////////////
+    // SVD Tests //
+    ///////////////
+
+    fn test_file_path(name: &str) -> String {
+        format!("{}/test_data/{}", env!("CARGO_MANIFEST_DIR"), name)
+    }
+
+    /// The generate set of reference SVD input files.
+    const SVD_INPUT_FILE: &str = "reference_svd_inputs.json";
+
+    #[derive(Deserialize, Debug)]
+    struct SVDTestCase {
+        m: usize,
+        n: usize,
+        matrix: Vec<f32>,
+        singular_values: Vec<f32>,
+    }
+
+    impl SVDTestCase {
+        fn summary(&self) -> String {
+            format!("svd test case with dimension {}x{}", self.m, self.n)
+        }
+    }
+
+    struct SVDTolerance {
+        absolute: f32,
+        relative: f32,
+    }
+
+    impl SVDTolerance {
+        fn check(&self, absolute: f32, relative: f32) -> bool {
+            absolute <= self.absolute || relative <= self.relative
+        }
+    }
+
+    fn materialize_singular_values(singular_values: &[f32], m: usize, n: usize) -> Vec<f32> {
+        assert_eq!(singular_values.len(), m.min(n));
+        let mut output = vec![0.0; m * n];
+
+        for (i, &s) in singular_values.iter().enumerate() {
+            output[n * i + i] = s;
+        }
+        output
+    }
+
+    fn test_svd(
+        case: &SVDTestCase,
+        singular_value_tolerance: &SVDTolerance,
+        reconstructed_tolerance: &SVDTolerance,
+        context: &dyn std::fmt::Display,
+    ) {
+        // Create the output matrices.
+        let mut singular_values = vec![0.0; case.m.min(case.n)];
+        let mut u = vec![0.0; case.m * case.m];
+        let mut vt = vec![0.0; case.n * case.n];
+
+        svd_into(
+            case.m,
+            case.n,
+            &mut case.matrix.clone(),
+            &mut singular_values,
+            &mut u,
+            &mut vt,
+        )
+        .unwrap();
+
+        // Check the resulting singular values.
+        for (i, (&got, &expected)) in
+            std::iter::zip(singular_values.iter(), case.singular_values.iter()).enumerate()
+        {
+            let diff = (got - expected).abs();
+            let relative = diff / expected;
+            assert!(
+                singular_value_tolerance.check(diff, relative),
+                "got {} but expected {} (diff: {}, relative: {}) at position {}: {}",
+                got,
+                expected,
+                diff,
+                relative,
+                i,
+                context
+            );
+        }
+
+        // Test the reconstruction.
+        let full_singular_values = materialize_singular_values(&singular_values, case.m, case.n);
+        let mut temp = vec![0.0; case.m * case.n];
+
+        // Multiply `u * singular_values`.
+        sgemm(
+            Transpose::None,
+            Transpose::None,
+            case.m,
+            case.n,
+            case.m,
+            1.0,
+            &u,
+            &full_singular_values,
+            None,
+            &mut temp,
+        )
+        .unwrap();
+
+        let mut output = vec![0.0; case.m * case.n];
+        sgemm(
+            Transpose::None,
+            Transpose::None,
+            case.m,
+            case.n,
+            case.n,
+            1.0,
+            &temp,
+            &vt,
+            None,
+            &mut output,
+        )
+        .unwrap();
+
+        for row in 0..case.m {
+            for col in 0..case.n {
+                let got = output[case.n * row + col];
+                let expected = case.matrix[case.n * row + col];
+                let diff = (got - expected).abs();
+                let relative = diff / expected;
+                assert!(
+                    reconstructed_tolerance.check(diff, relative),
+                    "mismatch in reconstructed matrix at (row, col) = ({}, {}). \
+                     Got {}, expected {} (diff: {}, relative: {}). {}",
+                    row,
+                    col,
+                    got,
+                    expected,
+                    diff,
+                    relative,
+                    context
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn test_svd_implementation() {
+        let path = test_file_path(SVD_INPUT_FILE);
+        let file = std::fs::File::open(path.clone())
+            .unwrap_or_else(|_| panic!("failed to open file {path}"));
+
+        let reader = std::io::BufReader::new(file);
+        let cases: Vec<SVDTestCase> = serde_json::from_reader(reader).unwrap();
+
+        let singular_values_tolerance = SVDTolerance {
+            absolute: 2.0e-6,
+            relative: 3.0e-6,
+        };
+
+        let reconstructed_tolerance = SVDTolerance {
+            absolute: 5.0e-5,
+            relative: 0.0,
+        };
+
+        for (i, case) in cases.iter().enumerate() {
+            let context = format!(
+                "while processing case {} of {}: {}",
+                i + 1,
+                cases.len(),
+                case.summary()
+            );
+            test_svd(
+                case,
+                &singular_values_tolerance,
+                &reconstructed_tolerance,
+                &context,
+            );
+        }
+    }
+
+    ///////////////////////////
+    // Rotation Matrix Tests //
+    ///////////////////////////
+
+    const EPSILON: f32 = 1e-5;
+
+    fn test_distance_preserving_matrix_impl(dim: usize, rng: &mut StdRng) {
+        // Construct the distance preserving matrix.
+        let q = random_distance_preserving_matrix(dim, rng);
+
+        // Check that `q * q'` is close to the identity matrix.
+        let qm = ::faer::mat::MatRef::from_row_major_slice(&q, dim, dim);
+        let m = qm * qm.transpose();
+
+        for j in 0..dim {
+            for i in 0..dim {
+                if i == j {
+                    assert_abs_diff_eq!(m[(i, j)], 1.0, epsilon = EPSILON);
+                } else {
+                    assert_abs_diff_eq!(m[(i, j)], 0.0, epsilon = EPSILON);
+                }
+            }
+        }
+
+        // Instead of explicitly checking the determinant, we sample using 100 randomly
+        // generated vectors, verifying that the norms are unchanged.
+        const RANDOM_TRIALS: usize = 100;
+        let mut v = vec![0.0f32; dim];
+        for _ in 0..RANDOM_TRIALS {
+            v.iter_mut()
+                .for_each(|i| *i = StandardNormal {}.sample(rng));
+            let vm = ::faer::mat::MatRef::from_row_major_slice(&v, dim, 1);
+            let v_norm = vm.squared_norm_l2();
+            let t = qm * vm;
+            let t_norm = t.squared_norm_l2();
+
+            assert_relative_eq!(v_norm, t_norm, epsilon = EPSILON, max_relative = EPSILON);
+            assert_ne!(vm, t);
+        }
+    }
+
+    #[test]
+    fn test_rotation_matrix() {
+        let mut rng = StdRng::seed_from_u64(0xc0ff33);
+        let num_trials = 5;
+        for dim in [2, 100, 256] {
+            for _ in 0..num_trials {
+                test_distance_preserving_matrix_impl(dim, &mut rng);
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod sgemm_aat_lower_tests {
+    use super::*;
+
+    type LowerProduct = fn(usize, usize, f32, &[f32], &mut [f32]) -> Result<(), SgemmError>;
+
+    fn assert_lower_product_matches_scalar(
+        shape: (usize, usize),
+        alpha: f32,
+        input: &[f32],
+        previous: &[f32],
+        output: &[f32],
+        add: bool,
+    ) {
+        let (rows, dimensions) = shape;
+        for row in 0..rows {
+            for column in 0..rows {
+                let index = row * rows + column;
+                if column > row {
+                    assert_eq!(
+                        output[index], previous[index],
+                        "shape={shape:?}, alpha={alpha}, add={add}, upper ({row},{column})"
+                    );
+                } else {
+                    let dot: f32 = (0..dimensions)
+                        .map(|dimension| {
+                            input[row * dimensions + dimension]
+                                * input[column * dimensions + dimension]
+                        })
+                        .sum();
+                    let expected = alpha * dot + if add { previous[index] } else { 0.0 };
+                    assert_eq!(
+                        output[index], expected,
+                        "shape={shape:?}, alpha={alpha}, add={add}, lower ({row},{column})"
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn scaled_products_change_only_the_diagonal_and_lower_triangle() {
+        for (name, operation, expected) in [
+            (
+                "replace",
+                sgemm_aat_lower as LowerProduct,
+                [-8.0, 101.0, 102.0, 8.0, -26.0, 103.0, 12.0, -36.0, -50.0],
+            ),
+            (
+                "add",
+                sgemm_aat_lower_add as LowerProduct,
+                [2.0, 101.0, 102.0, 28.0, 4.0, 103.0, 52.0, 14.0, 10.0],
+            ),
+        ] {
+            // Rows [2,0], [-2,3], [-3,4] have lower Gram entries 4,-4,13,-6,18,25.
+            let input = [2.0, 0.0, -2.0, 3.0, -3.0, 4.0];
+            let mut output = [10.0, 101.0, 102.0, 20.0, 30.0, 103.0, 40.0, 50.0, 60.0];
+
+            operation(3, 2, -2.0, &input, &mut output)
+                .unwrap_or_else(|error| panic!("{name}: {error}"));
+
+            assert_eq!(output, expected, "{name}");
+        }
+    }
+
+    #[test]
+    fn rectangular_inputs_match_scalar_dot_products() {
+        for (rows, dimensions) in [(1, 1), (3, 0), (3, 7)] {
+            for (mode, operation, add) in [
+                ("replace", sgemm_aat_lower as LowerProduct, false),
+                ("add", sgemm_aat_lower_add as LowerProduct, true),
+            ] {
+                let alpha = -2.0;
+                let input: Vec<_> = (0..rows * dimensions)
+                    .map(|i| (i % 9) as f32 - 4.0)
+                    .collect();
+                let previous: Vec<_> = (0..rows * rows).map(|i| 100.0 + i as f32).collect();
+                let mut output = previous.clone();
+
+                operation(rows, dimensions, alpha, &input, &mut output).unwrap_or_else(|error| {
+                    panic!("{mode}, rows={rows}, dimensions={dimensions}: {error}")
+                });
+
+                assert_lower_product_matches_scalar(
+                    (rows, dimensions),
+                    alpha,
+                    &input,
+                    &previous,
+                    &output,
+                    add,
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn large_dense_inputs_match_scalar_dot_products() {
+        use rand::{rngs::StdRng, SeedableRng};
+
+        for (name, operation, add) in [
+            ("replace", sgemm_aat_lower as LowerProduct, false),
+            ("add", sgemm_aat_lower_add as LowerProduct, true),
+        ] {
+            // One representative dense input checks the wrapper's row-major wiring.
+            let shape = (129, 1536);
+            let (rows, dimensions) = shape;
+            let alpha = -2.0;
+            let mut rng = StdRng::seed_from_u64(1287);
+            // Bounded multiples of 1/8 keep products and sums exact in f32.
+            let mut input: Vec<_> = (0..rows * dimensions)
+                .map(|_| rng.random_range(-16..=16) as f32 / 8.0)
+                .collect();
+            for (row, values) in input.chunks_exact_mut(dimensions).enumerate() {
+                values[dimensions - 1] = 8.0 + (row % 7) as f32;
+            }
+            let previous: Vec<_> = (0..rows * rows).map(|i| (i % 97) as f32 - 48.0).collect();
+            let mut output = previous.clone();
+
+            operation(rows, dimensions, alpha, &input, &mut output)
+                .unwrap_or_else(|error| panic!("{name}: {error}"));
+
+            assert_lower_product_matches_scalar(shape, alpha, &input, &previous, &output, add);
+        }
+    }
+
+    #[test]
+    fn replacement_does_not_read_old_lower_triangle_values() {
+        let input = [1.0, 2.0, -3.0, 4.0];
+        let mut output = [f32::NAN, 17.0, f32::NAN, f32::NAN];
+
+        sgemm_aat_lower(2, 2, 1.0, &input, &mut output).unwrap();
+
+        assert_eq!(output, [5.0, 17.0, 5.0, 25.0]);
+    }
+
+    #[test]
+    fn zero_scale_respects_the_accumulation_mode() {
+        for (name, operation, expected) in [
+            (
+                "replace",
+                sgemm_aat_lower as LowerProduct,
+                [0.0, 17.0, 0.0, 0.0],
+            ),
+            (
+                "add",
+                sgemm_aat_lower_add as LowerProduct,
+                [3.0, 17.0, 5.0, 7.0],
+            ),
+        ] {
+            let mut output = [3.0, 17.0, 5.0, 7.0];
+
+            operation(2, 1, 0.0, &[2.0, 4.0], &mut output)
+                .unwrap_or_else(|error| panic!("{name}: {error}"));
+
+            assert_eq!(output, expected, "{name}");
+        }
+    }
+
+    #[test]
+    fn empty_matrices_require_no_storage() {
+        for (name, operation) in [
+            ("replace", sgemm_aat_lower as LowerProduct),
+            ("add", sgemm_aat_lower_add as LowerProduct),
+        ] {
+            assert_eq!(operation(0, 3, 2.0, &[], &mut []), Ok(()), "{name}");
+        }
+    }
+
+    #[test]
+    fn length_mismatch_reports_the_matrix_and_preserves_output() {
+        for (name, input_len, output_len, matrix_name, expected_rows, expected_cols, actual_len) in [
+            ("short_input", 3, 4, MatrixName::A, 2, 2, 3),
+            ("long_input", 5, 4, MatrixName::A, 2, 2, 5),
+            ("short_output", 4, 3, MatrixName::C, 2, 2, 3),
+            ("long_output", 4, 5, MatrixName::C, 2, 2, 5),
+        ] {
+            for (mode, operation) in [
+                ("replace", sgemm_aat_lower as LowerProduct),
+                ("add", sgemm_aat_lower_add as LowerProduct),
+            ] {
+                let input = vec![1.0; input_len];
+                let mut output = vec![19.0; output_len];
+
+                let Err(error) = operation(2, 2, 1.0, &input, &mut output) else {
+                    panic!("{name}, {mode}: expected a length error");
+                };
+
+                assert_eq!(
+                    error,
+                    SgemmError::InvalidMatrixDimensions {
+                        matrix_name,
+                        expected_rows,
+                        expected_cols,
+                        actual_len
+                    },
+                    "{name}, {mode}"
+                );
+                assert_eq!(output, vec![19.0; output_len], "{name}, {mode}");
+            }
+        }
+    }
+
+    #[test]
+    fn shape_overflow_reports_the_matrix_and_preserves_output() {
+        for (name, rows, dimensions, matrix_name, error_rows, error_cols) in [
+            ("input", usize::MAX, 2, MatrixName::A, usize::MAX, 2),
+            (
+                "output",
+                usize::MAX,
+                0,
+                MatrixName::C,
+                usize::MAX,
+                usize::MAX,
+            ),
+        ] {
+            for (mode, operation) in [
+                ("replace", sgemm_aat_lower as LowerProduct),
+                ("add", sgemm_aat_lower_add as LowerProduct),
+            ] {
+                let mut output = [23.0, 29.0];
+
+                let Err(error) = operation(rows, dimensions, 1.0, &[], &mut output) else {
+                    panic!("{name}, {mode}: expected an overflow error");
+                };
+
+                assert_eq!(
+                    error,
+                    SgemmError::DimensionOverflow {
+                        matrix_name,
+                        rows: error_rows,
+                        cols: error_cols
+                    },
+                    "{name}, {mode}"
+                );
+                assert_eq!(output, [23.0, 29.0], "{name}, {mode}");
+            }
+        }
+    }
+}

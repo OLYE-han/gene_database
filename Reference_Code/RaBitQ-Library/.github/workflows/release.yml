@@ -1,0 +1,322 @@
+name: Release wheels
+
+on:
+  push:
+    tags:
+      - "v*"
+  pull_request:
+    branches: ["main", "master"]
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Test", "Python Wheel"]
+    types: [completed]
+    branches: ["main"]
+
+concurrency:
+  group: release-${{ github.event.pull_request.number || github.event.workflow_run.head_sha || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    uses: ./.github/workflows/changes.yml
+
+  prepare:
+    name: Check release eligibility
+    if: >-
+      github.event_name != 'workflow_run' ||
+      (github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: read
+    outputs:
+      sha: ${{ steps.release.outputs.sha }}
+      tag: ${{ steps.release.outputs.tag }}
+      build: ${{ steps.release.outputs.build }}
+      publish: ${{ steps.release.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - name: Determine release version and check CI
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python .github/scripts/prepare_release.py
+
+  linux-wheel-build:
+    name: Linux x86-64 ${{ matrix.abi }} wheel
+    needs: [prepare, changes]
+    if: >-
+      !cancelled() && needs.prepare.result == 'success' &&
+      needs.prepare.outputs.build == 'true' &&
+      (needs.changes.result != 'success' || needs.changes.outputs.wheels == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        abi: ${{ fromJSON(github.event_name == 'pull_request' && '["cp311","cp314"]' || '["cp311","cp312","cp313","cp314"]') }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - name: Build and test wheel
+        uses: pypa/cibuildwheel@v4.2.0
+        env:
+          CIBW_BUILD: ${{ matrix.abi }}-manylinux_x86_64
+        with:
+          output-dir: wheelhouse
+      - name: Store wheel artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: linux-${{ matrix.abi }}-wheels
+          path: wheelhouse/*.whl
+          if-no-files-found: error
+
+  linux-wheels:
+    # Preserve the required check name and include every selected ABI.
+    name: Linux x86-64 wheels
+    needs: linux-wheel-build
+    if: ${{ always() && !cancelled() && needs.linux-wheel-build.result != 'skipped' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require all selected wheels
+        env:
+          BUILD_RESULT: ${{ needs.linux-wheel-build.result }}
+        run: test "$BUILD_RESULT" = success
+
+  linux-arm64-wheel-build:
+    name: Linux ARM64 ${{ matrix.abi }} wheel
+    needs: [prepare, changes]
+    if: >-
+      !cancelled() && needs.prepare.result == 'success' &&
+      needs.prepare.outputs.build == 'true' &&
+      (needs.changes.result != 'success' || needs.changes.outputs.wheels == 'true')
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        abi: ${{ fromJSON(github.event_name == 'pull_request' && '["cp311","cp314"]' || '["cp311","cp312","cp313","cp314"]') }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - name: Verify native ARM64 runner
+        run: test "$(uname -m)" = aarch64
+      - name: Build and test repaired wheel
+        uses: pypa/cibuildwheel@v4.2.0
+        env:
+          CIBW_BUILD: ${{ matrix.abi }}-manylinux_aarch64
+        with:
+          output-dir: wheelhouse
+      - name: Store wheel artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: linux-arm64-${{ matrix.abi }}-wheels
+          path: wheelhouse/*.whl
+          if-no-files-found: error
+
+  linux-arm64-wheels:
+    name: Linux ARM64 wheels (CPython 3.11–3.14)
+    needs: linux-arm64-wheel-build
+    if: ${{ always() && !cancelled() && needs.linux-arm64-wheel-build.result != 'skipped' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require all selected wheels
+        env:
+          BUILD_RESULT: ${{ needs.linux-arm64-wheel-build.result }}
+        run: test "$BUILD_RESULT" = success
+
+  windows-wheel-build:
+    name: Windows x86-64 ${{ matrix.abi }} wheel
+    needs: [prepare, changes]
+    if: >-
+      !cancelled() && needs.prepare.result == 'success' &&
+      needs.prepare.outputs.build == 'true' &&
+      (needs.changes.result != 'success' || needs.changes.outputs.wheels == 'true')
+    runs-on: windows-2025-vs2026
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        abi: ${{ fromJSON(github.event_name == 'pull_request' && '["cp311","cp314"]' || '["cp311","cp312","cp313","cp314"]') }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - name: Build and test wheel
+        uses: pypa/cibuildwheel@v4.2.0
+        env:
+          CIBW_BUILD: ${{ matrix.abi }}-win_amd64
+        with:
+          output-dir: wheelhouse
+      - name: Store wheel artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-${{ matrix.abi }}-wheels
+          path: wheelhouse/*.whl
+          if-no-files-found: error
+
+  windows-wheels:
+    name: Windows x86-64 wheels
+    needs: windows-wheel-build
+    if: ${{ always() && !cancelled() && needs.windows-wheel-build.result != 'skipped' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require all selected wheels
+        env:
+          BUILD_RESULT: ${{ needs.windows-wheel-build.result }}
+        run: test "$BUILD_RESULT" = success
+
+  macos-wheel-build:
+    name: macOS arm64 ${{ matrix.abi }} wheel
+    needs: [prepare, changes]
+    if: >-
+      !cancelled() && needs.prepare.result == 'success' &&
+      needs.prepare.outputs.build == 'true' &&
+      (needs.changes.result != 'success' || needs.changes.outputs.wheels == 'true')
+    runs-on: macos-15
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        abi: ${{ fromJSON(github.event_name == 'pull_request' && '["cp311","cp314"]' || '["cp311","cp312","cp313","cp314"]') }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - name: Verify native Apple Silicon runner
+        run: test "$(uname -m)" = arm64
+      - name: Build and test wheel with bundled OpenMP
+        uses: pypa/cibuildwheel@v4.2.0
+        env:
+          CIBW_BUILD: ${{ matrix.abi }}-macosx_arm64
+        with:
+          output-dir: wheelhouse
+      - name: Store wheel artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: macos-${{ matrix.abi }}-wheels
+          path: wheelhouse/*.whl
+          if-no-files-found: error
+
+  macos-wheels:
+    # Preserve the protected check name; PRs test the oldest and newest ABI.
+    name: macOS arm64 wheels (CPython 3.11–3.14)
+    needs: macos-wheel-build
+    if: ${{ always() && !cancelled() && needs.macos-wheel-build.result != 'skipped' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require all selected wheels
+        env:
+          BUILD_RESULT: ${{ needs.macos-wheel-build.result }}
+        run: test "$BUILD_RESULT" = success
+
+  release-tag:
+    name: Create version tag
+    needs: [prepare, linux-wheels, linux-arm64-wheels, windows-wheels, macos-wheels]
+    if: >-
+      (github.event_name == 'push' || github.event_name == 'workflow_run') &&
+      needs.prepare.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+          fetch-depth: 0
+      - name: Create tag at the tested commit
+        env:
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+          RELEASE_SHA: ${{ needs.prepare.outputs.sha }}
+        run: |
+          if git show-ref --verify --quiet "refs/tags/$RELEASE_TAG"; then
+            test "$(git rev-list -n 1 "$RELEASE_TAG")" = "$RELEASE_SHA"
+          else
+            git tag "$RELEASE_TAG" "$RELEASE_SHA"
+            git push origin "refs/tags/$RELEASE_TAG"
+          fi
+
+  pypi-publish:
+    name: Publish wheels to PyPI
+    if: >-
+      (github.event_name == 'push' || github.event_name == 'workflow_run') &&
+      needs.prepare.outputs.publish == 'true'
+    needs: [prepare, linux-wheels, linux-arm64-wheels, windows-wheels, macos-wheels, release-tag]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/rabitqlib/
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Download wheel artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: '*-wheels'
+          path: wheelhouse
+          merge-multiple: true
+
+      - name: Publish wheels
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: wheelhouse
+          skip-existing: true
+
+  github-release:
+    name: Create GitHub release
+    if: >-
+      (github.event_name == 'push' || github.event_name == 'workflow_run') &&
+      needs.prepare.outputs.publish == 'true'
+    needs: [prepare, linux-wheels, linux-arm64-wheels, windows-wheels, macos-wheels, pypi-publish]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+
+      - name: Download wheel artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: '*-wheels'
+          path: wheelhouse
+          merge-multiple: true
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+        run: |
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" wheelhouse/*.whl --generate-notes --verify-tag
+          fi

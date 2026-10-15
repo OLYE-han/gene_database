@@ -1,0 +1,55 @@
+/*
+ * Copyright (c) Microsoft Corporation.
+ * Licensed under the MIT license.
+ */
+
+//! Shared utilities for DiskANN crates.
+
+#[cfg(not(target_endian = "little"))]
+compile_error!("diskann-utils assumes little-endian targets");
+
+pub mod reborrow;
+pub use reborrow::{Reborrow, ReborrowMut};
+
+pub mod future;
+
+pub mod io;
+pub mod object_pool;
+pub mod sampling;
+
+// Views
+pub mod strided;
+pub mod views;
+
+mod lazystring;
+pub use lazystring::LazyString;
+
+mod internal;
+
+/// There are *no* external stability guarantees for anything in `testing`.
+///
+/// Use at your own risk.
+#[cfg(any(test, feature = "testing"))]
+#[doc(hidden)]
+pub mod testing;
+
+#[cfg(feature = "testing")]
+#[doc(hidden)]
+pub fn workspace_root() -> std::path::PathBuf {
+    std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .to_path_buf()
+}
+
+#[cfg(feature = "testing")]
+#[doc(hidden)]
+pub fn test_data_directory() -> &'static str {
+    "test_data"
+}
+
+#[cfg(feature = "testing")]
+#[doc(hidden)]
+pub fn test_data_root() -> std::path::PathBuf {
+    workspace_root().join(test_data_directory())
+}

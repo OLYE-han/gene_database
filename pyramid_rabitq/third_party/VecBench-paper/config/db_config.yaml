@@ -1,0 +1,27 @@
+pgvector:
+  host: localhost
+  port: 5432
+  dbname: postgres
+  user: postgres
+  password: your_password
+
+milvus:
+  host: localhost
+  port: 19530
+
+qdrant:
+  host: localhost
+  port: 6333
+  grpc_port: 6334
+
+weaviate:
+  host: http://localhost:8080
+  grpc_port: 50051
+
+pyramid:
+  endpoint: http://127.0.0.1:8080
+  dimension: 1920
+  source_dir: ../../artifacts/vecbench_official/source
+  index_root: ../../artifacts/vecbench_official/index
+  build_config: ../../config/build.vecbench-yfcc.yaml
+  timeout: 600

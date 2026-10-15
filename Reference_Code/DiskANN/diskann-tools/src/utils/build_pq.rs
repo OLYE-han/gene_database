@@ -1,0 +1,105 @@
+/*
+ * Copyright (c) Microsoft Corporation.
+ * Licensed under the MIT license.
+ */
+
+use std::time::Instant;
+
+use diskann::{utils::VectorRepr, ANNResult};
+use diskann_providers::{
+    model::{
+        GeneratePivotArguments, MAX_PQ_TRAINING_SET_SIZE, NUM_KMEANS_REPS_PQ, NUM_PQ_CENTROIDS,
+    },
+    storage::{
+        get_disk_index_compressed_pq_file, get_disk_index_pq_pivot_file, FileStorageProvider,
+        PQStorage, StorageReadProvider,
+    },
+    utils::{create_thread_pool, load_metadata_from_file},
+};
+use diskann_vector::distance::Metric;
+use tracing::info;
+
+pub struct BuildPQParameters<'a> {
+    pub metric: Metric,
+    pub data_path: &'a str,
+    pub index_path_prefix: &'a str,
+    pub num_threads: usize,
+    pub p_val: f64,
+    pub pq_bytes: f64,
+}
+
+/// Train a new PQ codebook and compress the dataset, replacing existing outputs.
+/// Existing pivot files do not skip training.
+pub fn build_pq<T: VectorRepr>(
+    storage_provider: &impl StorageReadProvider,
+    parameters: BuildPQParameters,
+) -> ANNResult<()> {
+    let num_pq_chunks = parameters.pq_bytes as usize;
+
+    let data_path = parameters.data_path;
+    let disk_pq_pivot_path = get_disk_index_pq_pivot_file(parameters.index_path_prefix);
+    let disk_pq_compressed_data_path =
+        get_disk_index_compressed_pq_file(parameters.index_path_prefix);
+
+    let mut pq_storage = PQStorage::new(
+        &disk_pq_pivot_path,
+        &disk_pq_compressed_data_path,
+        Some(data_path),
+    );
+
+    let metadata = load_metadata_from_file(storage_provider, parameters.data_path)?;
+    info!(
+        "Compressing dim-{} data into {} chunks(bytes) for PQ",
+        metadata.ndims(),
+        num_pq_chunks
+    );
+
+    let p_val = MAX_PQ_TRAINING_SET_SIZE / (metadata.npoints() as f64);
+
+    let timer = Instant::now();
+    let storage_provider = FileStorageProvider;
+    let random_provider = diskann_providers::utils::create_rnd_provider_from_seed(42);
+
+    let (mut train_data_vector, num_train, train_dim) = pq_storage
+        .get_random_train_data_slice::<T, _>(
+            p_val,
+            &storage_provider,
+            &mut random_provider.create_rnd(),
+        )?;
+
+    let pool = create_thread_pool(parameters.num_threads)?;
+
+    diskann_providers::model::pq::generate_pq_pivots(
+        GeneratePivotArguments::new(
+            num_train,
+            train_dim,
+            NUM_PQ_CENTROIDS,
+            num_pq_chunks,
+            NUM_KMEANS_REPS_PQ,
+        )?,
+        false,
+        &mut train_data_vector,
+        &pq_storage,
+        &storage_provider,
+        random_provider,
+        pool.as_ref(),
+    )?;
+
+    diskann_providers::model::pq::generate_pq_data_from_pivots::<f32, _>(
+        NUM_PQ_CENTROIDS,
+        num_pq_chunks,
+        &mut pq_storage,
+        &storage_provider,
+        0,
+        pool.as_ref(),
+    )?;
+
+    info!(
+        "PQ build completed in {:.3} seconds for {} chunks, using {} threads",
+        timer.elapsed().as_secs_f64(),
+        num_pq_chunks,
+        parameters.num_threads
+    );
+
+    Ok(())
+}

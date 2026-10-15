@@ -1,0 +1,25 @@
+/*
+ * Copyright (c) Microsoft Corporation.
+ * Licensed under the MIT license.
+ */
+
+//! DiskANN Disk Index Crate
+//!
+//! This crate provides disk-based indexing capabilities for DiskANN,
+//! including builders, providers, and utilities specific to disk storage.
+
+#[cfg(test)]
+pub(crate) mod test_utils;
+
+pub mod error;
+
+pub mod build;
+pub use build::{
+    disk_index_build_parameter, filter_parameter, DiskIndexBuildParameters, QuantizationType,
+    SphericalBits,
+};
+
+pub mod data_model;
+pub mod search;
+pub mod storage;
+pub mod utils;
