@@ -1,0 +1,3 @@
+concurrency,recall,mean_latency_ms,p99_ms,qps,mean_peer_rpc,max_peer_rpc,node_revisits,mean_duplicate_expansions,mean_protocol_bytes,report
+1,0.99921875,34.563931989396224,49.70398355275393,28.864874992169643,0.921875,2,0,1.8203125,77436.71875,concurrency_1/runs/local-cluster-test_20261016T090806_95d3c59a/report.json
+4,0.99921875,213.2399067049846,330.0737576885149,18.667835137026614,0.921875,2,0,2.09375,78904.484375,concurrency_4/runs/local-cluster-test_20261016T090819_25f65ba1/report.json

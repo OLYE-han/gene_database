@@ -1,0 +1,72 @@
+{
+  "inspected_at": "2026-10-15T17:08:25.459821+08:00",
+  "root": "gene_database/Data/seq_2M/seq_2M",
+  "base_snapshot_bytes": 712736768,
+  "base_expected_bytes": 20480000128,
+  "base_complete_rows_by_size": 69603,
+  "query_ids": {
+    "count": 200000,
+    "min": 0,
+    "max": 1999996,
+    "strictly_increasing": true,
+    "in_range": true,
+    "payload_sha256": "094e7e772accfa2c0b09fba55e232f2f5969b193bb1bff4c46179b260714d6ad",
+    "matches_config_sha256": true
+  },
+  "base_sample": {
+    "sample_rows": 64,
+    "all_finite": true,
+    "zero_rows": 0,
+    "norm_min": 11.698305749683769,
+    "norm_max": 14.847021238156058,
+    "norm_mean": 14.078866715272364
+  },
+  "query_sample": {
+    "sample_rows": 64,
+    "all_finite": true,
+    "zero_rows": 0,
+    "norm_min": 11.53530981078616,
+    "norm_max": 14.855321051400644,
+    "norm_mean": 13.960462080634878
+  },
+  "query_base_matching": {
+    "sample_rows": 32,
+    "bitwise_equal": true,
+    "eligible_query_rows_in_available_prefix": 6880
+  },
+  "ground_truth": {
+    "cosine": {
+      "ids_shape": [
+        200000,
+        100
+      ],
+      "distances_dtype": "<f8",
+      "query_ids_match": true,
+      "checked_rows": 64,
+      "ids_in_range": true,
+      "self_excluded": true,
+      "unique_ids_per_row": true,
+      "distances_finite": true,
+      "distances_sorted": true,
+      "recomputed_available_pairs": 64,
+      "max_abs_distance_error": 2.55351295663786e-15
+    },
+    "euclidean": {
+      "ids_shape": [
+        200000,
+        100
+      ],
+      "distances_dtype": "<f8",
+      "query_ids_match": true,
+      "checked_rows": 64,
+      "ids_in_range": true,
+      "self_excluded": true,
+      "unique_ids_per_row": true,
+      "distances_finite": true,
+      "distances_sorted": true,
+      "recomputed_available_pairs": 64,
+      "max_abs_distance_error": 5.340172748447003e-13
+    }
+  },
+  "base_bytes_after_inspection": 712900608
+}

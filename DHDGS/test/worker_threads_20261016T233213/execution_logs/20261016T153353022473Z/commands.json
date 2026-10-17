@@ -1,0 +1,23 @@
+[
+  {
+    "label": "calibration/w8_c32_trial0",
+    "command": [
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/worker.py",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/calibration/w8_c32_trial0/config.yaml"
+    ],
+    "returncode": 1,
+    "start_time": 1792164856.6153367,
+    "wall_seconds": 0.2770812511444092,
+    "load_before": [
+      3.611328125,
+      3.25048828125,
+      4.47607421875
+    ],
+    "load_after": [
+      3.611328125,
+      3.25048828125,
+      4.47607421875
+    ]
+  }
+]

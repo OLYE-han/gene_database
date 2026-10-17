@@ -1,0 +1,22 @@
+.venv/
+__pycache__/
+*.egg-info/
+build/
+dist/
+artifacts/
+*.so
+
+# Large raw experiment outputs stay on the experiment host. Keep source,
+# configurations, summaries, provenance and compact aggregate results in Git.
+/test/**/report.json
+/test/**/queries.jsonl
+/test/**/queries.csv
+/test/**/nodes.csv
+/test/**/per_query_stage_means.csv
+/test/**/all_queries.csv
+/test/**/all_nodes.csv
+/test/**/exact_truth*.json
+/test/**/index
+/test/**/*.log
+!/test/**/unit_tests*.log
+!/test/**/regression*.log

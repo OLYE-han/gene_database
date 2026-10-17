@@ -1,0 +1,23 @@
+{
+  "created_at": "2026-10-16T16:49:50.604457+08:00",
+  "index_manifest_sha256": "a09c1728f2ddaffb7a703663737ce5b8a6509bb13967461c616213cf201b0e3a",
+  "source_sha256": {
+    "python/dhdgs/__main__.py": "6d8b7d7846a845059d7a3107143f11131f63c5511d669b44085b15ec5e3d2279",
+    "python/dhdgs/scheduler.py": "4c4c9c94f3aadd4c25d7b1c14a63c29292d94e451237d6ebce49cc411556e177",
+    "python/dhdgs/metrics.py": "9e5223a15aee62660e939c5246f2164b63e88a6094e5021373dde308710b6129",
+    "python/dhdgs/search.py": "060817a7e2592c6cbd0b677585a63b2670811750c5c80af842b6ad9bb3d7f24c",
+    "python/dhdgs/index.py": "5f6d16595a16516fdbc00f102ff49c4cdc7eff61960a7e4dbcc9f7be7145362e",
+    "python/dhdgs/__init__.py": "6df51e7a5fc03cf0661e100fcfcc1e52466b8a6f27c774c64004631b41e5308c",
+    "python/dhdgs/transport.py": "7b43750de32452c5acdf1a106f174920bf14ee8109f8fafbd9dbd1d0f79ea914",
+    "python/dhdgs/experiments.py": "b72fb3e8abd1abd7fe65537fca4a07e48bd4e1244de979b433921b63c0d500bf",
+    "python/dhdgs/reference_search.py": "aae1870757e85f021471385d8124bc014bf749e4a8ea4ef03c31acf40feb62ae",
+    "python/dhdgs/peer_search.py": "a6fb77706f1af551a78f6b86fd5057f3d26d47e613a3276eb85226c6f1b95260",
+    "python/dhdgs/data.py": "c35a2d3c57ee5f00276206b9fe30c6b88aad8dd9a9c4ad0819b089567b3431bd",
+    "python/dhdgs/benchmark.py": "17a4cadef157b8390f49ac146102121cba8c56eeead6ec3dca87cef751c074e9",
+    "python/dhdgs/cluster_test.py": "eb66975ccf1b61568335b38e354cd011f7269f54fbd2a01cb5c26678c8fa9b5a",
+    "python/dhdgs/peer.py": "ab4b44a83bee2d38c828aea316ebc9023726599f71b3b408f2d2588198785128",
+    "python/dhdgs/cli.py": "204aabe7014c5c4ff3e4916ec14301d60478f69f1e0517465403ca4221b939c6",
+    "python/dhdgs/config.py": "6c06eb706a319bdd388f136b3e4466bfea750c67fa37c69fec9a76e1241a5421",
+    "python/dhdgs/partition.py": "5a4d7bdbd5ad6ba0fc0b1fab08fe3da27f9000164a22f3531a29d1ad128153d0"
+  }
+}

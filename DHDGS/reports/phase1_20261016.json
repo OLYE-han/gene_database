@@ -1,0 +1,4251 @@
+{
+  "status": "geometry_pilot_not_ann_performance",
+  "input_check": {
+    "dataset": {
+      "root": "/sharenvme/usershome/xulihan/gene_database/Data/seq_2M/seq_2M",
+      "rows": 2000000,
+      "dimension": 2560,
+      "manifest_sha256": "3a346cf5aa1c52aaf5418e99444207e71283a3c0463d2226c29947fd6db8c2a8",
+      "file_snapshots": [
+        {
+          "path": "manifest.json",
+          "bytes": 6150,
+          "mtime_ns": 1792087767193695510
+        },
+        {
+          "path": "base/part_00.npy",
+          "bytes": 20480000128,
+          "mtime_ns": 1792087766962695499
+        }
+      ],
+      "content_checksum_verified": false
+    },
+    "sample_rows": 128,
+    "seed": 42,
+    "norm_min": 11.357414392959141,
+    "norm_max": 14.867797795169317,
+    "zero_rows": 0,
+    "all_sampled_coordinates_finite": true,
+    "checks_are_sampled": true,
+    "ground_truth_membership_verified": false,
+    "queries": {
+      "rows": 200000,
+      "ids_sha256": "094e7e772accfa2c0b09fba55e232f2f5969b193bb1bff4c46179b260714d6ad",
+      "sample_matches_base": true
+    },
+    "labels": {
+      "cosine": {
+        "checked_prefix_rows": 128,
+        "k": 100,
+        "recomputed_pairs": 128,
+        "max_absolute_distance_error": 2.55351295663786e-15,
+        "identical_vector_nonzero_labels": 1
+      },
+      "euclidean": {
+        "checked_prefix_rows": 128,
+        "k": 100,
+        "recomputed_pairs": 128,
+        "max_absolute_distance_error": 4.1295309247228556e-07,
+        "identical_vector_nonzero_labels": 1
+      }
+    }
+  },
+  "runs": [
+    {
+      "experiment": "E03-E05 geometry pilot",
+      "status": "exploratory_not_ann_benchmark",
+      "created_utc": "2026-10-16T02:30:35.369121+00:00",
+      "dataset": {
+        "root": "/sharenvme/usershome/xulihan/gene_database/Data/seq_2M/seq_2M",
+        "rows": 2000000,
+        "dimension": 2560,
+        "manifest_sha256": "3a346cf5aa1c52aaf5418e99444207e71283a3c0463d2226c29947fd6db8c2a8",
+        "file_snapshots": [
+          {
+            "path": "manifest.json",
+            "bytes": 6150,
+            "mtime_ns": 1792087767193695510
+          },
+          {
+            "path": "base/part_00.npy",
+            "bytes": 20480000128,
+            "mtime_ns": 1792087766962695499
+          }
+        ],
+        "content_checksum_verified": false
+      },
+      "python": "3.12.3",
+      "numpy": "2.5.4",
+      "seed": 42,
+      "config": {
+        "shards": 3,
+        "train_rows": 2048,
+        "calibration_rows": 2048,
+        "evaluation_rows": 4096,
+        "metrics": [
+          "l2",
+          "cosine"
+        ],
+        "rhos": [
+          0,
+          0.05,
+          0.1,
+          0.2,
+          0.3
+        ],
+        "max_copies": 3,
+        "iterations": 30
+      },
+      "official_query_ids_excluded": 200000,
+      "sample_ids_sha256": "9b7e51ea350d1304b757d027b791807d4689370c0d8797b64a501f988619aeff",
+      "code_sha256": {
+        "__init__.py": "2ee729b046f51d9f3703565beb3288594ddd6dc7adb496513f4b4163734d1719",
+        "__main__.py": "6d8b7d7846a845059d7a3107143f11131f63c5511d669b44085b15ec5e3d2279",
+        "cli.py": "44cf3541778afb911825d5ba548d12c57200f8306210e562046f7c6518b84d72",
+        "data.py": "c35a2d3c57ee5f00276206b9fe30c6b88aad8dd9a9c4ad0819b089567b3431bd",
+        "experiments.py": "430218227e0153ab7d37b71f5e29cda8bfa2fa82dfd8ea4581fe4ef48ec8be5d",
+        "partition.py": "5a4d7bdbd5ad6ba0fc0b1fab08fe3da27f9000164a22f3531a29d1ad128153d0",
+        "scheduler.py": "01435a6af6f171746133242f36c48d78c2ae541e126b4ffb55d3a13f458f6a53"
+      },
+      "results": [
+        {
+          "metric": "l2",
+          "training_seconds": 1.4210256091319025,
+          "iterations": 28,
+          "converged": true,
+          "method": "unique",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1193,
+            1540,
+            1363
+          ],
+          "replica_counts": [
+            1193,
+            1540,
+            1363
+          ],
+          "max_to_mean_replica_load": 1.1279296875
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4210256091319025,
+          "iterations": 28,
+          "converged": true,
+          "method": "fixed_two",
+          "rows": 4096,
+          "replication_factor": 2.0,
+          "overlap_fraction_observed": 1.0,
+          "primary_counts": [
+            1193,
+            1540,
+            1363
+          ],
+          "replica_counts": [
+            4090,
+            2451,
+            1651
+          ],
+          "max_to_mean_replica_load": 1.497802734375
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4210256091319025,
+          "iterations": 28,
+          "converged": true,
+          "method": "relative_gap",
+          "rho_requested": 0,
+          "threshold": {
+            "mode": "none",
+            "score": 0.0,
+            "tie_hash": 0,
+            "tie_id": 0,
+            "seed": 42
+          },
+          "threshold_file": "threshold_l2_relative_gap_0.json",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1193,
+            1540,
+            1363
+          ],
+          "replica_counts": [
+            1193,
+            1540,
+            1363
+          ],
+          "max_to_mean_replica_load": 1.1279296875
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4210256091319025,
+          "iterations": 28,
+          "converged": true,
+          "method": "relative_gap",
+          "rho_requested": 0.05,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.06054128016971884,
+            "tie_hash": 2779408334003532141,
+            "tie_id": 778762,
+            "seed": 42
+          },
+          "threshold_file": "threshold_l2_relative_gap_0.05.json",
+          "rows": 4096,
+          "replication_factor": 1.04541015625,
+          "overlap_fraction_observed": 0.044921875,
+          "primary_counts": [
+            1193,
+            1540,
+            1363
+          ],
+          "replica_counts": [
+            1291,
+            1600,
+            1391
+          ],
+          "max_to_mean_replica_load": 1.120971508640822
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4210256091319025,
+          "iterations": 28,
+          "converged": true,
+          "method": "relative_gap",
+          "rho_requested": 0.1,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.130991208788844,
+            "tie_hash": 13416730922416449719,
+            "tie_id": 1986325,
+            "seed": 42
+          },
+          "threshold_file": "threshold_l2_relative_gap_0.1.json",
+          "rows": 4096,
+          "replication_factor": 1.09521484375,
+          "overlap_fraction_observed": 0.0927734375,
+          "primary_counts": [
+            1193,
+            1540,
+            1363
+          ],
+          "replica_counts": [
+            1399,
+            1661,
+            1426
+          ],
+          "max_to_mean_replica_load": 1.110789121711993
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4210256091319025,
+          "iterations": 28,
+          "converged": true,
+          "method": "relative_gap",
+          "rho_requested": 0.2,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.2976560947790767,
+            "tie_hash": 11872004115027626557,
+            "tie_id": 1767888,
+            "seed": 42
+          },
+          "threshold_file": "threshold_l2_relative_gap_0.2.json",
+          "rows": 4096,
+          "replication_factor": 1.1982421875,
+          "overlap_fraction_observed": 0.190185546875,
+          "primary_counts": [
+            1193,
+            1540,
+            1363
+          ],
+          "replica_counts": [
+            1648,
+            1775,
+            1485
+          ],
+          "max_to_mean_replica_load": 1.0849633251833741
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4210256091319025,
+          "iterations": 28,
+          "converged": true,
+          "method": "relative_gap",
+          "rho_requested": 0.3,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.48365026757377305,
+            "tie_hash": 17417612768641767389,
+            "tie_id": 966133,
+            "seed": 42
+          },
+          "threshold_file": "threshold_l2_relative_gap_0.3.json",
+          "rows": 4096,
+          "replication_factor": 1.316650390625,
+          "overlap_fraction_observed": 0.298828125,
+          "primary_counts": [
+            1193,
+            1540,
+            1363
+          ],
+          "replica_counts": [
+            1934,
+            1912,
+            1547
+          ],
+          "max_to_mean_replica_load": 1.0758390506211755
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4210256091319025,
+          "iterations": 28,
+          "converged": true,
+          "method": "boundary",
+          "rho_requested": 0,
+          "threshold": {
+            "mode": "none",
+            "score": 0.0,
+            "tie_hash": 0,
+            "tie_id": 0,
+            "seed": 42
+          },
+          "threshold_file": "threshold_l2_boundary_0.json",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1193,
+            1540,
+            1363
+          ],
+          "replica_counts": [
+            1193,
+            1540,
+            1363
+          ],
+          "max_to_mean_replica_load": 1.1279296875
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4210256091319025,
+          "iterations": 28,
+          "converged": true,
+          "method": "boundary",
+          "rho_requested": 0.05,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.09742867465850309,
+            "tie_hash": 5321897066830870728,
+            "tie_id": 1401029,
+            "seed": 42
+          },
+          "threshold_file": "threshold_l2_boundary_0.05.json",
+          "rows": 4096,
+          "replication_factor": 1.05419921875,
+          "overlap_fraction_observed": 0.053955078125,
+          "primary_counts": [
+            1193,
+            1540,
+            1363
+          ],
+          "replica_counts": [
+            1299,
+            1620,
+            1399
+          ],
+          "max_to_mean_replica_load": 1.125521074571561
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4210256091319025,
+          "iterations": 28,
+          "converged": true,
+          "method": "boundary",
+          "rho_requested": 0.1,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.18220584259002753,
+            "tie_hash": 4131854465205584282,
+            "tie_id": 1891538,
+            "seed": 42
+          },
+          "threshold_file": "threshold_l2_boundary_0.1.json",
+          "rows": 4096,
+          "replication_factor": 1.093017578125,
+          "overlap_fraction_observed": 0.09228515625,
+          "primary_counts": [
+            1193,
+            1540,
+            1363
+          ],
+          "replica_counts": [
+            1383,
+            1659,
+            1435
+          ],
+          "max_to_mean_replica_load": 1.1116819298637481
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4210256091319025,
+          "iterations": 28,
+          "converged": true,
+          "method": "boundary",
+          "rho_requested": 0.2,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.3769353399214431,
+            "tie_hash": 10218163923279245186,
+            "tie_id": 49456,
+            "seed": 42
+          },
+          "threshold_file": "threshold_l2_boundary_0.2.json",
+          "rows": 4096,
+          "replication_factor": 1.197998046875,
+          "overlap_fraction_observed": 0.19482421875,
+          "primary_counts": [
+            1193,
+            1540,
+            1363
+          ],
+          "replica_counts": [
+            1631,
+            1781,
+            1495
+          ],
+          "max_to_mean_replica_load": 1.0888526594660688
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4210256091319025,
+          "iterations": 28,
+          "converged": true,
+          "method": "boundary",
+          "rho_requested": 0.3,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.5623631120492375,
+            "tie_hash": 7832198301839538061,
+            "tie_id": 1325336,
+            "seed": 42
+          },
+          "threshold_file": "threshold_l2_boundary_0.3.json",
+          "rows": 4096,
+          "replication_factor": 1.307861328125,
+          "overlap_fraction_observed": 0.2998046875,
+          "primary_counts": [
+            1193,
+            1540,
+            1363
+          ],
+          "replica_counts": [
+            1872,
+            1928,
+            1557
+          ],
+          "max_to_mean_replica_load": 1.0797087922344595
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4210256091319025,
+          "iterations": 28,
+          "converged": true,
+          "method": "margin",
+          "rho_requested": 0,
+          "threshold": {
+            "mode": "none",
+            "score": 0.0,
+            "tie_hash": 0,
+            "tie_id": 0,
+            "seed": 42
+          },
+          "threshold_file": "threshold_l2_margin_0.json",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1193,
+            1540,
+            1363
+          ],
+          "replica_counts": [
+            1193,
+            1540,
+            1363
+          ],
+          "max_to_mean_replica_load": 1.1279296875
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4210256091319025,
+          "iterations": 28,
+          "converged": true,
+          "method": "margin",
+          "rho_requested": 0.05,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.043660538286039406,
+            "tie_hash": 1264698945920403286,
+            "tie_id": 184602,
+            "seed": 42
+          },
+          "threshold_file": "threshold_l2_margin_0.05.json",
+          "rows": 4096,
+          "replication_factor": 1.052490234375,
+          "overlap_fraction_observed": 0.05224609375,
+          "primary_counts": [
+            1193,
+            1540,
+            1363
+          ],
+          "replica_counts": [
+            1295,
+            1613,
+            1403
+          ],
+          "max_to_mean_replica_load": 1.1224773834377175
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4210256091319025,
+          "iterations": 28,
+          "converged": true,
+          "method": "margin",
+          "rho_requested": 0.1,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.08104451161574708,
+            "tie_hash": 12132469006684918744,
+            "tie_id": 496279,
+            "seed": 42
+          },
+          "threshold_file": "threshold_l2_margin_0.1.json",
+          "rows": 4096,
+          "replication_factor": 1.093505859375,
+          "overlap_fraction_observed": 0.0927734375,
+          "primary_counts": [
+            1193,
+            1540,
+            1363
+          ],
+          "replica_counts": [
+            1382,
+            1657,
+            1440
+          ],
+          "max_to_mean_replica_load": 1.1098459477561955
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4210256091319025,
+          "iterations": 28,
+          "converged": true,
+          "method": "margin",
+          "rho_requested": 0.2,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.16681807267941437,
+            "tie_hash": 4195264266771484385,
+            "tie_id": 1042074,
+            "seed": 42
+          },
+          "threshold_file": "threshold_l2_margin_0.2.json",
+          "rows": 4096,
+          "replication_factor": 1.19287109375,
+          "overlap_fraction_observed": 0.189208984375,
+          "primary_counts": [
+            1193,
+            1540,
+            1363
+          ],
+          "replica_counts": [
+            1619,
+            1764,
+            1503
+          ],
+          "max_to_mean_replica_load": 1.0830945558739256
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4210256091319025,
+          "iterations": 28,
+          "converged": true,
+          "method": "margin",
+          "rho_requested": 0.3,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.2504838188639983,
+            "tie_hash": 14615150287930465821,
+            "tie_id": 1040099,
+            "seed": 42
+          },
+          "threshold_file": "threshold_l2_margin_0.3.json",
+          "rows": 4096,
+          "replication_factor": 1.30078125,
+          "overlap_fraction_observed": 0.292236328125,
+          "primary_counts": [
+            1193,
+            1540,
+            1363
+          ],
+          "replica_counts": [
+            1854,
+            1899,
+            1575
+          ],
+          "max_to_mean_replica_load": 1.0692567567567568
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.4313535788096488,
+          "iterations": 28,
+          "converged": true,
+          "method": "unique",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1443,
+            1514,
+            1139
+          ],
+          "replica_counts": [
+            1443,
+            1514,
+            1139
+          ],
+          "max_to_mean_replica_load": 1.10888671875
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.4313535788096488,
+          "iterations": 28,
+          "converged": true,
+          "method": "fixed_two",
+          "rows": 4096,
+          "replication_factor": 2.0,
+          "overlap_fraction_observed": 1.0,
+          "primary_counts": [
+            1443,
+            1514,
+            1139
+          ],
+          "replica_counts": [
+            1755,
+            2344,
+            4093
+          ],
+          "max_to_mean_replica_load": 1.4989013671875
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.4313535788096488,
+          "iterations": 28,
+          "converged": true,
+          "method": "relative_gap",
+          "rho_requested": 0,
+          "threshold": {
+            "mode": "none",
+            "score": 0.0,
+            "tie_hash": 0,
+            "tie_id": 0,
+            "seed": 42
+          },
+          "threshold_file": "threshold_cosine_relative_gap_0.json",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1443,
+            1514,
+            1139
+          ],
+          "replica_counts": [
+            1443,
+            1514,
+            1139
+          ],
+          "max_to_mean_replica_load": 1.10888671875
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.4313535788096488,
+          "iterations": 28,
+          "converged": true,
+          "method": "relative_gap",
+          "rho_requested": 0.05,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.056427068422525706,
+            "tie_hash": 18295859043356008451,
+            "tie_id": 574042,
+            "seed": 42
+          },
+          "threshold_file": "threshold_cosine_relative_gap_0.05.json",
+          "rows": 4096,
+          "replication_factor": 1.041015625,
+          "overlap_fraction_observed": 0.03955078125,
+          "primary_counts": [
+            1443,
+            1514,
+            1139
+          ],
+          "replica_counts": [
+            1476,
+            1562,
+            1226
+          ],
+          "max_to_mean_replica_load": 1.0989681050656661
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.4313535788096488,
+          "iterations": 28,
+          "converged": true,
+          "method": "relative_gap",
+          "rho_requested": 0.1,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.13172484135255474,
+            "tie_hash": 6312569497998363081,
+            "tie_id": 1767578,
+            "seed": 42
+          },
+          "threshold_file": "threshold_cosine_relative_gap_0.1.json",
+          "rows": 4096,
+          "replication_factor": 1.098388671875,
+          "overlap_fraction_observed": 0.094970703125,
+          "primary_counts": [
+            1443,
+            1514,
+            1139
+          ],
+          "replica_counts": [
+            1502,
+            1635,
+            1362
+          ],
+          "max_to_mean_replica_load": 1.0902422760613468
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.4313535788096488,
+          "iterations": 28,
+          "converged": true,
+          "method": "relative_gap",
+          "rho_requested": 0.2,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.275959013536266,
+            "tie_hash": 9444353473596584284,
+            "tie_id": 218489,
+            "seed": 42
+          },
+          "threshold_file": "threshold_cosine_relative_gap_0.2.json",
+          "rows": 4096,
+          "replication_factor": 1.20068359375,
+          "overlap_fraction_observed": 0.1904296875,
+          "primary_counts": [
+            1443,
+            1514,
+            1139
+          ],
+          "replica_counts": [
+            1562,
+            1739,
+            1617
+          ],
+          "max_to_mean_replica_load": 1.06079707198048
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.4313535788096488,
+          "iterations": 28,
+          "converged": true,
+          "method": "relative_gap",
+          "rho_requested": 0.3,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.4213669730173663,
+            "tie_hash": 16831660998769584314,
+            "tie_id": 1269802,
+            "seed": 42
+          },
+          "threshold_file": "threshold_cosine_relative_gap_0.3.json",
+          "rows": 4096,
+          "replication_factor": 1.306884765625,
+          "overlap_fraction_observed": 0.28955078125,
+          "primary_counts": [
+            1443,
+            1514,
+            1139
+          ],
+          "replica_counts": [
+            1625,
+            1848,
+            1880
+          ],
+          "max_to_mean_replica_load": 1.0536147954418085
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.4313535788096488,
+          "iterations": 28,
+          "converged": true,
+          "method": "boundary",
+          "rho_requested": 0,
+          "threshold": {
+            "mode": "none",
+            "score": 0.0,
+            "tie_hash": 0,
+            "tie_id": 0,
+            "seed": 42
+          },
+          "threshold_file": "threshold_cosine_boundary_0.json",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1443,
+            1514,
+            1139
+          ],
+          "replica_counts": [
+            1443,
+            1514,
+            1139
+          ],
+          "max_to_mean_replica_load": 1.10888671875
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.4313535788096488,
+          "iterations": 28,
+          "converged": true,
+          "method": "boundary",
+          "rho_requested": 0.05,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.0060009290382124205,
+            "tie_hash": 13768072781902232320,
+            "tie_id": 183124,
+            "seed": 42
+          },
+          "threshold_file": "threshold_cosine_boundary_0.05.json",
+          "rows": 4096,
+          "replication_factor": 1.042236328125,
+          "overlap_fraction_observed": 0.041748046875,
+          "primary_counts": [
+            1443,
+            1514,
+            1139
+          ],
+          "replica_counts": [
+            1476,
+            1566,
+            1227
+          ],
+          "max_to_mean_replica_load": 1.10049191848208
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.4313535788096488,
+          "iterations": 28,
+          "converged": true,
+          "method": "boundary",
+          "rho_requested": 0.1,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.012802916467329032,
+            "tie_hash": 6312569497998363081,
+            "tie_id": 1767578,
+            "seed": 42
+          },
+          "threshold_file": "threshold_cosine_boundary_0.1.json",
+          "rows": 4096,
+          "replication_factor": 1.09912109375,
+          "overlap_fraction_observed": 0.09765625,
+          "primary_counts": [
+            1443,
+            1514,
+            1139
+          ],
+          "replica_counts": [
+            1512,
+            1647,
+            1343
+          ],
+          "max_to_mean_replica_load": 1.0975122167925366
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.4313535788096488,
+          "iterations": 28,
+          "converged": true,
+          "method": "boundary",
+          "rho_requested": 0.2,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.02539595331283087,
+            "tie_hash": 11726874893867541443,
+            "tie_id": 824471,
+            "seed": 42
+          },
+          "threshold_file": "threshold_cosine_boundary_0.2.json",
+          "rows": 4096,
+          "replication_factor": 1.1923828125,
+          "overlap_fraction_observed": 0.18896484375,
+          "primary_counts": [
+            1443,
+            1514,
+            1139
+          ],
+          "replica_counts": [
+            1576,
+            1739,
+            1569
+          ],
+          "max_to_mean_replica_load": 1.0681818181818181
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.4313535788096488,
+          "iterations": 28,
+          "converged": true,
+          "method": "boundary",
+          "rho_requested": 0.3,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.03670861049829974,
+            "tie_hash": 5103687029331104718,
+            "tie_id": 122610,
+            "seed": 42
+          },
+          "threshold_file": "threshold_cosine_boundary_0.3.json",
+          "rows": 4096,
+          "replication_factor": 1.2978515625,
+          "overlap_fraction_observed": 0.29052734375,
+          "primary_counts": [
+            1443,
+            1514,
+            1139
+          ],
+          "replica_counts": [
+            1641,
+            1868,
+            1807
+          ],
+          "max_to_mean_replica_load": 1.054176072234763
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.4313535788096488,
+          "iterations": 28,
+          "converged": true,
+          "method": "margin",
+          "rho_requested": 0,
+          "threshold": {
+            "mode": "none",
+            "score": 0.0,
+            "tie_hash": 0,
+            "tie_id": 0,
+            "seed": 42
+          },
+          "threshold_file": "threshold_cosine_margin_0.json",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1443,
+            1514,
+            1139
+          ],
+          "replica_counts": [
+            1443,
+            1514,
+            1139
+          ],
+          "max_to_mean_replica_load": 1.10888671875
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.4313535788096488,
+          "iterations": 28,
+          "converged": true,
+          "method": "margin",
+          "rho_requested": 0.05,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.039079281942614036,
+            "tie_hash": 15545258027761742262,
+            "tie_id": 1492458,
+            "seed": 42
+          },
+          "threshold_file": "threshold_cosine_margin_0.05.json",
+          "rows": 4096,
+          "replication_factor": 1.042236328125,
+          "overlap_fraction_observed": 0.041748046875,
+          "primary_counts": [
+            1443,
+            1514,
+            1139
+          ],
+          "replica_counts": [
+            1478,
+            1563,
+            1228
+          ],
+          "max_to_mean_replica_load": 1.0983836964160225
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.4313535788096488,
+          "iterations": 28,
+          "converged": true,
+          "method": "margin",
+          "rho_requested": 0.1,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.08162300167163346,
+            "tie_hash": 11955713370990744605,
+            "tie_id": 1091276,
+            "seed": 42
+          },
+          "threshold_file": "threshold_cosine_margin_0.1.json",
+          "rows": 4096,
+          "replication_factor": 1.0986328125,
+          "overlap_fraction_observed": 0.096923828125,
+          "primary_counts": [
+            1443,
+            1514,
+            1139
+          ],
+          "replica_counts": [
+            1519,
+            1638,
+            1343
+          ],
+          "max_to_mean_replica_load": 1.092
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.4313535788096488,
+          "iterations": 28,
+          "converged": true,
+          "method": "margin",
+          "rho_requested": 0.2,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.15959805942141095,
+            "tie_hash": 11627669807666932991,
+            "tie_id": 754776,
+            "seed": 42
+          },
+          "threshold_file": "threshold_cosine_margin_0.2.json",
+          "rows": 4096,
+          "replication_factor": 1.19140625,
+          "overlap_fraction_observed": 0.188232421875,
+          "primary_counts": [
+            1443,
+            1514,
+            1139
+          ],
+          "replica_counts": [
+            1586,
+            1726,
+            1568
+          ],
+          "max_to_mean_replica_load": 1.0610655737704917
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.4313535788096488,
+          "iterations": 28,
+          "converged": true,
+          "method": "margin",
+          "rho_requested": 0.3,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.2304635082096928,
+            "tie_hash": 5834662855746209620,
+            "tie_id": 647207,
+            "seed": 42
+          },
+          "threshold_file": "threshold_cosine_margin_0.3.json",
+          "rows": 4096,
+          "replication_factor": 1.291015625,
+          "overlap_fraction_observed": 0.28369140625,
+          "primary_counts": [
+            1443,
+            1514,
+            1139
+          ],
+          "replica_counts": [
+            1661,
+            1831,
+            1796
+          ],
+          "max_to_mean_replica_load": 1.038767019667171
+        }
+      ],
+      "limitations": [
+        "No graph built; no ANN recall, RPC, SSD latency or QPS measured",
+        "One sample/seed; no method-selection conclusion",
+        "All methods share training centers; RF is reported, not forcibly matched"
+      ],
+      "artifact_subdirectory": "artifacts/20261016/partition_seed42"
+    },
+    {
+      "experiment": "E03-E05 geometry pilot",
+      "status": "exploratory_not_ann_benchmark",
+      "created_utc": "2026-10-16T02:36:23.967713+00:00",
+      "dataset": {
+        "root": "/sharenvme/usershome/xulihan/gene_database/Data/seq_2M/seq_2M",
+        "rows": 2000000,
+        "dimension": 2560,
+        "manifest_sha256": "3a346cf5aa1c52aaf5418e99444207e71283a3c0463d2226c29947fd6db8c2a8",
+        "file_snapshots": [
+          {
+            "path": "manifest.json",
+            "bytes": 6150,
+            "mtime_ns": 1792087767193695510
+          },
+          {
+            "path": "base/part_00.npy",
+            "bytes": 20480000128,
+            "mtime_ns": 1792087766962695499
+          }
+        ],
+        "content_checksum_verified": false
+      },
+      "python": "3.12.3",
+      "numpy": "2.5.4",
+      "seed": 43,
+      "config": {
+        "shards": 3,
+        "train_rows": 2048,
+        "calibration_rows": 2048,
+        "evaluation_rows": 4096,
+        "metrics": [
+          "l2",
+          "cosine"
+        ],
+        "rhos": [
+          0,
+          0.05,
+          0.1,
+          0.2,
+          0.3
+        ],
+        "max_copies": 3,
+        "iterations": 30
+      },
+      "official_query_ids_excluded": 200000,
+      "sample_ids_sha256": "fb59acaa6b0f944249ce5c65213aa1218b4deb9816a5b5c5b58d3d6ba40405e3",
+      "code_sha256": {
+        "__init__.py": "2ee729b046f51d9f3703565beb3288594ddd6dc7adb496513f4b4163734d1719",
+        "__main__.py": "6d8b7d7846a845059d7a3107143f11131f63c5511d669b44085b15ec5e3d2279",
+        "cli.py": "b7a53fb5cceca88d897552ed6ecd6fd1d5a59fa01ed0565189de6c07adab907d",
+        "data.py": "c35a2d3c57ee5f00276206b9fe30c6b88aad8dd9a9c4ad0819b089567b3431bd",
+        "experiments.py": "430218227e0153ab7d37b71f5e29cda8bfa2fa82dfd8ea4581fe4ef48ec8be5d",
+        "partition.py": "5a4d7bdbd5ad6ba0fc0b1fab08fe3da27f9000164a22f3531a29d1ad128153d0",
+        "scheduler.py": "01435a6af6f171746133242f36c48d78c2ae541e126b4ffb55d3a13f458f6a53"
+      },
+      "results": [
+        {
+          "metric": "l2",
+          "training_seconds": 1.4349850448779762,
+          "iterations": 28,
+          "converged": true,
+          "method": "unique",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1849,
+            1198,
+            1049
+          ],
+          "replica_counts": [
+            1849,
+            1198,
+            1049
+          ],
+          "max_to_mean_replica_load": 1.354248046875
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4349850448779762,
+          "iterations": 28,
+          "converged": true,
+          "method": "fixed_two",
+          "rows": 4096,
+          "replication_factor": 2.0,
+          "overlap_fraction_observed": 1.0,
+          "primary_counts": [
+            1849,
+            1198,
+            1049
+          ],
+          "replica_counts": [
+            2524,
+            1573,
+            4095
+          ],
+          "max_to_mean_replica_load": 1.4996337890625
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4349850448779762,
+          "iterations": 28,
+          "converged": true,
+          "method": "relative_gap",
+          "rho_requested": 0,
+          "threshold": {
+            "mode": "none",
+            "score": 0.0,
+            "tie_hash": 0,
+            "tie_id": 0,
+            "seed": 43
+          },
+          "threshold_file": "threshold_l2_relative_gap_0.json",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1849,
+            1198,
+            1049
+          ],
+          "replica_counts": [
+            1849,
+            1198,
+            1049
+          ],
+          "max_to_mean_replica_load": 1.354248046875
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4349850448779762,
+          "iterations": 28,
+          "converged": true,
+          "method": "relative_gap",
+          "rho_requested": 0.05,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.07058721413333856,
+            "tie_hash": 6408040728277807483,
+            "tie_id": 1954875,
+            "seed": 43
+          },
+          "threshold_file": "threshold_l2_relative_gap_0.05.json",
+          "rows": 4096,
+          "replication_factor": 1.056884765625,
+          "overlap_fraction_observed": 0.0556640625,
+          "primary_counts": [
+            1849,
+            1198,
+            1049
+          ],
+          "replica_counts": [
+            1912,
+            1242,
+            1175
+          ],
+          "max_to_mean_replica_load": 1.325017325017325
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4349850448779762,
+          "iterations": 28,
+          "converged": true,
+          "method": "relative_gap",
+          "rho_requested": 0.1,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.14788123288814256,
+            "tie_hash": 12199230177013275708,
+            "tie_id": 1964601,
+            "seed": 43
+          },
+          "threshold_file": "threshold_l2_relative_gap_0.1.json",
+          "rows": 4096,
+          "replication_factor": 1.106689453125,
+          "overlap_fraction_observed": 0.103759765625,
+          "primary_counts": [
+            1849,
+            1198,
+            1049
+          ],
+          "replica_counts": [
+            1960,
+            1279,
+            1294
+          ],
+          "max_to_mean_replica_load": 1.2971542025148908
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4349850448779762,
+          "iterations": 28,
+          "converged": true,
+          "method": "relative_gap",
+          "rho_requested": 0.2,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.2991205655277759,
+            "tie_hash": 429769847092826267,
+            "tie_id": 937580,
+            "seed": 43
+          },
+          "threshold_file": "threshold_l2_relative_gap_0.2.json",
+          "rows": 4096,
+          "replication_factor": 1.198486328125,
+          "overlap_fraction_observed": 0.19140625,
+          "primary_counts": [
+            1849,
+            1198,
+            1049
+          ],
+          "replica_counts": [
+            2027,
+            1352,
+            1530
+          ],
+          "max_to_mean_replica_load": 1.2387451619474434
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4349850448779762,
+          "iterations": 28,
+          "converged": true,
+          "method": "relative_gap",
+          "rho_requested": 0.3,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.4764155094007526,
+            "tie_hash": 2396774112751211290,
+            "tie_id": 300341,
+            "seed": 43
+          },
+          "threshold_file": "threshold_l2_relative_gap_0.3.json",
+          "rows": 4096,
+          "replication_factor": 1.3046875,
+          "overlap_fraction_observed": 0.289306640625,
+          "primary_counts": [
+            1849,
+            1198,
+            1049
+          ],
+          "replica_counts": [
+            2122,
+            1428,
+            1794
+          ],
+          "max_to_mean_replica_load": 1.1912425149700598
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4349850448779762,
+          "iterations": 28,
+          "converged": true,
+          "method": "boundary",
+          "rho_requested": 0,
+          "threshold": {
+            "mode": "none",
+            "score": 0.0,
+            "tie_hash": 0,
+            "tie_id": 0,
+            "seed": 43
+          },
+          "threshold_file": "threshold_l2_boundary_0.json",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1849,
+            1198,
+            1049
+          ],
+          "replica_counts": [
+            1849,
+            1198,
+            1049
+          ],
+          "max_to_mean_replica_load": 1.354248046875
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4349850448779762,
+          "iterations": 28,
+          "converged": true,
+          "method": "boundary",
+          "rho_requested": 0.05,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.09842436170902763,
+            "tie_hash": 2100274999106009232,
+            "tie_id": 1200382,
+            "seed": 43
+          },
+          "threshold_file": "threshold_l2_boundary_0.05.json",
+          "rows": 4096,
+          "replication_factor": 1.054931640625,
+          "overlap_fraction_observed": 0.0546875,
+          "primary_counts": [
+            1849,
+            1198,
+            1049
+          ],
+          "replica_counts": [
+            1916,
+            1239,
+            1166
+          ],
+          "max_to_mean_replica_load": 1.3302476278639204
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4349850448779762,
+          "iterations": 28,
+          "converged": true,
+          "method": "boundary",
+          "rho_requested": 0.1,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.19634377519466642,
+            "tie_hash": 10598359663780421948,
+            "tie_id": 232177,
+            "seed": 43
+          },
+          "threshold_file": "threshold_l2_boundary_0.1.json",
+          "rows": 4096,
+          "replication_factor": 1.103515625,
+          "overlap_fraction_observed": 0.10302734375,
+          "primary_counts": [
+            1849,
+            1198,
+            1049
+          ],
+          "replica_counts": [
+            1961,
+            1271,
+            1288
+          ],
+          "max_to_mean_replica_load": 1.3015486725663716
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4349850448779762,
+          "iterations": 28,
+          "converged": true,
+          "method": "boundary",
+          "rho_requested": 0.2,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.3658326671109738,
+            "tie_hash": 16541539367900516870,
+            "tie_id": 1135607,
+            "seed": 43
+          },
+          "threshold_file": "threshold_l2_boundary_0.2.json",
+          "rows": 4096,
+          "replication_factor": 1.19140625,
+          "overlap_fraction_observed": 0.189208984375,
+          "primary_counts": [
+            1849,
+            1198,
+            1049
+          ],
+          "replica_counts": [
+            2046,
+            1336,
+            1498
+          ],
+          "max_to_mean_replica_load": 1.2577868852459015
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4349850448779762,
+          "iterations": 28,
+          "converged": true,
+          "method": "boundary",
+          "rho_requested": 0.3,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.5424365024609656,
+            "tie_hash": 12699143287841879920,
+            "tie_id": 621665,
+            "seed": 43
+          },
+          "threshold_file": "threshold_l2_boundary_0.3.json",
+          "rows": 4096,
+          "replication_factor": 1.293701171875,
+          "overlap_fraction_observed": 0.287841796875,
+          "primary_counts": [
+            1849,
+            1198,
+            1049
+          ],
+          "replica_counts": [
+            2141,
+            1410,
+            1748
+          ],
+          "max_to_mean_replica_load": 1.2121154934893377
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4349850448779762,
+          "iterations": 28,
+          "converged": true,
+          "method": "margin",
+          "rho_requested": 0,
+          "threshold": {
+            "mode": "none",
+            "score": 0.0,
+            "tie_hash": 0,
+            "tie_id": 0,
+            "seed": 43
+          },
+          "threshold_file": "threshold_l2_margin_0.json",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1849,
+            1198,
+            1049
+          ],
+          "replica_counts": [
+            1849,
+            1198,
+            1049
+          ],
+          "max_to_mean_replica_load": 1.354248046875
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4349850448779762,
+          "iterations": 28,
+          "converged": true,
+          "method": "margin",
+          "rho_requested": 0.05,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.042974789117135925,
+            "tie_hash": 6423941319639681714,
+            "tie_id": 549919,
+            "seed": 43
+          },
+          "threshold_file": "threshold_l2_margin_0.05.json",
+          "rows": 4096,
+          "replication_factor": 1.055419921875,
+          "overlap_fraction_observed": 0.05517578125,
+          "primary_counts": [
+            1849,
+            1198,
+            1049
+          ],
+          "replica_counts": [
+            1913,
+            1241,
+            1169
+          ],
+          "max_to_mean_replica_load": 1.3275503122831367
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4349850448779762,
+          "iterations": 28,
+          "converged": true,
+          "method": "margin",
+          "rho_requested": 0.1,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.08344887647047661,
+            "tie_hash": 13827315287366945443,
+            "tie_id": 607313,
+            "seed": 43
+          },
+          "threshold_file": "threshold_l2_margin_0.1.json",
+          "rows": 4096,
+          "replication_factor": 1.1005859375,
+          "overlap_fraction_observed": 0.10009765625,
+          "primary_counts": [
+            1849,
+            1198,
+            1049
+          ],
+          "replica_counts": [
+            1956,
+            1272,
+            1280
+          ],
+          "max_to_mean_replica_load": 1.3016858917480034
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4349850448779762,
+          "iterations": 28,
+          "converged": true,
+          "method": "margin",
+          "rho_requested": 0.2,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.16012480613426985,
+            "tie_hash": 5904742115358380879,
+            "tie_id": 1718153,
+            "seed": 43
+          },
+          "threshold_file": "threshold_l2_margin_0.2.json",
+          "rows": 4096,
+          "replication_factor": 1.19580078125,
+          "overlap_fraction_observed": 0.193603515625,
+          "primary_counts": [
+            1849,
+            1198,
+            1049
+          ],
+          "replica_counts": [
+            2038,
+            1351,
+            1509
+          ],
+          "max_to_mean_replica_load": 1.2482645977950184
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.4349850448779762,
+          "iterations": 28,
+          "converged": true,
+          "method": "margin",
+          "rho_requested": 0.3,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.23650067801327426,
+            "tie_hash": 8660400276221242705,
+            "tie_id": 1014862,
+            "seed": 43
+          },
+          "threshold_file": "threshold_l2_margin_0.3.json",
+          "rows": 4096,
+          "replication_factor": 1.294677734375,
+          "overlap_fraction_observed": 0.288330078125,
+          "primary_counts": [
+            1849,
+            1198,
+            1049
+          ],
+          "replica_counts": [
+            2122,
+            1425,
+            1756
+          ],
+          "max_to_mean_replica_load": 1.2004525740147085
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 0.8684236062690616,
+          "iterations": 16,
+          "converged": true,
+          "method": "unique",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1570,
+            1106,
+            1420
+          ],
+          "replica_counts": [
+            1570,
+            1106,
+            1420
+          ],
+          "max_to_mean_replica_load": 1.14990234375
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 0.8684236062690616,
+          "iterations": 16,
+          "converged": true,
+          "method": "fixed_two",
+          "rows": 4096,
+          "replication_factor": 2.0,
+          "overlap_fraction_observed": 1.0,
+          "primary_counts": [
+            1570,
+            1106,
+            1420
+          ],
+          "replica_counts": [
+            2318,
+            4096,
+            1778
+          ],
+          "max_to_mean_replica_load": 1.5
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 0.8684236062690616,
+          "iterations": 16,
+          "converged": true,
+          "method": "relative_gap",
+          "rho_requested": 0,
+          "threshold": {
+            "mode": "none",
+            "score": 0.0,
+            "tie_hash": 0,
+            "tie_id": 0,
+            "seed": 43
+          },
+          "threshold_file": "threshold_cosine_relative_gap_0.json",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1570,
+            1106,
+            1420
+          ],
+          "replica_counts": [
+            1570,
+            1106,
+            1420
+          ],
+          "max_to_mean_replica_load": 1.14990234375
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 0.8684236062690616,
+          "iterations": 16,
+          "converged": true,
+          "method": "relative_gap",
+          "rho_requested": 0.05,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.058554959679971395,
+            "tie_hash": 9674612125601747729,
+            "tie_id": 99394,
+            "seed": 43
+          },
+          "threshold_file": "threshold_cosine_relative_gap_0.05.json",
+          "rows": 4096,
+          "replication_factor": 1.04736328125,
+          "overlap_fraction_observed": 0.046875,
+          "primary_counts": [
+            1570,
+            1106,
+            1420
+          ],
+          "replica_counts": [
+            1627,
+            1214,
+            1449
+          ],
+          "max_to_mean_replica_load": 1.1377622377622378
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 0.8684236062690616,
+          "iterations": 16,
+          "converged": true,
+          "method": "relative_gap",
+          "rho_requested": 0.1,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.11648538677046921,
+            "tie_hash": 17079891335454791543,
+            "tie_id": 1816622,
+            "seed": 43
+          },
+          "threshold_file": "threshold_cosine_relative_gap_0.1.json",
+          "rows": 4096,
+          "replication_factor": 1.091064453125,
+          "overlap_fraction_observed": 0.0888671875,
+          "primary_counts": [
+            1570,
+            1106,
+            1420
+          ],
+          "replica_counts": [
+            1690,
+            1298,
+            1481
+          ],
+          "max_to_mean_replica_load": 1.134481987021705
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 0.8684236062690616,
+          "iterations": 16,
+          "converged": true,
+          "method": "relative_gap",
+          "rho_requested": 0.2,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.26606810209755694,
+            "tie_hash": 5252486742623638095,
+            "tie_id": 1216893,
+            "seed": 43
+          },
+          "threshold_file": "threshold_cosine_relative_gap_0.2.json",
+          "rows": 4096,
+          "replication_factor": 1.197509765625,
+          "overlap_fraction_observed": 0.189453125,
+          "primary_counts": [
+            1570,
+            1106,
+            1420
+          ],
+          "replica_counts": [
+            1808,
+            1558,
+            1539
+          ],
+          "max_to_mean_replica_load": 1.1058103975535167
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 0.8684236062690616,
+          "iterations": 16,
+          "converged": true,
+          "method": "relative_gap",
+          "rho_requested": 0.3,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.42001090817714626,
+            "tie_hash": 15721518024070263829,
+            "tie_id": 634240,
+            "seed": 43
+          },
+          "threshold_file": "threshold_cosine_relative_gap_0.3.json",
+          "rows": 4096,
+          "replication_factor": 1.30859375,
+          "overlap_fraction_observed": 0.291748046875,
+          "primary_counts": [
+            1570,
+            1106,
+            1420
+          ],
+          "replica_counts": [
+            1913,
+            1832,
+            1615
+          ],
+          "max_to_mean_replica_load": 1.0707089552238807
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 0.8684236062690616,
+          "iterations": 16,
+          "converged": true,
+          "method": "boundary",
+          "rho_requested": 0,
+          "threshold": {
+            "mode": "none",
+            "score": 0.0,
+            "tie_hash": 0,
+            "tie_id": 0,
+            "seed": 43
+          },
+          "threshold_file": "threshold_cosine_boundary_0.json",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1570,
+            1106,
+            1420
+          ],
+          "replica_counts": [
+            1570,
+            1106,
+            1420
+          ],
+          "max_to_mean_replica_load": 1.14990234375
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 0.8684236062690616,
+          "iterations": 16,
+          "converged": true,
+          "method": "boundary",
+          "rho_requested": 0.05,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.006261345517984038,
+            "tie_hash": 14635691231708902763,
+            "tie_id": 863832,
+            "seed": 43
+          },
+          "threshold_file": "threshold_cosine_boundary_0.05.json",
+          "rows": 4096,
+          "replication_factor": 1.046630859375,
+          "overlap_fraction_observed": 0.04638671875,
+          "primary_counts": [
+            1570,
+            1106,
+            1420
+          ],
+          "replica_counts": [
+            1634,
+            1204,
+            1449
+          ],
+          "max_to_mean_replica_load": 1.1434569629111266
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 0.8684236062690616,
+          "iterations": 16,
+          "converged": true,
+          "method": "boundary",
+          "rho_requested": 0.1,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.011663965786924996,
+            "tie_hash": 12415158470227028216,
+            "tie_id": 1016009,
+            "seed": 43
+          },
+          "threshold_file": "threshold_cosine_boundary_0.1.json",
+          "rows": 4096,
+          "replication_factor": 1.09521484375,
+          "overlap_fraction_observed": 0.094970703125,
+          "primary_counts": [
+            1570,
+            1106,
+            1420
+          ],
+          "replica_counts": [
+            1698,
+            1304,
+            1484
+          ],
+          "max_to_mean_replica_load": 1.1355327686134642
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 0.8684236062690616,
+          "iterations": 16,
+          "converged": true,
+          "method": "boundary",
+          "rho_requested": 0.2,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.02490384017271385,
+            "tie_hash": 16030061428965236299,
+            "tie_id": 891109,
+            "seed": 43
+          },
+          "threshold_file": "threshold_cosine_boundary_0.2.json",
+          "rows": 4096,
+          "replication_factor": 1.1982421875,
+          "overlap_fraction_observed": 0.195068359375,
+          "primary_counts": [
+            1570,
+            1106,
+            1420
+          ],
+          "replica_counts": [
+            1829,
+            1528,
+            1551
+          ],
+          "max_to_mean_replica_load": 1.1179706601466992
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 0.8684236062690616,
+          "iterations": 16,
+          "converged": true,
+          "method": "boundary",
+          "rho_requested": 0.3,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.037065343357656405,
+            "tie_hash": 16550215567779919173,
+            "tie_id": 265638,
+            "seed": 43
+          },
+          "threshold_file": "threshold_cosine_boundary_0.3.json",
+          "rows": 4096,
+          "replication_factor": 1.305908203125,
+          "overlap_fraction_observed": 0.29931640625,
+          "primary_counts": [
+            1570,
+            1106,
+            1420
+          ],
+          "replica_counts": [
+            1936,
+            1770,
+            1643
+          ],
+          "max_to_mean_replica_load": 1.0858104318564217
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 0.8684236062690616,
+          "iterations": 16,
+          "converged": true,
+          "method": "margin",
+          "rho_requested": 0,
+          "threshold": {
+            "mode": "none",
+            "score": 0.0,
+            "tie_hash": 0,
+            "tie_id": 0,
+            "seed": 43
+          },
+          "threshold_file": "threshold_cosine_margin_0.json",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1570,
+            1106,
+            1420
+          ],
+          "replica_counts": [
+            1570,
+            1106,
+            1420
+          ],
+          "max_to_mean_replica_load": 1.14990234375
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 0.8684236062690616,
+          "iterations": 16,
+          "converged": true,
+          "method": "margin",
+          "rho_requested": 0.05,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.03997813928425658,
+            "tie_hash": 7519012582502845215,
+            "tie_id": 1631628,
+            "seed": 43
+          },
+          "threshold_file": "threshold_cosine_margin_0.05.json",
+          "rows": 4096,
+          "replication_factor": 1.0478515625,
+          "overlap_fraction_observed": 0.047607421875,
+          "primary_counts": [
+            1570,
+            1106,
+            1420
+          ],
+          "replica_counts": [
+            1628,
+            1210,
+            1454
+          ],
+          "max_to_mean_replica_load": 1.1379310344827585
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 0.8684236062690616,
+          "iterations": 16,
+          "converged": true,
+          "method": "margin",
+          "rho_requested": 0.1,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.07484276937564117,
+            "tie_hash": 15187897602279638380,
+            "tie_id": 621338,
+            "seed": 43
+          },
+          "threshold_file": "threshold_cosine_margin_0.1.json",
+          "rows": 4096,
+          "replication_factor": 1.09619140625,
+          "overlap_fraction_observed": 0.095947265625,
+          "primary_counts": [
+            1570,
+            1106,
+            1420
+          ],
+          "replica_counts": [
+            1692,
+            1305,
+            1493
+          ],
+          "max_to_mean_replica_load": 1.1305122494432072
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 0.8684236062690616,
+          "iterations": 16,
+          "converged": true,
+          "method": "margin",
+          "rho_requested": 0.2,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.15823491236624923,
+            "tie_hash": 3157272803421802462,
+            "tie_id": 461083,
+            "seed": 43
+          },
+          "threshold_file": "threshold_cosine_margin_0.2.json",
+          "rows": 4096,
+          "replication_factor": 1.198974609375,
+          "overlap_fraction_observed": 0.195556640625,
+          "primary_counts": [
+            1570,
+            1106,
+            1420
+          ],
+          "replica_counts": [
+            1809,
+            1533,
+            1569
+          ],
+          "max_to_mean_replica_load": 1.105070250458155
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 0.8684236062690616,
+          "iterations": 16,
+          "converged": true,
+          "method": "margin",
+          "rho_requested": 0.3,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.23329380315414555,
+            "tie_hash": 7074129755799279126,
+            "tie_id": 1983863,
+            "seed": 43
+          },
+          "threshold_file": "threshold_cosine_margin_0.3.json",
+          "rows": 4096,
+          "replication_factor": 1.30419921875,
+          "overlap_fraction_observed": 0.296630859375,
+          "primary_counts": [
+            1570,
+            1106,
+            1420
+          ],
+          "replica_counts": [
+            1917,
+            1755,
+            1670
+          ],
+          "max_to_mean_replica_load": 1.0765630849868963
+        }
+      ],
+      "limitations": [
+        "No graph built; no ANN recall, RPC, SSD latency or QPS measured",
+        "One sample/seed; no method-selection conclusion",
+        "All methods share training centers; RF is reported, not forcibly matched"
+      ],
+      "artifact_subdirectory": "artifacts/20261016/partition_seed43"
+    },
+    {
+      "experiment": "E03-E05 geometry pilot",
+      "status": "exploratory_not_ann_benchmark",
+      "created_utc": "2026-10-16T02:36:23.963620+00:00",
+      "dataset": {
+        "root": "/sharenvme/usershome/xulihan/gene_database/Data/seq_2M/seq_2M",
+        "rows": 2000000,
+        "dimension": 2560,
+        "manifest_sha256": "3a346cf5aa1c52aaf5418e99444207e71283a3c0463d2226c29947fd6db8c2a8",
+        "file_snapshots": [
+          {
+            "path": "manifest.json",
+            "bytes": 6150,
+            "mtime_ns": 1792087767193695510
+          },
+          {
+            "path": "base/part_00.npy",
+            "bytes": 20480000128,
+            "mtime_ns": 1792087766962695499
+          }
+        ],
+        "content_checksum_verified": false
+      },
+      "python": "3.12.3",
+      "numpy": "2.5.4",
+      "seed": 44,
+      "config": {
+        "shards": 3,
+        "train_rows": 2048,
+        "calibration_rows": 2048,
+        "evaluation_rows": 4096,
+        "metrics": [
+          "l2",
+          "cosine"
+        ],
+        "rhos": [
+          0,
+          0.05,
+          0.1,
+          0.2,
+          0.3
+        ],
+        "max_copies": 3,
+        "iterations": 30
+      },
+      "official_query_ids_excluded": 200000,
+      "sample_ids_sha256": "e4afc4321654f3cff1f3f3f6db5b76384501ce04c63dcff6c8ea710e9100ce3e",
+      "code_sha256": {
+        "__init__.py": "2ee729b046f51d9f3703565beb3288594ddd6dc7adb496513f4b4163734d1719",
+        "__main__.py": "6d8b7d7846a845059d7a3107143f11131f63c5511d669b44085b15ec5e3d2279",
+        "cli.py": "b7a53fb5cceca88d897552ed6ecd6fd1d5a59fa01ed0565189de6c07adab907d",
+        "data.py": "c35a2d3c57ee5f00276206b9fe30c6b88aad8dd9a9c4ad0819b089567b3431bd",
+        "experiments.py": "430218227e0153ab7d37b71f5e29cda8bfa2fa82dfd8ea4581fe4ef48ec8be5d",
+        "partition.py": "5a4d7bdbd5ad6ba0fc0b1fab08fe3da27f9000164a22f3531a29d1ad128153d0",
+        "scheduler.py": "01435a6af6f171746133242f36c48d78c2ae541e126b4ffb55d3a13f458f6a53"
+      },
+      "results": [
+        {
+          "metric": "l2",
+          "training_seconds": 1.5259440713562071,
+          "iterations": 30,
+          "converged": false,
+          "method": "unique",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1732,
+            1125,
+            1239
+          ],
+          "replica_counts": [
+            1732,
+            1125,
+            1239
+          ],
+          "max_to_mean_replica_load": 1.2685546875
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.5259440713562071,
+          "iterations": 30,
+          "converged": false,
+          "method": "fixed_two",
+          "rows": 4096,
+          "replication_factor": 2.0,
+          "overlap_fraction_observed": 1.0,
+          "primary_counts": [
+            1732,
+            1125,
+            1239
+          ],
+          "replica_counts": [
+            2492,
+            4092,
+            1608
+          ],
+          "max_to_mean_replica_load": 1.49853515625
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.5259440713562071,
+          "iterations": 30,
+          "converged": false,
+          "method": "relative_gap",
+          "rho_requested": 0,
+          "threshold": {
+            "mode": "none",
+            "score": 0.0,
+            "tie_hash": 0,
+            "tie_id": 0,
+            "seed": 44
+          },
+          "threshold_file": "threshold_l2_relative_gap_0.json",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1732,
+            1125,
+            1239
+          ],
+          "replica_counts": [
+            1732,
+            1125,
+            1239
+          ],
+          "max_to_mean_replica_load": 1.2685546875
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.5259440713562071,
+          "iterations": 30,
+          "converged": false,
+          "method": "relative_gap",
+          "rho_requested": 0.05,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.07237974410580192,
+            "tie_hash": 15227382073660597862,
+            "tie_id": 974544,
+            "seed": 44
+          },
+          "threshold_file": "threshold_l2_relative_gap_0.05.json",
+          "rows": 4096,
+          "replication_factor": 1.055908203125,
+          "overlap_fraction_observed": 0.055908203125,
+          "primary_counts": [
+            1732,
+            1125,
+            1239
+          ],
+          "replica_counts": [
+            1798,
+            1242,
+            1285
+          ],
+          "max_to_mean_replica_load": 1.2471676300578034
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.5259440713562071,
+          "iterations": 30,
+          "converged": false,
+          "method": "relative_gap",
+          "rho_requested": 0.1,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.14002556956451923,
+            "tie_hash": 8702326813422521224,
+            "tie_id": 473984,
+            "seed": 44
+          },
+          "threshold_file": "threshold_l2_relative_gap_0.1.json",
+          "rows": 4096,
+          "replication_factor": 1.100341796875,
+          "overlap_fraction_observed": 0.097900390625,
+          "primary_counts": [
+            1732,
+            1125,
+            1239
+          ],
+          "replica_counts": [
+            1851,
+            1335,
+            1321
+          ],
+          "max_to_mean_replica_load": 1.2320834257821167
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.5259440713562071,
+          "iterations": 30,
+          "converged": false,
+          "method": "relative_gap",
+          "rho_requested": 0.2,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.28975113071605757,
+            "tie_hash": 13296295476224723252,
+            "tie_id": 533754,
+            "seed": 44
+          },
+          "threshold_file": "threshold_l2_relative_gap_0.2.json",
+          "rows": 4096,
+          "replication_factor": 1.20751953125,
+          "overlap_fraction_observed": 0.19921875,
+          "primary_counts": [
+            1732,
+            1125,
+            1239
+          ],
+          "replica_counts": [
+            1968,
+            1578,
+            1400
+          ],
+          "max_to_mean_replica_load": 1.1936918722199756
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.5259440713562071,
+          "iterations": 30,
+          "converged": false,
+          "method": "relative_gap",
+          "rho_requested": 0.3,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.48286952766223623,
+            "tie_hash": 5895752518009038301,
+            "tie_id": 1098933,
+            "seed": 44
+          },
+          "threshold_file": "threshold_l2_relative_gap_0.3.json",
+          "rows": 4096,
+          "replication_factor": 1.328857421875,
+          "overlap_fraction_observed": 0.31201171875,
+          "primary_counts": [
+            1732,
+            1125,
+            1239
+          ],
+          "replica_counts": [
+            2074,
+            1900,
+            1469
+          ],
+          "max_to_mean_replica_load": 1.1431196031600221
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.5259440713562071,
+          "iterations": 30,
+          "converged": false,
+          "method": "boundary",
+          "rho_requested": 0,
+          "threshold": {
+            "mode": "none",
+            "score": 0.0,
+            "tie_hash": 0,
+            "tie_id": 0,
+            "seed": 44
+          },
+          "threshold_file": "threshold_l2_boundary_0.json",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1732,
+            1125,
+            1239
+          ],
+          "replica_counts": [
+            1732,
+            1125,
+            1239
+          ],
+          "max_to_mean_replica_load": 1.2685546875
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.5259440713562071,
+          "iterations": 30,
+          "converged": false,
+          "method": "boundary",
+          "rho_requested": 0.05,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.09781978419929513,
+            "tie_hash": 16414710489334292881,
+            "tie_id": 970848,
+            "seed": 44
+          },
+          "threshold_file": "threshold_l2_boundary_0.05.json",
+          "rows": 4096,
+          "replication_factor": 1.052001953125,
+          "overlap_fraction_observed": 0.052001953125,
+          "primary_counts": [
+            1732,
+            1125,
+            1239
+          ],
+          "replica_counts": [
+            1798,
+            1231,
+            1280
+          ],
+          "max_to_mean_replica_load": 1.2517985611510791
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.5259440713562071,
+          "iterations": 30,
+          "converged": false,
+          "method": "boundary",
+          "rho_requested": 0.1,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.17656038296520976,
+            "tie_hash": 1187718285156327788,
+            "tie_id": 693768,
+            "seed": 44
+          },
+          "threshold_file": "threshold_l2_boundary_0.1.json",
+          "rows": 4096,
+          "replication_factor": 1.096923828125,
+          "overlap_fraction_observed": 0.096435546875,
+          "primary_counts": [
+            1732,
+            1125,
+            1239
+          ],
+          "replica_counts": [
+            1850,
+            1322,
+            1321
+          ],
+          "max_to_mean_replica_load": 1.2352548408635655
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.5259440713562071,
+          "iterations": 30,
+          "converged": false,
+          "method": "boundary",
+          "rho_requested": 0.2,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.36223933853082385,
+            "tie_hash": 1382364172306902152,
+            "tie_id": 1225475,
+            "seed": 44
+          },
+          "threshold_file": "threshold_l2_boundary_0.2.json",
+          "rows": 4096,
+          "replication_factor": 1.204345703125,
+          "overlap_fraction_observed": 0.202392578125,
+          "primary_counts": [
+            1732,
+            1125,
+            1239
+          ],
+          "replica_counts": [
+            1988,
+            1549,
+            1396
+          ],
+          "max_to_mean_replica_load": 1.2090006081491993
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.5259440713562071,
+          "iterations": 30,
+          "converged": false,
+          "method": "boundary",
+          "rho_requested": 0.3,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.5429175399187487,
+            "tie_hash": 607615711909287520,
+            "tie_id": 1063308,
+            "seed": 44
+          },
+          "threshold_file": "threshold_l2_boundary_0.3.json",
+          "rows": 4096,
+          "replication_factor": 1.304931640625,
+          "overlap_fraction_observed": 0.300048828125,
+          "primary_counts": [
+            1732,
+            1125,
+            1239
+          ],
+          "replica_counts": [
+            2094,
+            1799,
+            1452
+          ],
+          "max_to_mean_replica_load": 1.1753040224508886
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.5259440713562071,
+          "iterations": 30,
+          "converged": false,
+          "method": "margin",
+          "rho_requested": 0,
+          "threshold": {
+            "mode": "none",
+            "score": 0.0,
+            "tie_hash": 0,
+            "tie_id": 0,
+            "seed": 44
+          },
+          "threshold_file": "threshold_l2_margin_0.json",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1732,
+            1125,
+            1239
+          ],
+          "replica_counts": [
+            1732,
+            1125,
+            1239
+          ],
+          "max_to_mean_replica_load": 1.2685546875
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.5259440713562071,
+          "iterations": 30,
+          "converged": false,
+          "method": "margin",
+          "rho_requested": 0.05,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.04160900482782603,
+            "tie_hash": 11909368702938702852,
+            "tie_id": 1960631,
+            "seed": 44
+          },
+          "threshold_file": "threshold_l2_margin_0.05.json",
+          "rows": 4096,
+          "replication_factor": 1.05078125,
+          "overlap_fraction_observed": 0.05078125,
+          "primary_counts": [
+            1732,
+            1125,
+            1239
+          ],
+          "replica_counts": [
+            1794,
+            1227,
+            1283
+          ],
+          "max_to_mean_replica_load": 1.2504646840148699
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.5259440713562071,
+          "iterations": 30,
+          "converged": false,
+          "method": "margin",
+          "rho_requested": 0.1,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.07605828007948333,
+            "tie_hash": 992362189000851862,
+            "tie_id": 795556,
+            "seed": 44
+          },
+          "threshold_file": "threshold_l2_margin_0.1.json",
+          "rows": 4096,
+          "replication_factor": 1.09375,
+          "overlap_fraction_observed": 0.09326171875,
+          "primary_counts": [
+            1732,
+            1125,
+            1239
+          ],
+          "replica_counts": [
+            1839,
+            1314,
+            1327
+          ],
+          "max_to_mean_replica_load": 1.2314732142857143
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.5259440713562071,
+          "iterations": 30,
+          "converged": false,
+          "method": "margin",
+          "rho_requested": 0.2,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.15705253674057182,
+            "tie_hash": 17994933833106408696,
+            "tie_id": 41755,
+            "seed": 44
+          },
+          "threshold_file": "threshold_l2_margin_0.2.json",
+          "rows": 4096,
+          "replication_factor": 1.2041015625,
+          "overlap_fraction_observed": 0.2021484375,
+          "primary_counts": [
+            1732,
+            1125,
+            1239
+          ],
+          "replica_counts": [
+            1976,
+            1549,
+            1407
+          ],
+          "max_to_mean_replica_load": 1.2019464720194648
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.5259440713562071,
+          "iterations": 30,
+          "converged": false,
+          "method": "margin",
+          "rho_requested": 0.3,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.2391211720676455,
+            "tie_hash": 17200568744799843738,
+            "tie_id": 1154885,
+            "seed": 44
+          },
+          "threshold_file": "threshold_l2_margin_0.3.json",
+          "rows": 4096,
+          "replication_factor": 1.30810546875,
+          "overlap_fraction_observed": 0.302978515625,
+          "primary_counts": [
+            1732,
+            1125,
+            1239
+          ],
+          "replica_counts": [
+            2080,
+            1807,
+            1471
+          ],
+          "max_to_mean_replica_load": 1.1646136618141096
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.5254358132369816,
+          "iterations": 30,
+          "converged": false,
+          "method": "unique",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1350,
+            1249,
+            1497
+          ],
+          "replica_counts": [
+            1350,
+            1249,
+            1497
+          ],
+          "max_to_mean_replica_load": 1.096435546875
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.5254358132369816,
+          "iterations": 30,
+          "converged": false,
+          "method": "fixed_two",
+          "rows": 4096,
+          "replication_factor": 2.0,
+          "overlap_fraction_observed": 1.0,
+          "primary_counts": [
+            1350,
+            1249,
+            1497
+          ],
+          "replica_counts": [
+            2259,
+            4091,
+            1842
+          ],
+          "max_to_mean_replica_load": 1.4981689453125
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.5254358132369816,
+          "iterations": 30,
+          "converged": false,
+          "method": "relative_gap",
+          "rho_requested": 0,
+          "threshold": {
+            "mode": "none",
+            "score": 0.0,
+            "tie_hash": 0,
+            "tie_id": 0,
+            "seed": 44
+          },
+          "threshold_file": "threshold_cosine_relative_gap_0.json",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1350,
+            1249,
+            1497
+          ],
+          "replica_counts": [
+            1350,
+            1249,
+            1497
+          ],
+          "max_to_mean_replica_load": 1.096435546875
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.5254358132369816,
+          "iterations": 30,
+          "converged": false,
+          "method": "relative_gap",
+          "rho_requested": 0.05,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.06211881275857393,
+            "tie_hash": 3354786655560578959,
+            "tie_id": 261867,
+            "seed": 44
+          },
+          "threshold_file": "threshold_cosine_relative_gap_0.05.json",
+          "rows": 4096,
+          "replication_factor": 1.0537109375,
+          "overlap_fraction_observed": 0.05322265625,
+          "primary_counts": [
+            1350,
+            1249,
+            1497
+          ],
+          "replica_counts": [
+            1426,
+            1359,
+            1531
+          ],
+          "max_to_mean_replica_load": 1.0641797961075068
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.5254358132369816,
+          "iterations": 30,
+          "converged": false,
+          "method": "relative_gap",
+          "rho_requested": 0.1,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.12402243233086803,
+            "tie_hash": 17543802975674468077,
+            "tie_id": 1438689,
+            "seed": 44
+          },
+          "threshold_file": "threshold_cosine_relative_gap_0.1.json",
+          "rows": 4096,
+          "replication_factor": 1.103515625,
+          "overlap_fraction_observed": 0.100341796875,
+          "primary_counts": [
+            1350,
+            1249,
+            1497
+          ],
+          "replica_counts": [
+            1495,
+            1464,
+            1561
+          ],
+          "max_to_mean_replica_load": 1.0360619469026549
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.5254358132369816,
+          "iterations": 30,
+          "converged": false,
+          "method": "relative_gap",
+          "rho_requested": 0.2,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.2851846994015806,
+            "tie_hash": 5526426818982742532,
+            "tie_id": 1529318,
+            "seed": 44
+          },
+          "threshold_file": "threshold_cosine_relative_gap_0.2.json",
+          "rows": 4096,
+          "replication_factor": 1.2265625,
+          "overlap_fraction_observed": 0.215576171875,
+          "primary_counts": [
+            1350,
+            1249,
+            1497
+          ],
+          "replica_counts": [
+            1636,
+            1742,
+            1646
+          ],
+          "max_to_mean_replica_load": 1.0402070063694266
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.5254358132369816,
+          "iterations": 30,
+          "converged": false,
+          "method": "relative_gap",
+          "rho_requested": 0.3,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.4269237135639991,
+            "tie_hash": 14441011295264033080,
+            "tie_id": 190512,
+            "seed": 44
+          },
+          "threshold_file": "threshold_cosine_relative_gap_0.3.json",
+          "rows": 4096,
+          "replication_factor": 1.33837890625,
+          "overlap_fraction_observed": 0.31787109375,
+          "primary_counts": [
+            1350,
+            1249,
+            1497
+          ],
+          "replica_counts": [
+            1772,
+            1990,
+            1720
+          ],
+          "max_to_mean_replica_load": 1.0890186063480483
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.5254358132369816,
+          "iterations": 30,
+          "converged": false,
+          "method": "boundary",
+          "rho_requested": 0,
+          "threshold": {
+            "mode": "none",
+            "score": 0.0,
+            "tie_hash": 0,
+            "tie_id": 0,
+            "seed": 44
+          },
+          "threshold_file": "threshold_cosine_boundary_0.json",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1350,
+            1249,
+            1497
+          ],
+          "replica_counts": [
+            1350,
+            1249,
+            1497
+          ],
+          "max_to_mean_replica_load": 1.096435546875
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.5254358132369816,
+          "iterations": 30,
+          "converged": false,
+          "method": "boundary",
+          "rho_requested": 0.05,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.0059481397176759905,
+            "tie_hash": 8935282105765924214,
+            "tie_id": 1961000,
+            "seed": 44
+          },
+          "threshold_file": "threshold_cosine_boundary_0.05.json",
+          "rows": 4096,
+          "replication_factor": 1.046875,
+          "overlap_fraction_observed": 0.046630859375,
+          "primary_counts": [
+            1350,
+            1249,
+            1497
+          ],
+          "replica_counts": [
+            1403,
+            1351,
+            1534
+          ],
+          "max_to_mean_replica_load": 1.0732276119402986
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.5254358132369816,
+          "iterations": 30,
+          "converged": false,
+          "method": "boundary",
+          "rho_requested": 0.1,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.012280094339721746,
+            "tie_hash": 6985955746527686511,
+            "tie_id": 1329731,
+            "seed": 44
+          },
+          "threshold_file": "threshold_cosine_boundary_0.1.json",
+          "rows": 4096,
+          "replication_factor": 1.099853515625,
+          "overlap_fraction_observed": 0.099609375,
+          "primary_counts": [
+            1350,
+            1249,
+            1497
+          ],
+          "replica_counts": [
+            1484,
+            1459,
+            1562
+          ],
+          "max_to_mean_replica_load": 1.0401775804661486
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.5254358132369816,
+          "iterations": 30,
+          "converged": false,
+          "method": "boundary",
+          "rho_requested": 0.2,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.024612690656965946,
+            "tie_hash": 10281707179180492535,
+            "tie_id": 205,
+            "seed": 44
+          },
+          "threshold_file": "threshold_cosine_boundary_0.2.json",
+          "rows": 4096,
+          "replication_factor": 1.209716796875,
+          "overlap_fraction_observed": 0.20654296875,
+          "primary_counts": [
+            1350,
+            1249,
+            1497
+          ],
+          "replica_counts": [
+            1627,
+            1673,
+            1655
+          ],
+          "max_to_mean_replica_load": 1.0129162462159433
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.5254358132369816,
+          "iterations": 30,
+          "converged": false,
+          "method": "boundary",
+          "rho_requested": 0.3,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.03552571386134046,
+            "tie_hash": 4363585387313236908,
+            "tie_id": 461744,
+            "seed": 44
+          },
+          "threshold_file": "threshold_cosine_boundary_0.3.json",
+          "rows": 4096,
+          "replication_factor": 1.311767578125,
+          "overlap_fraction_observed": 0.30615234375,
+          "primary_counts": [
+            1350,
+            1249,
+            1497
+          ],
+          "replica_counts": [
+            1754,
+            1878,
+            1741
+          ],
+          "max_to_mean_replica_load": 1.04857621440536
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.5254358132369816,
+          "iterations": 30,
+          "converged": false,
+          "method": "margin",
+          "rho_requested": 0,
+          "threshold": {
+            "mode": "none",
+            "score": 0.0,
+            "tie_hash": 0,
+            "tie_id": 0,
+            "seed": 44
+          },
+          "threshold_file": "threshold_cosine_margin_0.json",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1350,
+            1249,
+            1497
+          ],
+          "replica_counts": [
+            1350,
+            1249,
+            1497
+          ],
+          "max_to_mean_replica_load": 1.096435546875
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.5254358132369816,
+          "iterations": 30,
+          "converged": false,
+          "method": "margin",
+          "rho_requested": 0.05,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.040161336281295014,
+            "tie_hash": 16044788228078960752,
+            "tie_id": 126062,
+            "seed": 44
+          },
+          "threshold_file": "threshold_cosine_margin_0.05.json",
+          "rows": 4096,
+          "replication_factor": 1.048828125,
+          "overlap_fraction_observed": 0.048583984375,
+          "primary_counts": [
+            1350,
+            1249,
+            1497
+          ],
+          "replica_counts": [
+            1403,
+            1353,
+            1540
+          ],
+          "max_to_mean_replica_load": 1.0754189944134078
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.5254358132369816,
+          "iterations": 30,
+          "converged": false,
+          "method": "margin",
+          "rho_requested": 0.1,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.0797008384701932,
+            "tie_hash": 5552099877316925698,
+            "tie_id": 975552,
+            "seed": 44
+          },
+          "threshold_file": "threshold_cosine_margin_0.1.json",
+          "rows": 4096,
+          "replication_factor": 1.098388671875,
+          "overlap_fraction_observed": 0.097900390625,
+          "primary_counts": [
+            1350,
+            1249,
+            1497
+          ],
+          "replica_counts": [
+            1474,
+            1455,
+            1570
+          ],
+          "max_to_mean_replica_load": 1.0468993109579907
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.5254358132369816,
+          "iterations": 30,
+          "converged": false,
+          "method": "margin",
+          "rho_requested": 0.2,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.1589094577365665,
+            "tie_hash": 7342285482672074501,
+            "tie_id": 754761,
+            "seed": 44
+          },
+          "threshold_file": "threshold_cosine_margin_0.2.json",
+          "rows": 4096,
+          "replication_factor": 1.21142578125,
+          "overlap_fraction_observed": 0.207763671875,
+          "primary_counts": [
+            1350,
+            1249,
+            1497
+          ],
+          "replica_counts": [
+            1612,
+            1676,
+            1674
+          ],
+          "max_to_mean_replica_load": 1.0133010882708586
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.5254358132369816,
+          "iterations": 30,
+          "converged": false,
+          "method": "margin",
+          "rho_requested": 0.3,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.22940442464382982,
+            "tie_hash": 2169007387263088084,
+            "tie_id": 905479,
+            "seed": 44
+          },
+          "threshold_file": "threshold_cosine_margin_0.3.json",
+          "rows": 4096,
+          "replication_factor": 1.31591796875,
+          "overlap_fraction_observed": 0.3076171875,
+          "primary_counts": [
+            1350,
+            1249,
+            1497
+          ],
+          "replica_counts": [
+            1740,
+            1886,
+            1764
+          ],
+          "max_to_mean_replica_load": 1.049721706864564
+        }
+      ],
+      "limitations": [
+        "No graph built; no ANN recall, RPC, SSD latency or QPS measured",
+        "One sample/seed; no method-selection conclusion",
+        "All methods share training centers; RF is reported, not forcibly matched"
+      ],
+      "artifact_subdirectory": "artifacts/20261016/partition_seed44"
+    },
+    {
+      "experiment": "E03-E05 geometry pilot",
+      "status": "exploratory_not_ann_benchmark",
+      "created_utc": "2026-10-16T02:37:46.460001+00:00",
+      "dataset": {
+        "root": "/sharenvme/usershome/xulihan/gene_database/Data/seq_2M/seq_2M",
+        "rows": 2000000,
+        "dimension": 2560,
+        "manifest_sha256": "3a346cf5aa1c52aaf5418e99444207e71283a3c0463d2226c29947fd6db8c2a8",
+        "file_snapshots": [
+          {
+            "path": "manifest.json",
+            "bytes": 6150,
+            "mtime_ns": 1792087767193695510
+          },
+          {
+            "path": "base/part_00.npy",
+            "bytes": 20480000128,
+            "mtime_ns": 1792087766962695499
+          }
+        ],
+        "content_checksum_verified": false
+      },
+      "python": "3.12.3",
+      "numpy": "2.5.4",
+      "seed": 44,
+      "config": {
+        "shards": 3,
+        "train_rows": 2048,
+        "calibration_rows": 2048,
+        "evaluation_rows": 4096,
+        "metrics": [
+          "l2",
+          "cosine"
+        ],
+        "rhos": [
+          0,
+          0.05,
+          0.1,
+          0.2,
+          0.3
+        ],
+        "max_copies": 3,
+        "iterations": 100
+      },
+      "official_query_ids_excluded": 200000,
+      "sample_ids_sha256": "e4afc4321654f3cff1f3f3f6db5b76384501ce04c63dcff6c8ea710e9100ce3e",
+      "code_sha256": {
+        "__init__.py": "2ee729b046f51d9f3703565beb3288594ddd6dc7adb496513f4b4163734d1719",
+        "__main__.py": "6d8b7d7846a845059d7a3107143f11131f63c5511d669b44085b15ec5e3d2279",
+        "cli.py": "b7a53fb5cceca88d897552ed6ecd6fd1d5a59fa01ed0565189de6c07adab907d",
+        "data.py": "c35a2d3c57ee5f00276206b9fe30c6b88aad8dd9a9c4ad0819b089567b3431bd",
+        "experiments.py": "430218227e0153ab7d37b71f5e29cda8bfa2fa82dfd8ea4581fe4ef48ec8be5d",
+        "partition.py": "5a4d7bdbd5ad6ba0fc0b1fab08fe3da27f9000164a22f3531a29d1ad128153d0",
+        "scheduler.py": "01435a6af6f171746133242f36c48d78c2ae541e126b4ffb55d3a13f458f6a53"
+      },
+      "results": [
+        {
+          "metric": "l2",
+          "training_seconds": 1.895800466183573,
+          "iterations": 38,
+          "converged": true,
+          "method": "unique",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1648,
+            1151,
+            1297
+          ],
+          "replica_counts": [
+            1648,
+            1151,
+            1297
+          ],
+          "max_to_mean_replica_load": 1.20703125
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.895800466183573,
+          "iterations": 38,
+          "converged": true,
+          "method": "fixed_two",
+          "rows": 4096,
+          "replication_factor": 2.0,
+          "overlap_fraction_observed": 1.0,
+          "primary_counts": [
+            1648,
+            1151,
+            1297
+          ],
+          "replica_counts": [
+            2455,
+            4090,
+            1647
+          ],
+          "max_to_mean_replica_load": 1.497802734375
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.895800466183573,
+          "iterations": 38,
+          "converged": true,
+          "method": "relative_gap",
+          "rho_requested": 0,
+          "threshold": {
+            "mode": "none",
+            "score": 0.0,
+            "tie_hash": 0,
+            "tie_id": 0,
+            "seed": 44
+          },
+          "threshold_file": "threshold_l2_relative_gap_0.json",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1648,
+            1151,
+            1297
+          ],
+          "replica_counts": [
+            1648,
+            1151,
+            1297
+          ],
+          "max_to_mean_replica_load": 1.20703125
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.895800466183573,
+          "iterations": 38,
+          "converged": true,
+          "method": "relative_gap",
+          "rho_requested": 0.05,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.06657837237483649,
+            "tie_hash": 4464732913032523288,
+            "tie_id": 536612,
+            "seed": 44
+          },
+          "threshold_file": "threshold_l2_relative_gap_0.05.json",
+          "rows": 4096,
+          "replication_factor": 1.053955078125,
+          "overlap_fraction_observed": 0.053955078125,
+          "primary_counts": [
+            1648,
+            1151,
+            1297
+          ],
+          "replica_counts": [
+            1713,
+            1267,
+            1337
+          ],
+          "max_to_mean_replica_load": 1.1904100069492702
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.895800466183573,
+          "iterations": 38,
+          "converged": true,
+          "method": "relative_gap",
+          "rho_requested": 0.1,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.12586759617973237,
+            "tie_hash": 15002972389022839820,
+            "tie_id": 1763541,
+            "seed": 44
+          },
+          "threshold_file": "threshold_l2_relative_gap_0.1.json",
+          "rows": 4096,
+          "replication_factor": 1.094970703125,
+          "overlap_fraction_observed": 0.093505859375,
+          "primary_counts": [
+            1648,
+            1151,
+            1297
+          ],
+          "replica_counts": [
+            1757,
+            1357,
+            1371
+          ],
+          "max_to_mean_replica_load": 1.1752508361204013
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.895800466183573,
+          "iterations": 38,
+          "converged": true,
+          "method": "relative_gap",
+          "rho_requested": 0.2,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.2983623310334376,
+            "tie_hash": 7901356765482717747,
+            "tie_id": 935092,
+            "seed": 44
+          },
+          "threshold_file": "threshold_l2_relative_gap_0.2.json",
+          "rows": 4096,
+          "replication_factor": 1.216796875,
+          "overlap_fraction_observed": 0.2080078125,
+          "primary_counts": [
+            1648,
+            1151,
+            1297
+          ],
+          "replica_counts": [
+            1893,
+            1645,
+            1446
+          ],
+          "max_to_mean_replica_load": 1.139446227929374
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.895800466183573,
+          "iterations": 38,
+          "converged": true,
+          "method": "relative_gap",
+          "rho_requested": 0.3,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.46155828210989847,
+            "tie_hash": 955554365927774933,
+            "tie_id": 1090816,
+            "seed": 44
+          },
+          "threshold_file": "threshold_l2_relative_gap_0.3.json",
+          "rows": 4096,
+          "replication_factor": 1.314697265625,
+          "overlap_fraction_observed": 0.298095703125,
+          "primary_counts": [
+            1648,
+            1151,
+            1297
+          ],
+          "replica_counts": [
+            1997,
+            1887,
+            1501
+          ],
+          "max_to_mean_replica_load": 1.112534818941504
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.895800466183573,
+          "iterations": 38,
+          "converged": true,
+          "method": "boundary",
+          "rho_requested": 0,
+          "threshold": {
+            "mode": "none",
+            "score": 0.0,
+            "tie_hash": 0,
+            "tie_id": 0,
+            "seed": 44
+          },
+          "threshold_file": "threshold_l2_boundary_0.json",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1648,
+            1151,
+            1297
+          ],
+          "replica_counts": [
+            1648,
+            1151,
+            1297
+          ],
+          "max_to_mean_replica_load": 1.20703125
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.895800466183573,
+          "iterations": 38,
+          "converged": true,
+          "method": "boundary",
+          "rho_requested": 0.05,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.08940221650524019,
+            "tie_hash": 3854636730283574238,
+            "tie_id": 1632379,
+            "seed": 44
+          },
+          "threshold_file": "threshold_l2_boundary_0.05.json",
+          "rows": 4096,
+          "replication_factor": 1.051513671875,
+          "overlap_fraction_observed": 0.051513671875,
+          "primary_counts": [
+            1648,
+            1151,
+            1297
+          ],
+          "replica_counts": [
+            1704,
+            1266,
+            1337
+          ],
+          "max_to_mean_replica_load": 1.1869050383097284
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.895800466183573,
+          "iterations": 38,
+          "converged": true,
+          "method": "boundary",
+          "rho_requested": 0.1,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.18462157553709133,
+            "tie_hash": 17410104905365654186,
+            "tie_id": 1152392,
+            "seed": 44
+          },
+          "threshold_file": "threshold_l2_boundary_0.1.json",
+          "rows": 4096,
+          "replication_factor": 1.1044921875,
+          "overlap_fraction_observed": 0.10400390625,
+          "primary_counts": [
+            1648,
+            1151,
+            1297
+          ],
+          "replica_counts": [
+            1766,
+            1377,
+            1381
+          ],
+          "max_to_mean_replica_load": 1.1710875331564987
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.895800466183573,
+          "iterations": 38,
+          "converged": true,
+          "method": "boundary",
+          "rho_requested": 0.2,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.35646288845048607,
+            "tie_hash": 16181983618183189131,
+            "tie_id": 380404,
+            "seed": 44
+          },
+          "threshold_file": "threshold_l2_boundary_0.2.json",
+          "rows": 4096,
+          "replication_factor": 1.19775390625,
+          "overlap_fraction_observed": 0.195556640625,
+          "primary_counts": [
+            1648,
+            1151,
+            1297
+          ],
+          "replica_counts": [
+            1884,
+            1587,
+            1435
+          ],
+          "max_to_mean_replica_load": 1.1520587036282104
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.895800466183573,
+          "iterations": 38,
+          "converged": true,
+          "method": "boundary",
+          "rho_requested": 0.3,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.5288735696755835,
+            "tie_hash": 7570425929725593065,
+            "tie_id": 534142,
+            "seed": 44
+          },
+          "threshold_file": "threshold_l2_boundary_0.3.json",
+          "rows": 4096,
+          "replication_factor": 1.299560546875,
+          "overlap_fraction_observed": 0.294921875,
+          "primary_counts": [
+            1648,
+            1151,
+            1297
+          ],
+          "replica_counts": [
+            2015,
+            1817,
+            1491
+          ],
+          "max_to_mean_replica_load": 1.1356377982340786
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.895800466183573,
+          "iterations": 38,
+          "converged": true,
+          "method": "margin",
+          "rho_requested": 0,
+          "threshold": {
+            "mode": "none",
+            "score": 0.0,
+            "tie_hash": 0,
+            "tie_id": 0,
+            "seed": 44
+          },
+          "threshold_file": "threshold_l2_margin_0.json",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1648,
+            1151,
+            1297
+          ],
+          "replica_counts": [
+            1648,
+            1151,
+            1297
+          ],
+          "max_to_mean_replica_load": 1.20703125
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.895800466183573,
+          "iterations": 38,
+          "converged": true,
+          "method": "margin",
+          "rho_requested": 0.05,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.03980594984641107,
+            "tie_hash": 17640591943510162860,
+            "tie_id": 690812,
+            "seed": 44
+          },
+          "threshold_file": "threshold_l2_margin_0.05.json",
+          "rows": 4096,
+          "replication_factor": 1.052001953125,
+          "overlap_fraction_observed": 0.052001953125,
+          "primary_counts": [
+            1648,
+            1151,
+            1297
+          ],
+          "replica_counts": [
+            1703,
+            1268,
+            1338
+          ],
+          "max_to_mean_replica_load": 1.185657925272685
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.895800466183573,
+          "iterations": 38,
+          "converged": true,
+          "method": "margin",
+          "rho_requested": 0.1,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.08351519642270867,
+            "tie_hash": 8449750268354746559,
+            "tie_id": 1779862,
+            "seed": 44
+          },
+          "threshold_file": "threshold_l2_margin_0.1.json",
+          "rows": 4096,
+          "replication_factor": 1.10546875,
+          "overlap_fraction_observed": 0.104736328125,
+          "primary_counts": [
+            1648,
+            1151,
+            1297
+          ],
+          "replica_counts": [
+            1762,
+            1381,
+            1385
+          ],
+          "max_to_mean_replica_load": 1.1674028268551238
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.895800466183573,
+          "iterations": 38,
+          "converged": true,
+          "method": "margin",
+          "rho_requested": 0.2,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.1595931624214513,
+            "tie_hash": 6883346780407119937,
+            "tie_id": 1629747,
+            "seed": 44
+          },
+          "threshold_file": "threshold_l2_margin_0.2.json",
+          "rows": 4096,
+          "replication_factor": 1.200927734375,
+          "overlap_fraction_observed": 0.198974609375,
+          "primary_counts": [
+            1648,
+            1151,
+            1297
+          ],
+          "replica_counts": [
+            1876,
+            1602,
+            1441
+          ],
+          "max_to_mean_replica_load": 1.144134986785932
+        },
+        {
+          "metric": "l2",
+          "training_seconds": 1.895800466183573,
+          "iterations": 38,
+          "converged": true,
+          "method": "margin",
+          "rho_requested": 0.3,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.23445441855784271,
+            "tie_hash": 1801836050067312156,
+            "tie_id": 1096093,
+            "seed": 44
+          },
+          "threshold_file": "threshold_l2_margin_0.3.json",
+          "rows": 4096,
+          "replication_factor": 1.302490234375,
+          "overlap_fraction_observed": 0.297119140625,
+          "primary_counts": [
+            1648,
+            1151,
+            1297
+          ],
+          "replica_counts": [
+            1998,
+            1827,
+            1510
+          ],
+          "max_to_mean_replica_load": 1.1235238987816307
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.8487910917028785,
+          "iterations": 37,
+          "converged": true,
+          "method": "unique",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1327,
+            1260,
+            1509
+          ],
+          "replica_counts": [
+            1327,
+            1260,
+            1509
+          ],
+          "max_to_mean_replica_load": 1.105224609375
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.8487910917028785,
+          "iterations": 37,
+          "converged": true,
+          "method": "fixed_two",
+          "rows": 4096,
+          "replication_factor": 2.0,
+          "overlap_fraction_observed": 1.0,
+          "primary_counts": [
+            1327,
+            1260,
+            1509
+          ],
+          "replica_counts": [
+            2252,
+            4091,
+            1849
+          ],
+          "max_to_mean_replica_load": 1.4981689453125
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.8487910917028785,
+          "iterations": 37,
+          "converged": true,
+          "method": "relative_gap",
+          "rho_requested": 0,
+          "threshold": {
+            "mode": "none",
+            "score": 0.0,
+            "tie_hash": 0,
+            "tie_id": 0,
+            "seed": 44
+          },
+          "threshold_file": "threshold_cosine_relative_gap_0.json",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1327,
+            1260,
+            1509
+          ],
+          "replica_counts": [
+            1327,
+            1260,
+            1509
+          ],
+          "max_to_mean_replica_load": 1.105224609375
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.8487910917028785,
+          "iterations": 37,
+          "converged": true,
+          "method": "relative_gap",
+          "rho_requested": 0.05,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.06351200888525294,
+            "tie_hash": 16044788228078960752,
+            "tie_id": 126062,
+            "seed": 44
+          },
+          "threshold_file": "threshold_cosine_relative_gap_0.05.json",
+          "rows": 4096,
+          "replication_factor": 1.054443359375,
+          "overlap_fraction_observed": 0.0537109375,
+          "primary_counts": [
+            1327,
+            1260,
+            1509
+          ],
+          "replica_counts": [
+            1404,
+            1374,
+            1541
+          ],
+          "max_to_mean_replica_load": 1.0703866635795323
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.8487910917028785,
+          "iterations": 37,
+          "converged": true,
+          "method": "relative_gap",
+          "rho_requested": 0.1,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.12011900989371391,
+            "tie_hash": 17278225651974891476,
+            "tie_id": 980261,
+            "seed": 44
+          },
+          "threshold_file": "threshold_cosine_relative_gap_0.1.json",
+          "rows": 4096,
+          "replication_factor": 1.098876953125,
+          "overlap_fraction_observed": 0.095947265625,
+          "primary_counts": [
+            1327,
+            1260,
+            1509
+          ],
+          "replica_counts": [
+            1463,
+            1470,
+            1568
+          ],
+          "max_to_mean_replica_load": 1.0451010886469674
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.8487910917028785,
+          "iterations": 37,
+          "converged": true,
+          "method": "relative_gap",
+          "rho_requested": 0.2,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.2815791104509071,
+            "tie_hash": 9140270744404720645,
+            "tie_id": 162771,
+            "seed": 44
+          },
+          "threshold_file": "threshold_cosine_relative_gap_0.2.json",
+          "rows": 4096,
+          "replication_factor": 1.22412109375,
+          "overlap_fraction_observed": 0.213134765625,
+          "primary_counts": [
+            1327,
+            1260,
+            1509
+          ],
+          "replica_counts": [
+            1609,
+            1751,
+            1654
+          ],
+          "max_to_mean_replica_load": 1.0476665337056243
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.8487910917028785,
+          "iterations": 37,
+          "converged": true,
+          "method": "relative_gap",
+          "rho_requested": 0.3,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.4235771144944546,
+            "tie_hash": 5404189901164054061,
+            "tie_id": 1706031,
+            "seed": 44
+          },
+          "threshold_file": "threshold_cosine_relative_gap_0.3.json",
+          "rows": 4096,
+          "replication_factor": 1.332763671875,
+          "overlap_fraction_observed": 0.312744140625,
+          "primary_counts": [
+            1327,
+            1260,
+            1509
+          ],
+          "replica_counts": [
+            1749,
+            1986,
+            1724
+          ],
+          "max_to_mean_replica_load": 1.0914086829089575
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.8487910917028785,
+          "iterations": 37,
+          "converged": true,
+          "method": "boundary",
+          "rho_requested": 0,
+          "threshold": {
+            "mode": "none",
+            "score": 0.0,
+            "tie_hash": 0,
+            "tie_id": 0,
+            "seed": 44
+          },
+          "threshold_file": "threshold_cosine_boundary_0.json",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1327,
+            1260,
+            1509
+          ],
+          "replica_counts": [
+            1327,
+            1260,
+            1509
+          ],
+          "max_to_mean_replica_load": 1.105224609375
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.8487910917028785,
+          "iterations": 37,
+          "converged": true,
+          "method": "boundary",
+          "rho_requested": 0.05,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.005939665534599138,
+            "tie_hash": 6615337063662446658,
+            "tie_id": 779238,
+            "seed": 44
+          },
+          "threshold_file": "threshold_cosine_boundary_0.05.json",
+          "rows": 4096,
+          "replication_factor": 1.048095703125,
+          "overlap_fraction_observed": 0.0478515625,
+          "primary_counts": [
+            1327,
+            1260,
+            1509
+          ],
+          "replica_counts": [
+            1388,
+            1364,
+            1541
+          ],
+          "max_to_mean_replica_load": 1.076869322152341
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.8487910917028785,
+          "iterations": 37,
+          "converged": true,
+          "method": "boundary",
+          "rho_requested": 0.1,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.012377160162791724,
+            "tie_hash": 10581992461150300996,
+            "tie_id": 455109,
+            "seed": 44
+          },
+          "threshold_file": "threshold_cosine_boundary_0.1.json",
+          "rows": 4096,
+          "replication_factor": 1.099853515625,
+          "overlap_fraction_observed": 0.099365234375,
+          "primary_counts": [
+            1327,
+            1260,
+            1509
+          ],
+          "replica_counts": [
+            1463,
+            1471,
+            1571
+          ],
+          "max_to_mean_replica_load": 1.046170921198668
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.8487910917028785,
+          "iterations": 37,
+          "converged": true,
+          "method": "boundary",
+          "rho_requested": 0.2,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.024326281756365354,
+            "tie_hash": 6567129654800224045,
+            "tie_id": 254414,
+            "seed": 44
+          },
+          "threshold_file": "threshold_cosine_boundary_0.2.json",
+          "rows": 4096,
+          "replication_factor": 1.20654296875,
+          "overlap_fraction_observed": 0.203369140625,
+          "primary_counts": [
+            1327,
+            1260,
+            1509
+          ],
+          "replica_counts": [
+            1600,
+            1681,
+            1661
+          ],
+          "max_to_mean_replica_load": 1.0204370700121408
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.8487910917028785,
+          "iterations": 37,
+          "converged": true,
+          "method": "boundary",
+          "rho_requested": 0.3,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.03546029962263961,
+            "tie_hash": 14182292137977894636,
+            "tie_id": 1542276,
+            "seed": 44
+          },
+          "threshold_file": "threshold_cosine_boundary_0.3.json",
+          "rows": 4096,
+          "replication_factor": 1.31201171875,
+          "overlap_fraction_observed": 0.305908203125,
+          "primary_counts": [
+            1327,
+            1260,
+            1509
+          ],
+          "replica_counts": [
+            1734,
+            1890,
+            1750
+          ],
+          "max_to_mean_replica_load": 1.0550800148864905
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.8487910917028785,
+          "iterations": 37,
+          "converged": true,
+          "method": "margin",
+          "rho_requested": 0,
+          "threshold": {
+            "mode": "none",
+            "score": 0.0,
+            "tie_hash": 0,
+            "tie_id": 0,
+            "seed": 44
+          },
+          "threshold_file": "threshold_cosine_margin_0.json",
+          "rows": 4096,
+          "replication_factor": 1.0,
+          "overlap_fraction_observed": 0.0,
+          "primary_counts": [
+            1327,
+            1260,
+            1509
+          ],
+          "replica_counts": [
+            1327,
+            1260,
+            1509
+          ],
+          "max_to_mean_replica_load": 1.105224609375
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.8487910917028785,
+          "iterations": 37,
+          "converged": true,
+          "method": "margin",
+          "rho_requested": 0.05,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.03872749422587985,
+            "tie_hash": 11482292240936943220,
+            "tie_id": 413970,
+            "seed": 44
+          },
+          "threshold_file": "threshold_cosine_margin_0.05.json",
+          "rows": 4096,
+          "replication_factor": 1.048583984375,
+          "overlap_fraction_observed": 0.04833984375,
+          "primary_counts": [
+            1327,
+            1260,
+            1509
+          ],
+          "replica_counts": [
+            1386,
+            1367,
+            1542
+          ],
+          "max_to_mean_replica_load": 1.0770663562281722
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.8487910917028785,
+          "iterations": 37,
+          "converged": true,
+          "method": "margin",
+          "rho_requested": 0.1,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.08199866528853458,
+            "tie_hash": 10251107694814972259,
+            "tie_id": 1249710,
+            "seed": 44
+          },
+          "threshold_file": "threshold_cosine_margin_0.1.json",
+          "rows": 4096,
+          "replication_factor": 1.102783203125,
+          "overlap_fraction_observed": 0.102294921875,
+          "primary_counts": [
+            1327,
+            1260,
+            1509
+          ],
+          "replica_counts": [
+            1456,
+            1480,
+            1581
+          ],
+          "max_to_mean_replica_load": 1.050033207881337
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.8487910917028785,
+          "iterations": 37,
+          "converged": true,
+          "method": "margin",
+          "rho_requested": 0.2,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.15508481537500263,
+            "tie_hash": 8239328353355004448,
+            "tie_id": 871063,
+            "seed": 44
+          },
+          "threshold_file": "threshold_cosine_margin_0.2.json",
+          "rows": 4096,
+          "replication_factor": 1.2080078125,
+          "overlap_fraction_observed": 0.204345703125,
+          "primary_counts": [
+            1327,
+            1260,
+            1509
+          ],
+          "replica_counts": [
+            1585,
+            1684,
+            1679
+          ],
+          "max_to_mean_replica_load": 1.0210185933710592
+        },
+        {
+          "metric": "cosine",
+          "training_seconds": 1.8487910917028785,
+          "iterations": 37,
+          "converged": true,
+          "method": "margin",
+          "rho_requested": 0.3,
+          "threshold": {
+            "mode": "cutoff",
+            "score": 0.22934070271970286,
+            "tie_hash": 6203161929609039537,
+            "tie_id": 1091181,
+            "seed": 44
+          },
+          "threshold_file": "threshold_cosine_margin_0.3.json",
+          "rows": 4096,
+          "replication_factor": 1.316162109375,
+          "overlap_fraction_observed": 0.307861328125,
+          "primary_counts": [
+            1327,
+            1260,
+            1509
+          ],
+          "replica_counts": [
+            1717,
+            1903,
+            1771
+          ],
+          "max_to_mean_replica_load": 1.058987200890373
+        }
+      ],
+      "limitations": [
+        "No graph built; no ANN recall, RPC, SSD latency or QPS measured",
+        "One sample/seed; no method-selection conclusion",
+        "All methods share training centers; RF is reported, not forcibly matched"
+      ],
+      "artifact_subdirectory": "artifacts/20261016/partition_seed44_iter100"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+[
+  {
+    "label": "cal_b24_f256_w1",
+    "command": [
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/recall_targets_20261016T171501+0800/worker.py",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/recall_targets_20261016T171501+0800/calibration/b24_f256_w1/config.yaml"
+    ],
+    "returncode": 1
+  }
+]

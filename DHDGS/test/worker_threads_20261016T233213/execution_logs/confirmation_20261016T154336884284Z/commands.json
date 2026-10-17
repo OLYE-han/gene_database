@@ -1,0 +1,458 @@
+[
+  {
+    "command": [
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/worker.py",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/confirmation/w4_c16_trial0/config.yaml"
+    ],
+    "returncode": 0,
+    "wall_seconds": 13.156400442123413,
+    "load_before": [
+      4.14208984375,
+      5.07568359375,
+      4.8349609375
+    ],
+    "load_after": [
+      4.3505859375,
+      5.07275390625,
+      4.8369140625
+    ]
+  },
+  {
+    "command": [
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/worker.py",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/confirmation/w4_c32_trial0/config.yaml"
+    ],
+    "returncode": 0,
+    "wall_seconds": 15.060304641723633,
+    "load_before": [
+      4.3505859375,
+      5.07275390625,
+      4.8369140625
+    ],
+    "load_after": [
+      4.64306640625,
+      5.10205078125,
+      4.85009765625
+    ]
+  },
+  {
+    "command": [
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/worker.py",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/confirmation/w4_c2_trial0/config.yaml"
+    ],
+    "returncode": 0,
+    "wall_seconds": 13.21242070198059,
+    "load_before": [
+      4.64306640625,
+      5.10205078125,
+      4.85009765625
+    ],
+    "load_after": [
+      4.58056640625,
+      5.06396484375,
+      4.84130859375
+    ]
+  },
+  {
+    "command": [
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/worker.py",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/confirmation/w4_c8_trial0/config.yaml"
+    ],
+    "returncode": 0,
+    "wall_seconds": 12.428820610046387,
+    "load_before": [
+      4.58056640625,
+      5.06396484375,
+      4.84130859375
+    ],
+    "load_after": [
+      4.87255859375,
+      5.111328125,
+      4.859375
+    ]
+  },
+  {
+    "command": [
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/worker.py",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/confirmation/w4_c1_trial0/config.yaml"
+    ],
+    "returncode": 0,
+    "wall_seconds": 18.610230207443237,
+    "load_before": [
+      4.87255859375,
+      5.111328125,
+      4.859375
+    ],
+    "load_after": [
+      4.75927734375,
+      5.0712890625,
+      4.8515625
+    ]
+  },
+  {
+    "command": [
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/worker.py",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/confirmation/w32_c1_trial0/config.yaml"
+    ],
+    "returncode": 0,
+    "wall_seconds": 18.76191759109497,
+    "load_before": [
+      4.75927734375,
+      5.0712890625,
+      4.8515625
+    ],
+    "load_after": [
+      4.275390625,
+      4.93701171875,
+      4.810546875
+    ]
+  },
+  {
+    "command": [
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/worker.py",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/confirmation/w1_c16_trial0/config.yaml"
+    ],
+    "returncode": 0,
+    "wall_seconds": 9.85693097114563,
+    "load_before": [
+      4.275390625,
+      4.93701171875,
+      4.810546875
+    ],
+    "load_after": [
+      4.85498046875,
+      5.03857421875,
+      4.84521484375
+    ]
+  },
+  {
+    "command": [
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/worker.py",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/confirmation/w1_c4_trial0/config.yaml"
+    ],
+    "returncode": 0,
+    "wall_seconds": 9.435200452804565,
+    "load_before": [
+      4.85498046875,
+      5.03857421875,
+      4.84521484375
+    ],
+    "load_after": [
+      5.0244140625,
+      5.06982421875,
+      4.85791015625
+    ]
+  },
+  {
+    "command": [
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/worker.py",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/confirmation/w1_c8_trial0/config.yaml"
+    ],
+    "returncode": 0,
+    "wall_seconds": 9.308958530426025,
+    "load_before": [
+      5.0244140625,
+      5.06982421875,
+      4.85791015625
+    ],
+    "load_after": [
+      4.85986328125,
+      5.03369140625,
+      4.8486328125
+    ]
+  },
+  {
+    "command": [
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/worker.py",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/confirmation/w4_c4_trial0/config.yaml"
+    ],
+    "returncode": 0,
+    "wall_seconds": 12.256865978240967,
+    "load_before": [
+      4.85986328125,
+      5.03369140625,
+      4.8486328125
+    ],
+    "load_after": [
+      4.97412109375,
+      5.0498046875,
+      4.85546875
+    ]
+  },
+  {
+    "command": [
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/worker.py",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/confirmation/w1_c2_trial0/config.yaml"
+    ],
+    "returncode": 0,
+    "wall_seconds": 11.71726655960083,
+    "load_before": [
+      4.97412109375,
+      5.0498046875,
+      4.85546875
+    ],
+    "load_after": [
+      4.958984375,
+      5.04736328125,
+      4.85693359375
+    ]
+  },
+  {
+    "command": [
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/worker.py",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/confirmation/w1_c32_trial0/config.yaml"
+    ],
+    "returncode": 0,
+    "wall_seconds": 11.218428373336792,
+    "load_before": [
+      4.958984375,
+      5.04736328125,
+      4.85693359375
+    ],
+    "load_after": [
+      5.3291015625,
+      5.1259765625,
+      4.8857421875
+    ]
+  },
+  {
+    "command": [
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/worker.py",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/confirmation/w32_c1_trial1/config.yaml"
+    ],
+    "returncode": 0,
+    "wall_seconds": 18.80149817466736,
+    "load_before": [
+      5.3291015625,
+      5.1259765625,
+      4.8857421875
+    ],
+    "load_after": [
+      5.55908203125,
+      5.185546875,
+      4.90966796875
+    ]
+  },
+  {
+    "command": [
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/worker.py",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/confirmation/w1_c32_trial1/config.yaml"
+    ],
+    "returncode": 0,
+    "wall_seconds": 11.347215414047241,
+    "load_before": [
+      5.55908203125,
+      5.185546875,
+      4.90966796875
+    ],
+    "load_after": [
+      5.59521484375,
+      5.2099609375,
+      4.921875
+    ]
+  },
+  {
+    "command": [
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/worker.py",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/confirmation/w4_c32_trial1/config.yaml"
+    ],
+    "returncode": 0,
+    "wall_seconds": 14.960933685302734,
+    "load_before": [
+      5.59521484375,
+      5.2099609375,
+      4.921875
+    ],
+    "load_after": [
+      5.82666015625,
+      5.28125,
+      4.9501953125
+    ]
+  },
+  {
+    "command": [
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/worker.py",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/confirmation/w1_c8_trial1/config.yaml"
+    ],
+    "returncode": 0,
+    "wall_seconds": 9.148593425750732,
+    "load_before": [
+      5.82666015625,
+      5.28125,
+      4.9501953125
+    ],
+    "load_after": [
+      5.693359375,
+      5.27197265625,
+      4.95068359375
+    ]
+  },
+  {
+    "command": [
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/worker.py",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/confirmation/w1_c2_trial1/config.yaml"
+    ],
+    "returncode": 0,
+    "wall_seconds": 11.698228359222412,
+    "load_before": [
+      5.693359375,
+      5.27197265625,
+      4.95068359375
+    ],
+    "load_after": [
+      5.35888671875,
+      5.21337890625,
+      4.9345703125
+    ]
+  },
+  {
+    "command": [
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/worker.py",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/confirmation/w4_c8_trial1/config.yaml"
+    ],
+    "returncode": 0,
+    "wall_seconds": 12.45871639251709,
+    "load_before": [
+      5.35888671875,
+      5.21337890625,
+      4.9345703125
+    ],
+    "load_after": [
+      5.00244140625,
+      5.14013671875,
+      4.9130859375
+    ]
+  },
+  {
+    "command": [
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/worker.py",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/confirmation/w4_c2_trial1/config.yaml"
+    ],
+    "returncode": 0,
+    "wall_seconds": 13.27348780632019,
+    "load_before": [
+      5.001953125,
+      5.1376953125,
+      4.91357421875
+    ],
+    "load_after": [
+      5.39599609375,
+      5.21630859375,
+      4.94140625
+    ]
+  },
+  {
+    "command": [
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/worker.py",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/confirmation/w4_c16_trial1/config.yaml"
+    ],
+    "returncode": 0,
+    "wall_seconds": 13.178689002990723,
+    "load_before": [
+      5.39599609375,
+      5.21630859375,
+      4.94140625
+    ],
+    "load_after": [
+      5.943359375,
+      5.35205078125,
+      4.9912109375
+    ]
+  },
+  {
+    "command": [
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/worker.py",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/confirmation/w4_c4_trial1/config.yaml"
+    ],
+    "returncode": 0,
+    "wall_seconds": 12.249484539031982,
+    "load_before": [
+      5.943359375,
+      5.35205078125,
+      4.9912109375
+    ],
+    "load_after": [
+      5.5703125,
+      5.291015625,
+      4.97509765625
+    ]
+  },
+  {
+    "command": [
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/worker.py",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/confirmation/w1_c4_trial1/config.yaml"
+    ],
+    "returncode": 0,
+    "wall_seconds": 9.406869649887085,
+    "load_before": [
+      5.5703125,
+      5.291015625,
+      4.97509765625
+    ],
+    "load_after": [
+      5.3349609375,
+      5.24853515625,
+      4.96484375
+    ]
+  },
+  {
+    "command": [
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/worker.py",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/confirmation/w4_c1_trial1/config.yaml"
+    ],
+    "returncode": 0,
+    "wall_seconds": 18.659990072250366,
+    "load_before": [
+      5.3349609375,
+      5.24853515625,
+      4.96484375
+    ],
+    "load_after": [
+      5.029296875,
+      5.18310546875,
+      4.94970703125
+    ]
+  },
+  {
+    "command": [
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/worker.py",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/confirmation/w1_c16_trial1/config.yaml"
+    ],
+    "returncode": 0,
+    "wall_seconds": 9.729260683059692,
+    "load_before": [
+      5.029296875,
+      5.18310546875,
+      4.94970703125
+    ],
+    "load_after": [
+      5.54736328125,
+      5.2919921875,
+      4.98828125
+    ]
+  }
+]

@@ -1,0 +1,16 @@
+[
+  {
+    "name": "regression",
+    "command": [
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/tests",
+      "-v"
+    ],
+    "returncode": 1,
+    "log": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/local_peer_20261016T163642+0800/execution_logs/20261016T083703370187Z/regression.log"
+  }
+]

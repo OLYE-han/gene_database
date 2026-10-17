@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "status": "discovered_not_deployed",
+  "router": {
+    "host": null,
+    "status": "pending_fourth_machine"
+  },
+  "data_nodes": [
+    {
+      "shard_id": 0,
+      "host": "sugon-intel-four-numa",
+      "management_address": "172.16.33.35",
+      "candidate_data_address": "192.168.33.35",
+      "index_directory": null
+    },
+    {
+      "shard_id": 1,
+      "ssh_alias": "intel-32",
+      "management_address": "172.16.33.32",
+      "candidate_data_address": "192.168.33.32",
+      "index_directory": null
+    },
+    {
+      "shard_id": 2,
+      "ssh_alias": "intel-30",
+      "management_address": "172.16.33.30",
+      "candidate_data_address": "192.168.33.30",
+      "index_directory": null
+    }
+  ],
+  "notes": [
+    "Addresses and link rates are discovered; no data service has been started.",
+    "Candidate data addresses use IP over InfiniBand, not a tested RDMA transport.",
+    "Index directories must be on each node's local SSD; verify capacity before deployment.",
+    "Official query calibration/test split and default metric remain undecided."
+  ],
+  "kind": "historical_hardware_observation_not_runtime_configuration"
+}

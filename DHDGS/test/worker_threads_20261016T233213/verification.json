@@ -1,0 +1,14 @@
+{
+  "reports": 120,
+  "requests": 39936,
+  "failed_queries": 0,
+  "node_revisits": 0,
+  "successful_queries_with_incomplete_resource_metrics": 208,
+  "control_error_events": 214,
+  "all_services_stopped": true,
+  "no_running_expands_after_measurement": true,
+  "product_source_unchanged": true,
+  "recommended_configs_valid": true,
+  "wall_breakdowns_conserved": true,
+  "unknown_process_io_counters": 0
+}

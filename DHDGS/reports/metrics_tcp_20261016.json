@@ -1,0 +1,732 @@
+{
+  "kind": "closed_loop_load_benchmark",
+  "index_epoch": "52d6537d-9f08-4528-88fe-d200d8801f46",
+  "indexed_rows": 4096,
+  "query_count": 16,
+  "unique_query_rows": 16,
+  "concurrency": 1,
+  "warmup_queries_per_worker": 0,
+  "top_k": 10,
+  "metric": "l2",
+  "transport": "tcp",
+  "measured_wall_seconds": 1.012774575,
+  "successful_queries": 16,
+  "failed_queries": 0,
+  "qps": 15.798184902104204,
+  "completed_qps": 15.798184902104204,
+  "error_fraction": 0.0,
+  "recall_at_k": 1.0,
+  "recall_distribution": {
+    "count": 16,
+    "mean": 1.0,
+    "p50": 1.0,
+    "p90": 1.0,
+    "p95": 1.0,
+    "p99": 1.0,
+    "max": 1.0
+  },
+  "target_recall": 0.99,
+  "target_met_on_this_sample": true,
+  "queries_meeting_recall_fraction": 1.0,
+  "latency_ms": {
+    "count": 16,
+    "mean": 62.1867353329435,
+    "p50": 64.8015879560262,
+    "p90": 70.95783110707998,
+    "p95": 74.01113142259419,
+    "p99": 78.21245924569666,
+    "max": 79.26279120147228
+  },
+  "failure_latency_ms": {
+    "count": 0,
+    "mean": null,
+    "p50": null,
+    "p90": null,
+    "p95": null,
+    "p99": null,
+    "max": null
+  },
+  "fallback_query_fraction": 0.9375,
+  "mean_rpc_count": 65.125,
+  "mean_expansions": 256.0,
+  "per_node_query_totals": {
+    "0": {
+      "rpc_count": 10,
+      "wire_bytes": 134645,
+      "file_read_bytes": 245760,
+      "pread_calls": 20,
+      "cache_hits": 6,
+      "request_bytes": 104428,
+      "response_bytes": 30217,
+      "rpc_retries": 0,
+      "scanned_edges": 890,
+      "rabitq_evaluations": 656,
+      "exact_distance_evaluations": 26,
+      "pread_ms": 0.164883,
+      "rabitq_ms": 1.687729,
+      "exact_distance_ms": 0.9253760000000001,
+      "service_ms": 5.645956000000001,
+      "server_thread_cpu_ms": 5.6400250000000005,
+      "action_ms": 14.972885999999999
+    },
+    "1": {
+      "rpc_count": 888,
+      "wire_bytes": 12788772,
+      "file_read_bytes": 15568896,
+      "pread_calls": 1267,
+      "cache_hits": 2218,
+      "request_bytes": 9278935,
+      "response_bytes": 3509837,
+      "rpc_retries": 0,
+      "scanned_edges": 90442,
+      "rabitq_evaluations": 81032,
+      "exact_distance_evaluations": 3485,
+      "pread_ms": 5.737506,
+      "rabitq_ms": 72.959121,
+      "exact_distance_ms": 43.11149400000001,
+      "service_ms": 259.454304,
+      "server_thread_cpu_ms": 258.68442200000004,
+      "action_ms": 541.8320859999999
+    },
+    "2": {
+      "rpc_count": 144,
+      "wire_bytes": 2015620,
+      "file_read_bytes": 3452928,
+      "pread_calls": 281,
+      "cache_hits": 304,
+      "request_bytes": 1504817,
+      "response_bytes": 510803,
+      "rpc_retries": 0,
+      "scanned_edges": 14688,
+      "rabitq_evaluations": 11330,
+      "exact_distance_evaluations": 585,
+      "pread_ms": 1.6251109999999995,
+      "rabitq_ms": 16.032131000000003,
+      "exact_distance_ms": 10.986714000000001,
+      "service_ms": 60.54901200000001,
+      "server_thread_cpu_ms": 60.501664,
+      "action_ms": 135.256267
+    }
+  },
+  "expansion_imbalance": {
+    "max_to_mean": 2.552490234375,
+    "coefficient_of_variation": 1.1104282698224859
+  },
+  "build_seconds": 38.06707770610228,
+  "build_profile": {
+    "phases": [
+      {
+        "phase": "load_sample_prepare",
+        "wall_seconds": 0.11587811121717095,
+        "cpu_seconds": 0.11453083700000022
+      },
+      {
+        "phase": "kmeans",
+        "wall_seconds": 0.31678611505776644,
+        "cpu_seconds": 0.3157312389999998
+      },
+      {
+        "phase": "calibration_assignment_metadata",
+        "wall_seconds": 0.142661158926785,
+        "cpu_seconds": 0.1420730490000004
+      },
+      {
+        "phase": "shard_0_graph_and_union",
+        "wall_seconds": 14.328475203830749,
+        "cpu_seconds": 14.315652323999998
+      },
+      {
+        "phase": "shard_1_graph_and_union",
+        "wall_seconds": 13.688018524087965,
+        "cpu_seconds": 13.673432268
+      },
+      {
+        "phase": "shard_2_graph_and_union",
+        "wall_seconds": 9.284462778829038,
+        "cpu_seconds": 9.272268223000005
+      },
+      {
+        "phase": "bridges_connectivity",
+        "wall_seconds": 0.023314191959798336,
+        "cpu_seconds": 0.023129418999999984
+      },
+      {
+        "phase": "rabitq_encode",
+        "wall_seconds": 0.056399998255074024,
+        "cpu_seconds": 0.056262171999996724
+      },
+      {
+        "phase": "shard_0_materialize_and_fsync",
+        "wall_seconds": 0.026221650186926126,
+        "cpu_seconds": 0.022709214999999006
+      },
+      {
+        "phase": "shard_1_materialize_and_fsync",
+        "wall_seconds": 0.03383416589349508,
+        "cpu_seconds": 0.030218996000002107
+      },
+      {
+        "phase": "shard_2_materialize_and_fsync",
+        "wall_seconds": 0.02629153896123171,
+        "cpu_seconds": 0.022655747000001725
+      },
+      {
+        "phase": "hnsw_router_and_publication_prepare",
+        "wall_seconds": 0.02435172302648425,
+        "cpu_seconds": 0.024329758000000368
+      }
+    ],
+    "process_before": {
+      "pid": 3,
+      "host": "sugon-intel-four-numa",
+      "monotonic_ns": 2344920953775246,
+      "cpu_seconds": 6.96,
+      "rss_bytes": 33554432,
+      "peak_rss_bytes": 33554432,
+      "storage_read_bytes": 0,
+      "storage_write_bytes": 0,
+      "threads": 64
+    },
+    "process_after": {
+      "pid": 3,
+      "host": "sugon-intel-four-numa",
+      "monotonic_ns": 2344959020848783,
+      "cpu_seconds": 44.98,
+      "rss_bytes": 478326784,
+      "peak_rss_bytes": 669315072,
+      "storage_read_bytes": 6926336,
+      "storage_write_bytes": 61120512,
+      "threads": 64
+    },
+    "network_shuffle_bytes": null,
+    "network_shuffle_seconds": null,
+    "scope": "central in-memory build; excludes final manifest write"
+  },
+  "exact_scan_seconds": 1.016181895043701,
+  "python": "3.12.3",
+  "numpy": "2.5.4",
+  "source_sha256": {
+    "__main__.py": "6d8b7d7846a845059d7a3107143f11131f63c5511d669b44085b15ec5e3d2279",
+    "scheduler.py": "38ec4d00ed43c857eb6003c8b37a401a8bb7ef7564e9821bf4637e98a8667acc",
+    "metrics.py": "6eeaf2299120c548bb5ec0e2383c7c18b8b0e0551700487523f31c7499e40d90",
+    "search.py": "b55369181dd6959f892e24b346ac674ebaa309783fa63217bfb2b56638895d1d",
+    "index.py": "f9617f749186249225cff9dad2b0730418828f06569319738465b061ee97d6df",
+    "__init__.py": "6df51e7a5fc03cf0661e100fcfcc1e52466b8a6f27c774c64004631b41e5308c",
+    "transport.py": "057f76668c5bc8211f665cdb39dbf271f56f29af0daa10b2588135b85643381f",
+    "experiments.py": "b72fb3e8abd1abd7fe65537fca4a07e48bd4e1244de979b433921b63c0d500bf",
+    "data.py": "c35a2d3c57ee5f00276206b9fe30c6b88aad8dd9a9c4ad0819b089567b3431bd",
+    "benchmark.py": "13ba587b2264c3f7750bc06c608f05775bb04617febe9cd0a8cdf7e7cbd887ea",
+    "cluster_test.py": "eb66975ccf1b61568335b38e354cd011f7269f54fbd2a01cb5c26678c8fa9b5a",
+    "cli.py": "9f1984528280a2569853b89ab6ac007f9c436ce28836890a6910920e2573f4ce",
+    "config.py": "c2f9b45b3df8771f0a63d2adbab5ca90d41f08604086c5ace778c4f3d5a92b4b",
+    "partition.py": "5a4d7bdbd5ad6ba0fc0b1fab08fe3da27f9000164a22f3531a29d1ad128153d0"
+  },
+  "limitations": [
+    "Closed-loop finite query window; not automatically saturation QPS or steady state",
+    "Truth preparation, warmup and loading are outside timed load; OS caches are uncontrolled",
+    "File pread metrics are not physical SSD latency; process IO is not attributable per query",
+    "Same-host blocked-time attribution uses a shared monotonic clock; other clocks remain unattributed",
+    "Transport/runtime waiting includes serialization and scheduling, not pure wire time",
+    "CPU/RSS/IO process metrics are shared by all shards in that process; do not sum duplicate PIDs",
+    "Per-query failure counters may be partial; failure recall is zero and failures remain in denominators",
+    "Small-sample p99 is descriptive; exact truth is for indexed rows only",
+    "Detailed traces add protocol bytes and measurement overhead; compare identical instrumentation"
+  ],
+  "local_cluster": {
+    "reused_index": true,
+    "startup_seconds": 0.34737616404891014,
+    "services": [
+      {
+        "shard_id": 0,
+        "pid": 1583279,
+        "host": "127.0.0.1",
+        "port": 19101,
+        "ready": true,
+        "exit_code": -15,
+        "stopped": true
+      },
+      {
+        "shard_id": 1,
+        "pid": 1583345,
+        "host": "127.0.0.1",
+        "port": 19102,
+        "ready": true,
+        "exit_code": -15,
+        "stopped": true
+      },
+      {
+        "shard_id": 2,
+        "pid": 1583410,
+        "host": "127.0.0.1",
+        "port": 19103,
+        "ready": true,
+        "exit_code": -15,
+        "stopped": true
+      }
+    ],
+    "scope": "independent processes, TCP loopback on one physical host"
+  },
+  "mean_query_metrics": {
+    "rpc_count": 65.125,
+    "wire_bytes": 933689.8125,
+    "request_bytes": 680511.25,
+    "response_bytes": 253178.5625,
+    "file_read_bytes": 1204224.0,
+    "pread_calls": 98.0,
+    "cache_hits": 158.0,
+    "expanded": 256.0,
+    "scanned_edges": 6626.25,
+    "rabitq_evaluations": 5829.625,
+    "exact_distance_evaluations": 256.0,
+    "max_discovery_depth": 10.125,
+    "max_expanded_depth": 9.125,
+    "max_cross_shard_depth": 2.0,
+    "server_thread_cpu_ms": 20.3016319375,
+    "coordinator_thread_cpu_ms": 28.5008588125,
+    "fallback_entries": 1.75
+  },
+  "wall_time_weighted_breakdown_fraction": {
+    "routing_wall_ms": 0.005073122681403627,
+    "storage_call_wait_ms": 0.005136332503867448,
+    "data_compute_wait_ms": 0.10352957954828308,
+    "data_service_other_wait_ms": 0.11594443471581285,
+    "transport_and_runtime_wait_ms": 0.30519941509046644,
+    "rpc_wait_unattributed_ms": 0.0,
+    "coordinator_wakeup_wait_ms": 0.058131527859526404,
+    "coordinator_other_wall_ms": 0.40698558760064013
+  },
+  "full_report": "/sharenvme/usershome/xulihan/gene_database/DHDGS/artifacts/metrics_tcp_20261016T062940/runs/local-cluster-test_20261016T063943_efd816f2/report.json",
+  "full_report_sha256": "d57580ee9879f06df17bcea1db0a3d50eba22b6ce83fc60fd3b28f611910cd68",
+  "tests": {
+    "full_suite_passed": 34,
+    "followup_metrics_and_cli_passed": 9
+  },
+  "query_rows": [
+    {
+      "query_row": 0,
+      "query_id": 0,
+      "request_id": "0557525f-702e-43a3-91d1-efb8f96fd2cb",
+      "recall": 1.0,
+      "status": "ok",
+      "ids": [
+        1979073,
+        10594,
+        1520663,
+        1603355,
+        1306463,
+        1296372,
+        1500352,
+        3317,
+        1077939,
+        491550
+      ]
+    },
+    {
+      "query_row": 1,
+      "query_id": 9,
+      "request_id": "a9c02bbb-27eb-4a01-9bde-c83c346e2826",
+      "recall": 1.0,
+      "status": "ok",
+      "ids": [
+        8744,
+        1818849,
+        6294,
+        760873,
+        660953,
+        867210,
+        760553,
+        835808,
+        1226436,
+        578627
+      ]
+    },
+    {
+      "query_row": 2,
+      "query_id": 34,
+      "request_id": "68c9c574-c0de-4625-9d4f-b5233205ae9b",
+      "recall": 1.0,
+      "status": "ok",
+      "ids": [
+        87430,
+        491550,
+        1520663,
+        1793718,
+        870151,
+        1503992,
+        1620571,
+        1870051,
+        1356253,
+        90170
+      ]
+    },
+    {
+      "query_row": 3,
+      "query_id": 41,
+      "request_id": "879b3c0a-c2c3-4e33-9f6d-dc1d129ab411",
+      "recall": 1.0,
+      "status": "ok",
+      "ids": [
+        1857849,
+        1345438,
+        256916,
+        1747227,
+        788126,
+        171539,
+        1860220,
+        179951,
+        1249725,
+        154776
+      ]
+    },
+    {
+      "query_row": 4,
+      "query_id": 47,
+      "request_id": "cc9126d3-6c43-4583-90fb-a12b0ce2e880",
+      "recall": 1.0,
+      "status": "ok",
+      "ids": [
+        676721,
+        228015,
+        1800705,
+        44460,
+        491248,
+        1591483,
+        1979073,
+        1681394,
+        724381,
+        901408
+      ]
+    },
+    {
+      "query_row": 5,
+      "query_id": 51,
+      "request_id": "45c6ee4d-2aa8-4714-a8c6-19799e5146df",
+      "recall": 1.0,
+      "status": "ok",
+      "ids": [
+        190334,
+        1783232,
+        53110,
+        89404,
+        189866,
+        1942130,
+        260842,
+        118020,
+        788126,
+        1507349
+      ]
+    },
+    {
+      "query_row": 6,
+      "query_id": 96,
+      "request_id": "0a9a07a5-8744-4978-9377-a04572c865e4",
+      "recall": 1.0,
+      "status": "ok",
+      "ids": [
+        1664491,
+        1362043,
+        755660,
+        1719007,
+        509255,
+        979543,
+        1303006,
+        1296372,
+        1269826,
+        1992368
+      ]
+    },
+    {
+      "query_row": 7,
+      "query_id": 98,
+      "request_id": "bedfb861-a16c-4f15-8039-0064bffc7368",
+      "recall": 1.0,
+      "status": "ok",
+      "ids": [
+        89164,
+        1664491,
+        924621,
+        1362043,
+        960160,
+        1392501,
+        46409,
+        1610103,
+        1269826,
+        1969983
+      ]
+    },
+    {
+      "query_row": 8,
+      "query_id": 100,
+      "request_id": "efc99015-c5ad-49f5-8d8a-ba44e7c64473",
+      "recall": 1.0,
+      "status": "ok",
+      "ids": [
+        1658646,
+        885025,
+        1872430,
+        272552,
+        209612,
+        891659,
+        1868583,
+        189952,
+        1800705,
+        1980154
+      ]
+    },
+    {
+      "query_row": 9,
+      "query_id": 116,
+      "request_id": "b7cb12af-3fac-4f0f-84f2-0da3a7dfb6a0",
+      "recall": 1.0,
+      "status": "ok",
+      "ids": [
+        500121,
+        206409,
+        1189972,
+        813833,
+        832129,
+        265387,
+        1308170,
+        255907,
+        22030,
+        1252979
+      ]
+    },
+    {
+      "query_row": 10,
+      "query_id": 122,
+      "request_id": "c08da1fa-464b-414b-a372-611b871e5f67",
+      "recall": 1.0,
+      "status": "ok",
+      "ids": [
+        1745888,
+        108826,
+        1783232,
+        726678,
+        122257,
+        1507349,
+        914483,
+        177493,
+        1764724,
+        1916471
+      ]
+    },
+    {
+      "query_row": 11,
+      "query_id": 123,
+      "request_id": "d9f4ce2f-963f-4576-8c61-e2bb896cec49",
+      "recall": 1.0,
+      "status": "ok",
+      "ids": [
+        74262,
+        973625,
+        82049,
+        608245,
+        143574,
+        108079,
+        94626,
+        140934,
+        185349,
+        1598632
+      ]
+    },
+    {
+      "query_row": 12,
+      "query_id": 136,
+      "request_id": "f5ddde01-24f6-4d63-8dab-9bda8521ab75",
+      "recall": 1.0,
+      "status": "ok",
+      "ids": [
+        3317,
+        423462,
+        403943,
+        437141,
+        1719007,
+        1296372,
+        114075,
+        1970334,
+        890568,
+        1923642
+      ]
+    },
+    {
+      "query_row": 13,
+      "query_id": 144,
+      "request_id": "25e6901d-48ad-48ba-846d-503333839524",
+      "recall": 1.0,
+      "status": "ok",
+      "ids": [
+        1582621,
+        1573627,
+        1030882,
+        1319387,
+        249444,
+        706014,
+        1121366,
+        1272036,
+        165251,
+        1026441
+      ]
+    },
+    {
+      "query_row": 14,
+      "query_id": 155,
+      "request_id": "6888ea1f-e082-4152-8f69-15df4b5e9eb1",
+      "recall": 1.0,
+      "status": "ok",
+      "ids": [
+        1696115,
+        1603355,
+        10594,
+        148468,
+        132877,
+        870151,
+        491550,
+        1665377,
+        1094771,
+        881697
+      ]
+    },
+    {
+      "query_row": 15,
+      "query_id": 157,
+      "request_id": "bd50b3ac-20e5-46c0-a385-6299983929c6",
+      "recall": 1.0,
+      "status": "ok",
+      "ids": [
+        1783232,
+        1745888,
+        1922051,
+        1345438,
+        1764724,
+        18495,
+        260842,
+        81776,
+        1379587,
+        1532611
+      ]
+    }
+  ],
+  "node_process_load": [
+    {
+      "worker": null,
+      "shard_id": 0,
+      "process": {
+        "pid": 1583279,
+        "host": "sugon-intel-four-numa",
+        "monotonic_ns": 2345513424930075,
+        "cpu_seconds": 7.16,
+        "rss_bytes": 37748736,
+        "peak_rss_bytes": 37748736,
+        "storage_read_bytes": 0,
+        "storage_write_bytes": 0,
+        "threads": 67
+      },
+      "process_window_seconds": 1.020665187,
+      "process_deltas": {
+        "cpu_seconds": 0.009999999999999787,
+        "storage_read_bytes": 0,
+        "storage_write_bytes": 0
+      },
+      "mean_cpu_cores": 0.00979753216565795,
+      "counter_deltas": {
+        "requests": 10,
+        "completed": 10,
+        "failed": 0,
+        "file_read_bytes": 245760,
+        "pread_calls": 20,
+        "cache_hits": 6,
+        "pread_ms": 0.164883,
+        "scanned_edges": 890,
+        "exact_distance_evaluations": 26,
+        "exact_distance_ms": 0.9253760000000001,
+        "rabitq_ms": 1.6877290000000003,
+        "rabitq_evaluations": 656,
+        "service_ms": 5.645956000000001,
+        "server_thread_cpu_ms": 5.640025
+      },
+      "active_after": 0,
+      "peak_active_since_start": 1
+    },
+    {
+      "worker": null,
+      "shard_id": 1,
+      "process": {
+        "pid": 1583345,
+        "host": "sugon-intel-four-numa",
+        "monotonic_ns": 2345513426040399,
+        "cpu_seconds": 7.57,
+        "rss_bytes": 39845888,
+        "peak_rss_bytes": 39845888,
+        "storage_read_bytes": 0,
+        "storage_write_bytes": 0,
+        "threads": 67
+      },
+      "process_window_seconds": 1.019494857,
+      "process_deltas": {
+        "cpu_seconds": 0.40000000000000036,
+        "storage_read_bytes": 0,
+        "storage_write_bytes": 0
+      },
+      "mean_cpu_cores": 0.39235117004616765,
+      "counter_deltas": {
+        "requests": 888,
+        "completed": 888,
+        "failed": 0,
+        "file_read_bytes": 15568896,
+        "pread_calls": 1267,
+        "cache_hits": 2218,
+        "pread_ms": 5.737506000000001,
+        "scanned_edges": 90442,
+        "exact_distance_evaluations": 3485,
+        "exact_distance_ms": 43.111494,
+        "rabitq_ms": 72.95912099999991,
+        "rabitq_evaluations": 81032,
+        "service_ms": 259.45430399999987,
+        "server_thread_cpu_ms": 258.68442199999987
+      },
+      "active_after": 0,
+      "peak_active_since_start": 1
+    },
+    {
+      "worker": null,
+      "shard_id": 2,
+      "process": {
+        "pid": 1583410,
+        "host": "sugon-intel-four-numa",
+        "monotonic_ns": 2345513426861146,
+        "cpu_seconds": 7.24,
+        "rss_bytes": 37748736,
+        "peak_rss_bytes": 37748736,
+        "storage_read_bytes": 0,
+        "storage_write_bytes": 0,
+        "threads": 67
+      },
+      "process_window_seconds": 1.018189417,
+      "process_deltas": {
+        "cpu_seconds": 0.08999999999999986,
+        "storage_read_bytes": 0,
+        "storage_write_bytes": 0
+      },
+      "mean_cpu_cores": 0.08839219746083832,
+      "counter_deltas": {
+        "requests": 144,
+        "completed": 144,
+        "failed": 0,
+        "file_read_bytes": 3452928,
+        "pread_calls": 281,
+        "cache_hits": 304,
+        "pread_ms": 1.6251110000000006,
+        "scanned_edges": 14688,
+        "exact_distance_evaluations": 585,
+        "exact_distance_ms": 10.986714,
+        "rabitq_ms": 16.032131,
+        "rabitq_evaluations": 11330,
+        "service_ms": 60.54901200000001,
+        "server_thread_cpu_ms": 60.50166400000002
+      },
+      "active_after": 0,
+      "peak_active_since_start": 1
+    }
+  ]
+}

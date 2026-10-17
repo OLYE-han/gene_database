@@ -1,0 +1,133 @@
+assignment:
+  model: /sharenvme/usershome/xulihan/gene_database/DHDGS/artifacts/yaml_run/partition/seed_42/model_l2.npz
+  threshold: /sharenvme/usershome/xulihan/gene_database/DHDGS/artifacts/yaml_run/partition/seed_42/threshold_l2_margin_0.1.json
+build:
+  candidate_list_size: 64
+  degree: 24
+  memory_limit_bytes: 2147483648
+  prune_alphas:
+  - 1.0
+  - 1.2
+cluster:
+  nodes:
+  - host: 127.0.0.1
+    id: 0
+    index_directory: null
+    port: 19101
+  - host: 127.0.0.1
+    id: 1
+    index_directory: null
+    port: 19102
+  - host: 127.0.0.1
+    id: 2
+    index_directory: null
+    port: 19103
+data:
+  block_rows: 1024
+  dimension: 2560
+  inspection_rows: 128
+  metric: l2
+  row_limit: 4096
+experiment:
+  benchmark_concurrency: 1
+  benchmark_queries: 128
+  benchmark_repetitions: 1
+  calibration_rows: 2048
+  evaluation_rows: 4096
+  exact_block_rows: 1024
+  metrics:
+  - l2
+  - cosine
+  overlap_fractions:
+  - 0.0
+  - 0.05
+  - 0.1
+  - 0.2
+  - 0.3
+  seeds:
+  - 42
+  - 43
+  - 44
+  target_recall: 0.99
+  train_rows: 2048
+  warmup_queries: 4
+metrics:
+  detailed_trace: false
+  resource_max_samples: 1024
+  resource_sample_interval_ms: 100
+network:
+  batch_size: 8
+  max_message_bytes: 8388608
+  max_retries: 1
+  timeout_seconds: 30.0
+  transport: tcp
+partition:
+  calibration_rows: 1024
+  kmeans_iterations: 100
+  kmeans_tolerance: 1.0e-06
+  max_copies: 3
+  method: margin
+  overlap_fraction: 0.1
+  train_rows: 1024
+paths:
+  dataset: /sharenvme/usershome/xulihan/gene_database/Data/seq_2M
+  output: /sharenvme/usershome/xulihan/gene_database/DHDGS/test/recall_targets_20261016T171501+0800/calibration/b256_f64_w1
+peer:
+  child_budget_fraction: 0.5
+  control_timeout_seconds: 1.0
+  handoff_timeout_seconds: 5.0
+  head_advertise_host: 127.0.0.1
+  head_bind_host: 127.0.0.1
+  head_port: 0
+  heartbeat_interval_ms: 250
+  lease_timeout_ms: 5000
+  max_active_queries: 128
+  max_branches: 16
+  max_tombstones: 4096
+  query_timeout_seconds: 30.0
+  retention_seconds: 60.0
+  worker_threads: 4
+quantization:
+  bits: 1
+query:
+  ids: /sharenvme/usershome/xulihan/gene_database/Data/seq_2M/seq_2M/queries200K/query_ids.npy
+  row: 512
+  vectors: /sharenvme/usershome/xulihan/gene_database/Data/seq_2M/seq_2M/queries200K/queries.npy
+routing:
+  ef_construction: 100
+  ef_search: 64
+  entry_candidates: 16
+  hnsw_m: 16
+  max_samples: 20000
+  min_samples: 64
+  sample_ratio: 0.05
+runtime:
+  blas_threads: 1
+scheduler:
+  bandwidth_bytes_per_ms: 100000.0
+  ewma_weight: 0.2
+  exploration: 0.02
+  kappa: 1.0
+  local_batch_ms: 0.15
+  max_wait_ms: 1.0
+  mode: adaptive
+  probability_temperature: 1.0
+  remote_rtt_ms: 0.5
+  remote_selection: probabilistic
+  remote_weight: 1.0
+search:
+  exclude_self: true
+  execution: peer
+  fallback_enabled: true
+  frontier_size: 64
+  local_beam: 4
+  max_expansions: 256
+  max_fallback_entries: 2
+  max_inflight: 3
+  stagnation_batches: 8
+  top_k: 10
+seed: 42
+storage:
+  cache_bytes_per_shard: 16777216
+  page_bytes: 4096
+version: 1

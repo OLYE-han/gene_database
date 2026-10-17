@@ -1,0 +1,50 @@
+[
+  {
+    "concurrency": 1,
+    "threads": 4,
+    "config": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/recommended/c1_w4/config.yaml",
+    "reason": "未形成稳定改善证据，保留4线程基线",
+    "observed_mean_recall_met": true,
+    "recall_lower_bound_met": false
+  },
+  {
+    "concurrency": 2,
+    "threads": 1,
+    "config": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/recommended/c2_w1/config.yaml",
+    "reason": "本范围内候选优于4线程，作为实验推荐",
+    "observed_mean_recall_met": true,
+    "recall_lower_bound_met": false
+  },
+  {
+    "concurrency": 4,
+    "threads": 1,
+    "config": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/recommended/c4_w1/config.yaml",
+    "reason": "本范围内候选优于4线程，作为实验推荐",
+    "observed_mean_recall_met": true,
+    "recall_lower_bound_met": false
+  },
+  {
+    "concurrency": 8,
+    "threads": 1,
+    "config": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/recommended/c8_w1/config.yaml",
+    "reason": "本范围内候选优于4线程，作为实验推荐",
+    "observed_mean_recall_met": true,
+    "recall_lower_bound_met": false
+  },
+  {
+    "concurrency": 16,
+    "threads": 1,
+    "config": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/recommended/c16_w1/config.yaml",
+    "reason": "本范围内候选优于4线程，作为实验推荐",
+    "observed_mean_recall_met": true,
+    "recall_lower_bound_met": false
+  },
+  {
+    "concurrency": 32,
+    "threads": 1,
+    "config": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/worker_threads_20261016T233213/recommended/c32_w1/config.yaml",
+    "reason": "本范围内候选优于4线程，作为实验推荐",
+    "observed_mean_recall_met": true,
+    "recall_lower_bound_met": false
+  }
+]

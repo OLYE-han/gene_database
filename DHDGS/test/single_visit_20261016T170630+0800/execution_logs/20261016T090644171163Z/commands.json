@@ -1,0 +1,42 @@
+[
+  {
+    "name": "regression",
+    "command": [
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/tests",
+      "-v"
+    ],
+    "returncode": 0,
+    "log": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/single_visit_20261016T170630+0800/execution_logs/20261016T090644171163Z/regression.log"
+  },
+  {
+    "name": "concurrency_1",
+    "command": [
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "-m",
+      "dhdgs",
+      "local-cluster-test",
+      "--config",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/single_visit_20261016T170630+0800/concurrency_1/config.yaml"
+    ],
+    "returncode": 0,
+    "log": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/single_visit_20261016T170630+0800/execution_logs/20261016T090644171163Z/concurrency_1.log"
+  },
+  {
+    "name": "concurrency_4",
+    "command": [
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "-m",
+      "dhdgs",
+      "local-cluster-test",
+      "--config",
+      "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/single_visit_20261016T170630+0800/concurrency_4/config.yaml"
+    ],
+    "returncode": 0,
+    "log": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/single_visit_20261016T170630+0800/execution_logs/20261016T090644171163Z/concurrency_4.log"
+  }
+]

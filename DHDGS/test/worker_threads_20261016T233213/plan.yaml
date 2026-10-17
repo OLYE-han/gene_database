@@ -1,0 +1,33 @@
+index: /sharenvme/usershome/xulihan/gene_database/DHDGS/artifacts/metrics_tcp_20261016T062940/index
+worker_threads:
+- 1
+- 2
+- 4
+- 8
+- 16
+- 32
+concurrency:
+- 1
+- 2
+- 4
+- 8
+- 16
+- 32
+trials: 2
+calibration:
+  row: 2048
+  queries: 128
+  repetitions: 1
+validation:
+  row: 4096
+  queries: 256
+  repetitions: 1
+seed: 20261016
+target_recall: 0.99
+baseline_threads: 4
+selection: For each fixed client concurrency, require zero failures and mean Recall@10
+  >=0.99 in EACH calibration trial; select minimum pooled p99, then maximum aggregate
+  QPS on exact ties, then fewer threads. Freeze before disjoint validation; validate
+  selected and baseline=4. User explicitly prioritizes p99 over QPS. No automatic
+  default change.
+warmup_per_worker: 4

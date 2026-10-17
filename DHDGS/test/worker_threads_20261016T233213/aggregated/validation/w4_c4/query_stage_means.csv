@@ -1,0 +1,10 @@
+query_row,query_id,request_count,successful_requests,failed_requests,category,stage,sample_count,mean_ms,total_ms,mean_query_fraction,fraction_of_total_latency
+,,512,512,0,wall_stages,head_merge_and_lifecycle_ms,512,5.4233698447205825,2776.7653604969382,0.16072750979763684,0.13524482114585926
+,,512,512,0,wall_stages,peer_execution_and_control_wait_ms,512,33.92132798944658,17367.71993059665,0.8173374805866066,0.8459102123430962
+,,512,512,0,wall_stages,routing_wall_ms,512,0.75569047476165,386.9135230779648,0.021935009615756593,0.018844966511044652
+,,512,512,0,cumulative_work,pread_ms,512,0.75110919140625,384.567906,,
+,,512,512,0,cumulative_work,rabitq_ms,512,5.969321033203125,3056.292369,,
+,,512,512,0,cumulative_work,exact_distance_ms,512,13.4384269453125,6880.474596,,
+,,512,512,0,cumulative_work,service_ms,512,24.51621505859375,12552.30211,,
+,,512,512,0,cumulative_work,server_thread_cpu_ms,512,12.66814318359375,6486.08931,,
+,,512,512,0,cumulative_work,coordinator_thread_cpu_ms,512,2.226857150390625,1140.150861,,

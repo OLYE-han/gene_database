@@ -1,0 +1,32 @@
+{
+  "services": [
+    {
+      "shard_id": 0,
+      "pid": 2066110,
+      "host": "127.0.0.1",
+      "port": 19351,
+      "ready": true,
+      "exit_code": -15,
+      "stopped": true
+    },
+    {
+      "shard_id": 1,
+      "pid": 2066113,
+      "host": "127.0.0.1",
+      "port": 19352,
+      "ready": true,
+      "exit_code": -15,
+      "stopped": true
+    },
+    {
+      "shard_id": 2,
+      "pid": 2066116,
+      "host": "127.0.0.1",
+      "port": 19353,
+      "ready": true,
+      "exit_code": -15,
+      "stopped": true
+    }
+  ],
+  "test_completed": true
+}

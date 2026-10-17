@@ -1,0 +1,23 @@
+{
+  "source_matches_benchmarked_code": true,
+  "modes": {
+    "blocking": {
+      "queries": 256,
+      "all_services_stopped": true,
+      "budget_and_dispatch_audit_passed": true,
+      "round_trace_and_state_time_audit_passed": true
+    },
+    "thread_pool": {
+      "queries": 256,
+      "all_services_stopped": true,
+      "budget_and_dispatch_audit_passed": true,
+      "round_trace_and_state_time_audit_passed": true
+    },
+    "io_uring": {
+      "queries": 256,
+      "all_services_stopped": true,
+      "budget_and_dispatch_audit_passed": true,
+      "round_trace_and_state_time_audit_passed": true
+    }
+  }
+}

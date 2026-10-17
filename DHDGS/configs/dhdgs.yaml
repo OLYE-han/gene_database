@@ -1,0 +1,136 @@
+# 唯一运行配置。相对路径均相对于本 YAML 所在目录，而非当前工作目录。
+# 当前默认是端到端 pilot；提高 row_limit 前检查 build.memory_limit_bytes。
+version: 1
+seed: 42
+runtime:
+  blas_threads: 1
+metrics:
+  detailed_trace: true
+  resource_sample_interval_ms: 100
+  resource_max_samples: 1024
+paths:
+  dataset: ../../Data/seq_2M
+  output: ../artifacts/yaml_run
+data:
+  metric: l2                 # l2 | cosine；实验默认值，不代表距离语义已定案
+  dimension: 2560
+  row_limit: 4096            # 0 表示全库；pilot 从全库均匀抽样，不取前缀
+  block_rows: 1024
+  inspection_rows: 128
+partition:
+  method: margin            # margin | boundary | relative_gap
+  overlap_fraction: 0.1
+  max_copies: 3
+  train_rows: 1024
+  calibration_rows: 1024
+  kmeans_iterations: 100
+  kmeans_tolerance: 0.000001
+build:
+  memory_limit_bytes: 2147483648   # 保守的向量/编码/图构建预估上限
+  degree: 24
+  candidate_list_size: 64
+  prune_alphas: [1.0, 1.2]
+quantization:
+  bits: 1                   # RaBitQ 总位数，1..9，包括 sign bit
+storage:
+  page_bytes: 4096
+  cache_bytes_per_shard: 16777216  # 0 禁用应用层页缓存；不代表禁用 OS page cache
+  io:
+    backend: io_uring         # io_uring | thread_pool；仅 resumable 模式使用
+    fallback_backend: error   # error | thread_pool；启动失败不能静默回退
+    worker_threads: 4         # thread_pool 后端的 I/O 线程，不是计算线程
+    max_submit_requests: 8
+    max_inflight_per_query: 4
+    max_inflight_per_device: 32 # 每进程配额；共用SSD时应手工分配总额度，启动器报告合计
+    max_inflight_bytes_per_device: 4194304
+    buffer_pool_bytes_per_device: 16777216 # 整轮预留，包含原生到Python复制的双份空间
+    max_pending_batches: 128
+    max_completion_events_per_poll: 64
+    completion_poll_ms: 1
+routing:
+  sample_ratio: 0.05
+  min_samples: 64
+  max_samples: 20000
+  hnsw_m: 16
+  ef_construction: 100
+  ef_search: 64
+  entry_candidates: 16
+search:
+  execution: peer           # peer 默认数据节点自主执行；reference 仅保留为实验对照
+  top_k: 10
+  frontier_size: 256
+  max_expansions: 256
+  local_beam: 4
+  max_inflight: 3
+  exclude_self: true
+  fallback_enabled: true
+  max_fallback_entries: 2
+  stagnation_batches: 8
+peer:
+  execution_model: blocking  # blocking | resumable；同步基线保留，实验显式选择
+  max_branches: 16          # 上限；每节点至多启动一次，实际还受服务器数量限制
+  child_budget_fraction: 0.5
+  worker_threads: 4
+  max_active_queries: 128
+  heartbeat_interval_ms: 250
+  lease_timeout_ms: 5000
+  query_timeout_seconds: 30.0
+  control_timeout_seconds: 1.0
+  handoff_timeout_seconds: 5.0
+  retention_seconds: 60.0
+  max_tombstones: 4096
+  head_bind_host: 127.0.0.1
+  head_advertise_host: 127.0.0.1
+  head_port: 0               # 0 由 OS 分配回调端口；多机时 advertise_host 必须可达
+scheduler:
+  mode: adaptive            # adaptive | reference | local_first
+  kappa: 1.0
+  exploration: 0.02
+  max_wait_ms: 1.0          # 仅在本节点首次派发前生效；派发后只搜索本地
+  local_batch_ms: 0.15       # 冷启动估值；运行时由测量更新
+  remote_rtt_ms: 0.5
+  bandwidth_bytes_per_ms: 100000.0
+  ewma_weight: 0.2
+  remote_selection: probabilistic # probabilistic | threshold
+  remote_weight: 1.0        # 0 禁用非强制远端分支；越大越偏向跨机
+  probability_temperature: 1.0
+network:
+  transport: local          # local | tcp；local 仍从各分片文件 pread，非网络性能测试
+  batch_size: 8
+  timeout_seconds: 30.0
+  max_message_bytes: 8388608
+  max_retries: 1
+cluster:
+  nodes:                    # 长期为本机、intel-32、intel-30；当前回环端口用于进程联调
+    - id: 0
+      host: 127.0.0.1
+      port: 19101
+      index_directory: null # null => output/index/shard_<id>
+    - id: 1
+      host: 127.0.0.1
+      port: 19102
+      index_directory: null
+    - id: 2
+      host: 127.0.0.1
+      port: 19103
+      index_directory: null
+query:
+  vectors: ../../Data/seq_2M/seq_2M/queries200K/queries.npy
+  ids: ../../Data/seq_2M/seq_2M/queries200K/query_ids.npy
+  row: 0
+assignment:
+  model: ../artifacts/yaml_run/partition/seed_42/model_l2.npz
+  threshold: ../artifacts/yaml_run/partition/seed_42/threshold_l2_margin_0.1.json
+experiment:
+  metrics: [l2, cosine]
+  overlap_fractions: [0.0, 0.05, 0.1, 0.2, 0.3]
+  seeds: [42, 43, 44]
+  train_rows: 2048
+  calibration_rows: 2048
+  evaluation_rows: 4096
+  benchmark_queries: 16
+  benchmark_concurrency: 1
+  benchmark_repetitions: 1
+  warmup_queries: 0
+  exact_block_rows: 1024
+  target_recall: 0.99

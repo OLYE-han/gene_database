@@ -1,0 +1,47 @@
+targets:
+- 0.7
+- 0.75
+- 0.8
+- 0.85
+- 0.9
+- 0.95
+- 0.97
+- 0.99
+budgets:
+- 10
+- 12
+- 16
+- 24
+- 32
+- 48
+- 64
+- 96
+- 128
+- 192
+- 256
+profiles:
+- frontier_size: 32
+  remote_weight: 1.0
+- frontier_size: 64
+  remote_weight: 0.05
+- frontier_size: 64
+  remote_weight: 1.0
+- frontier_size: 64
+  remote_weight: 2.0
+- frontier_size: 256
+  remote_weight: 1.0
+calibration:
+  row: 512
+  queries: 128
+  repetitions: 1
+validation:
+  row: 1024
+  queries: 256
+  repetitions: 2
+calibration_recall_margin: 0.005
+selection: Lowest measured calibration mean latency among configurations with mean
+  recall >= target + 0.005, clipped to 1; tie breaks by expansions, frontier, weight.
+  Validation never used for retuning.
+randomize_execution_seed: 20261016
+index: /sharenvme/usershome/xulihan/gene_database/DHDGS/artifacts/metrics_tcp_20261016T062940/index
+bootstrap_draws: 2000
