@@ -28,6 +28,16 @@ from .metrics import Recorder, process_snapshot
 MAGIC = b"DHDGS001"
 HEADER = struct.Struct("<8sIIQQ")
 
+# Immutable native schema. New numeric metrics must be registered explicitly,
+# so aggregate accounting cannot silently omit them.
+EXPANSION_METRICS = (
+    'file_read_bytes', 'pread_calls', 'cache_hits', 'pread_ms', 'scanned_edges',
+    'exact_distance_evaluations', 'exact_distance_ms', 'rabitq_ms',
+    'rabitq_evaluations', 'service_ms', 'server_thread_cpu_ms',
+    'async_read_requests', 'io_read_residence_ms', 'io_queue_wait_ms',
+    'io_capacity_wait_ms', 'io_batch_wall_ms',
+)
+
 
 def native():
     try:
@@ -62,7 +72,10 @@ def _connected(adjacency):
             raise ValueError("Constructed graph is not strongly connected")
 
 
-def build(c):
+def build(c, *, shard_workers=1, graph_threads=1, checkpoint_directory=None, reserve_disk_bytes=0, progress=None):
+    from concurrent.futures import ThreadPoolExecutor
+    if shard_workers < 1 or graph_threads < 1 or reserve_disk_bytes < 0:
+        raise ValueError('Invalid build worker count or disk reserve')
     build_start = time.perf_counter()
     process_before = process_snapshot()
     phase_start, cpu_start = build_start, time.process_time()
@@ -72,6 +85,7 @@ def build(c):
         now, cpu = time.perf_counter(), time.process_time()
         phases.append({"phase":name,"wall_seconds":now-phase_start,"cpu_seconds":cpu-cpu_start})
         phase_start, cpu_start = now, cpu
+        if progress is not None: progress({'phase':name,'elapsed_seconds':now-build_start})
     api = native()
     dataset = Dataset(c["paths"]["dataset"])
     if dataset.dimension != c["data"]["dimension"]:
@@ -116,13 +130,61 @@ def build(c):
     np.save(root/"primary.npy", primary.astype(np.uint32))
     write_json(root/"threshold.json", threshold.to_dict())
     mark("calibration_assignment_metadata")
+    # Conservative union bound includes local protected edges and medoid bridges.
+    upper_degree = shards*(g['degree']+2)+2*(shards-1)
+    upper_stride = math.ceil((dataset.dimension*4+4+upper_degree*8)/c['storage']['page_bytes'])*c['storage']['page_bytes']
+    # Ghost code banks contain at most the whole corpus per shard. Bound padded
+    # quantization dimension by the next power of two, including factors/IDs.
+    padded = 1 << (dataset.dimension-1).bit_length()
+    disk_estimate = int(membership.sum())*upper_stride + shards*n*(math.ceil(padded*c['quantization']['bits']/8)+32)
+    disk_estimate += c['routing']['max_samples']*(dataset.dimension*4+1024) + n*32
+    if shutil.disk_usage(root).free < disk_estimate + reserve_disk_bytes:
+        raise ValueError(f'Insufficient space for complete index plus reserve: {disk_estimate} + {reserve_disk_bytes} bytes')
+    if progress is not None:
+        progress({'phase':'capacity_checked','index_upper_estimate_bytes':disk_estimate,
+                  'partition':summary(membership,primary)})
     adjacency = [set() for _ in range(n)]
     medoids = []
     protected_edges = 0
-    for sid in range(shards):
+    checkpoint = Path(checkpoint_directory) if checkpoint_directory else None
+    if checkpoint is not None: checkpoint.mkdir(parents=True,exist_ok=True)
+    checkpoint_key = hashlib.sha256(json.dumps({'settings':index_settings(c),'dataset':dataset.identity(),
+        'ids':hashlib.sha256(ids.tobytes()).hexdigest(),
+        'membership':hashlib.sha256(membership.tobytes()).hexdigest(),
+        'native':hashlib.sha256(Path(api.__file__).read_bytes()).hexdigest(),
+        'graph_threads':graph_threads},sort_keys=True).encode()).hexdigest()
+    def build_shard(sid):
         positions = np.flatnonzero(membership[:, sid])
+        saved = checkpoint/f'shard_{sid}_{checkpoint_key}.npz' if checkpoint else None
+        if saved is not None and saved.exists():
+            with np.load(saved,allow_pickle=False) as archive:
+                packed=archive['neighbors'];lengths=archive['lengths'];elapsed=float(archive['build_seconds'])
+            if packed.shape != (len(positions),g['degree']) or np.any(lengths>g['degree']):
+                raise ValueError('Invalid graph checkpoint')
+            graph=[packed[i,:int(lengths[i])].tolist() for i in range(len(positions))]
+            if any(j<0 or j>=len(positions) or j==i for i,edges in enumerate(graph) for j in edges):
+                raise ValueError('Invalid checkpoint edge')
+            if progress is not None: progress({'phase':'graph_checkpoint_loaded','shard':sid,'original_build_seconds':elapsed})
+            return positions,graph
         local = np.ascontiguousarray(vectors[positions])
-        graph = api.build_vamana(local, g["degree"], g["candidate_list_size"], g["prune_alphas"], c["seed"]+sid)
+        def notify(alpha,done,total):
+            if progress is not None: progress({'phase':'graph_progress','shard':sid,'alpha':alpha,'completed':done,'total':total})
+        tick=time.perf_counter()
+        graph = api.build_vamana(local, g['degree'], g['candidate_list_size'], g['prune_alphas'], c['seed']+sid, notify, graph_threads)
+        elapsed=time.perf_counter()-tick
+        if saved is not None:
+            packed=np.zeros((len(positions),g['degree']),dtype=np.uint32)
+            lengths=np.array([len(edges) for edges in graph],dtype=np.uint32)
+            for i,edges in enumerate(graph):packed[i,:len(edges)]=edges
+            temp=saved.with_suffix('.tmp')
+            with temp.open('wb') as f:
+                np.savez(f,neighbors=packed,lengths=lengths,build_seconds=elapsed)
+                f.flush();os.fsync(f.fileno())
+            temp.replace(saved)
+        if progress is not None:progress({'phase':'graph_complete','shard':sid,'build_seconds':elapsed})
+        return positions,graph
+    with ThreadPoolExecutor(max_workers=min(shards,shard_workers)) as pool:
+      for sid,(positions,graph) in enumerate(pool.map(build_shard,range(shards))):
         for i, neighbors in enumerate(graph):
             adjacency[int(positions[i])].update(int(positions[j]) for j in neighbors)
             # Protected bidirectional cycle guarantees local reachability, even at rho=0.
@@ -130,8 +192,14 @@ def build(c):
                 for neighbor in (positions[(i-1)%len(positions)], positions[(i+1)%len(positions)]):
                     protected_edges += int(int(neighbor) not in adjacency[int(positions[i])])
                     adjacency[int(positions[i])].add(int(neighbor))
-        d = np.sum((local.astype(float)-model.centers[sid])**2, axis=1)
-        medoids.append(int(positions[int(np.argmin(d))]))
+        # Compute medoid in bounded blocks instead of several full fp64 copies.
+        best=(float('inf'),0)
+        for start in range(0,len(positions),c['data']['block_rows']):
+            selected=positions[start:start+c['data']['block_rows']]
+            delta=vectors[selected].astype(float)-model.centers[sid]
+            d=np.einsum('ij,ij->i',delta,delta);j=int(d.argmin())
+            if float(d[j])<best[0]:best=(float(d[j]),int(selected[j]))
+        medoids.append(best[1])
         mark(f"shard_{sid}_graph_and_union")
     # Centroid MST with bidirectional medoid links; shared medoid needs no self-edge.
     reached = {0}
@@ -222,6 +290,10 @@ def build(c):
                                   "network_shuffle_seconds":None,
                                   "scope":"central in-memory build; excludes final manifest write"},
                 "estimated_build_memory_bytes": int(estimate), "config_sha256": c["_config_sha256"],
+                "build_execution": {"shard_workers":shard_workers,"graph_threads":graph_threads,
+                                    "parallel_graph_is_nondeterministic":graph_threads>1,
+                                    "checkpoint_directory":str(checkpoint) if checkpoint else None,
+                                    "disk_upper_estimate_bytes":disk_estimate,"reserve_disk_bytes":reserve_disk_bytes},
                 "build_settings": index_settings(c),
                 "limitations": ["In-memory pilot construction, not upstream DiskANN out-of-core builder",
                                 "Buffered pread with optional application cache; physical SSD IO not established",
@@ -267,10 +339,15 @@ class Shard:
         self.cache_bytes = cache_bytes
         self.cache = OrderedDict()
         self.cache_size = 0
-        self.lock = threading.Lock()
-        self.load = {"requests": 0, "completed": 0, "failed": 0, "active": 0, "peak_active": 0}
+        # Only an enabled mutable LRU uses this mutex. Immutable index reads
+        # and expansion accounting do not acquire it.
+        self.cache_lock = threading.Lock()
+        self.counters = native().ExpansionCounters(EXPANSION_METRICS)
+        self.index_file_bytes = sum(p.stat().st_size for p in self.directory.iterdir() if p.is_file())
 
     def close(self):
+        if getattr(self, 'native_search', None) is not None:
+            self.native_search.close()
         if self.fd is not None:
             os.close(self.fd)
             self.fd = None
@@ -278,13 +355,17 @@ class Shard:
     def cached_record(self, gid):
         if gid not in self.location:
             raise ValueError(f"Vector {gid} is not local")
-        with self.lock:
+        if self.cache_bytes < self.meta['record_bytes']:
+            return None
+        with self.cache_lock:
             raw=self.cache.get(gid)
             if raw is not None: self.cache.move_to_end(gid)
             return raw
 
     def cache_record(self, gid, raw):
-        with self.lock:
+        if self.cache_bytes < len(raw):
+            return
+        with self.cache_lock:
             if gid not in self.cache and len(raw)<=self.cache_bytes:
                 while self.cache and self.cache_size+len(raw)>self.cache_bytes:
                     _,old=self.cache.popitem(last=False);self.cache_size-=len(old)
@@ -303,11 +384,9 @@ class Shard:
     def read(self, gid, stats):
         if gid not in self.location:
             raise ValueError(f"Vector {gid} is not on shard {self.meta['shard_id']}")
-        with self.lock:
-            raw = self.cache.get(gid)
-            if raw is not None:
-                self.cache.move_to_end(gid)
-                stats["cache_hits"] += 1
+        raw = self.cached_record(gid) if self.cache_bytes >= self.meta['record_bytes'] else None
+        if raw is not None:
+            stats["cache_hits"] += 1
         if raw is None:
             stride = self.meta["record_bytes"]
             offset = self.meta["header_bytes"] + self.location[gid]*stride
@@ -321,42 +400,28 @@ class Shard:
                 raise ValueError("Short node read")
             stats["file_read_bytes"] += stride
             stats["pread_calls"] += 1
-            with self.lock:
-                if gid not in self.cache and stride <= self.cache_bytes:
-                    while self.cache and self.cache_size+stride > self.cache_bytes:
-                        _, old = self.cache.popitem(last=False)
-                        self.cache_size -= len(old)
-                    self.cache[gid] = raw
-                    self.cache_size += len(raw)
+            if self.cache_bytes >= stride:
+                self.cache_record(gid, raw)
         return self.decode_record(raw)
 
     def expand(self, query, ids, epoch, records=None, read_stats=None):
-        with self.lock:
-            self.load["requests"] += 1
-            self.load["active"] += 1
-            self.load["peak_active"] = max(self.load["active"], self.load["peak_active"])
+        self.counters.begin()
         try:
             result = self._expand(query, ids, epoch, records, read_stats)
-            with self.lock:
-                self.load["completed"] += 1
-                for key, value in result["stats"].items():
-                    if isinstance(value, (int, float)):
-                        self.load[key] = self.load.get(key, 0)+value
+            self.counters.finish(True, result['stats'])
             return result
         except Exception:
-            with self.lock:
-                self.load["failed"] += 1
+            self.counters.finish(False, {})
             raise
-        finally:
-            with self.lock:
-                self.load["active"] -= 1
 
     def metrics(self):
-        with self.lock:
-            return {"shard_id": self.meta["shard_id"], "process": process_snapshot(),
-                    "counters": dict(self.load), "cache_bytes": self.cache_size,
-                    "stored_vectors": len(self.ids), "code_rows": len(self.code_ids),
-                    "index_file_bytes": sum(p.stat().st_size for p in self.directory.iterdir() if p.is_file())}
+        # No filesystem or /proc reads inside a shared shard critical section.
+        return {"shard_id": self.meta["shard_id"], "process": process_snapshot(),
+                "counters": self.counters.snapshot(), "cache_bytes": self.cache_size,
+                "stored_vectors": len(self.ids), "code_rows": len(self.code_ids),
+                "index_file_bytes": self.index_file_bytes,
+                "expansion_counters_lock_free": self.counters.is_lock_free,
+                "storage_access": "buffered", "os_page_cache_bypassed": False}
 
     def _expand(self, query, ids, epoch, records=None, read_stats=None):
         recorder = Recorder()

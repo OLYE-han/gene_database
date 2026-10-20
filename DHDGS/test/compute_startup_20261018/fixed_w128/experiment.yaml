@@ -1,0 +1,164 @@
+assignment:
+  model: /sharenvme/usershome/xulihan/gene_database/DHDGS/artifacts/yaml_run/partition/seed_42/model_l2.npz
+  threshold: /sharenvme/usershome/xulihan/gene_database/DHDGS/artifacts/yaml_run/partition/seed_42/threshold_l2_margin_0.1.json
+build:
+  candidate_list_size: 96
+  degree: 32
+  memory_limit_bytes: 549755813888
+  prune_alphas:
+  - 1.0
+  - 1.2
+cluster:
+  nodes:
+  - host: 127.0.0.1
+    id: 0
+    index_directory: /sharenvme/usershome/xulihan/gene_database/DHDGS/test/seq2m_full_20261017/build/index/shard_0
+    port: 20161
+  - host: 127.0.0.1
+    id: 1
+    index_directory: /sharenvme/usershome/xulihan/gene_database/DHDGS/test/seq2m_full_20261017/build/index/shard_1
+    port: 20162
+  - host: 127.0.0.1
+    id: 2
+    index_directory: /sharenvme/usershome/xulihan/gene_database/DHDGS/test/seq2m_full_20261017/build/index/shard_2
+    port: 20163
+data:
+  block_rows: 4096
+  dimension: 2560
+  inspection_rows: 128
+  metric: l2
+  row_limit: 0
+experiment:
+  benchmark_concurrency: 2000
+  benchmark_queries: 2000
+  benchmark_repetitions: 1
+  calibration_rows: 2048
+  evaluation_rows: 4096
+  exact_block_rows: 8192
+  metrics:
+  - l2
+  - cosine
+  overlap_fractions:
+  - 0.0
+  - 0.05
+  - 0.1
+  - 0.2
+  - 0.3
+  seeds:
+  - 42
+  - 43
+  - 44
+  target_recall: 0.95
+  train_rows: 2048
+  warmup_queries: 2
+metrics:
+  detailed_trace: true
+  resource_max_samples: 1024
+  resource_sample_interval_ms: 100
+network:
+  batch_size: 8
+  listen_backlog: 4096
+  max_message_bytes: 8388608
+  max_retries: 1
+  timeout_seconds: 120.0
+  transport: tcp
+partition:
+  calibration_rows: 16384
+  kmeans_iterations: 100
+  kmeans_tolerance: 1.0e-06
+  max_copies: 3
+  method: margin
+  overlap_fraction: 0.1
+  train_rows: 16384
+paths:
+  dataset: /sharenvme/usershome/xulihan/gene_database/Data/seq_2M
+  output: /sharenvme/usershome/xulihan/gene_database/DHDGS/test/compute_startup_20261018/fixed_w128
+peer:
+  child_budget_fraction: 0.5
+  control_timeout_seconds: 5.0
+  execution_model: native
+  handoff_timeout_seconds: 30.0
+  head_advertise_host: 127.0.0.1
+  head_bind_host: 127.0.0.1
+  head_port: 0
+  heartbeat_interval_ms: 1000
+  lease_timeout_ms: 30000
+  max_active_queries: 2048
+  max_branches: 16
+  max_tombstones: 4096
+  query_timeout_seconds: 120.0
+  retention_seconds: 60.0
+  worker_threads: 128
+  communication:
+    mode: optimized
+    transfer_workers: 16
+    control_workers: 16
+    max_pending_control: 64
+    reuse_connections: true
+    connections_per_endpoint: 8
+    max_connection_endpoints: 64
+  admission:
+    mode: buffered
+    queue_capacity: 2048
+  sender:
+    mode: queued
+    transfer_queue_capacity: 2048
+  compute:
+    mode: fixed
+    queue_capacity: 2048
+quantization:
+  bits: 1
+query:
+  ids: /sharenvme/usershome/xulihan/gene_database/Data/seq_2M/seq_2M/queries200K/query_ids.npy
+  row: 8192
+  vectors: /sharenvme/usershome/xulihan/gene_database/Data/seq_2M/seq_2M/queries200K/queries.npy
+routing:
+  ef_construction: 100
+  ef_search: 64
+  entry_candidates: 16
+  hnsw_m: 16
+  max_samples: 20000
+  min_samples: 64
+  sample_ratio: 0.05
+runtime:
+  blas_threads: 1
+scheduler:
+  bandwidth_bytes_per_ms: 100000.0
+  ewma_weight: 0.2
+  exploration: 0.02
+  kappa: 1.0
+  local_batch_ms: 0.15
+  max_wait_ms: 1.0
+  mode: adaptive
+  probability_temperature: 1.0
+  remote_rtt_ms: 0.5
+  remote_selection: probabilistic
+  remote_weight: 1.0
+search:
+  exclude_self: true
+  execution: peer
+  fallback_enabled: true
+  frontier_size: 64
+  local_beam: 4
+  max_expansions: 200
+  max_fallback_entries: 2
+  max_inflight: 3
+  stagnation_batches: 8
+  top_k: 10
+seed: 42
+storage:
+  cache_bytes_per_shard: 0
+  io:
+    backend: sync_pread
+    buffer_pool_bytes_per_device: 4194304
+    completion_poll_ms: 1
+    fallback_backend: error
+    max_completion_events_per_poll: 64
+    max_inflight_bytes_per_device: 98304
+    max_inflight_per_device: 8
+    max_inflight_per_query: 4
+    max_pending_batches: 128
+    max_submit_requests: 8
+    worker_threads: 2
+  page_bytes: 4096
+version: 1

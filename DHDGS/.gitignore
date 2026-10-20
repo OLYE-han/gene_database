@@ -2,14 +2,27 @@
 __pycache__/
 *.egg-info/
 build/
+build-*/
+python/dhdgs/.native_libs/
 dist/
 artifacts/
 *.so
+*.token
 
 # Large raw experiment outputs stay on the experiment host. Keep source,
 # configurations, summaries, provenance and compact aggregate results in Git.
 /test/**/report.json
 /test/**/queries.jsonl
+/test/**/report.json.gz
+/test/**/queries.jsonl.gz
+/test/**/client_*.jsonl.gz
+/test/control_path_20261018/before/
+/test/admission_queue_20261018/before/
+/test/execution_timestamps_20261018/source_snapshot/
+/test/execution_timestamps_20261018/sender_source_snapshot/
+/test/control_capacity_20261020/*_source/
+/test/control_capacity_20261020/**/worker_results/
+/test/**/.mplconfig/
 /test/**/queries.csv
 /test/**/nodes.csv
 /test/**/per_query_stage_means.csv
@@ -17,6 +30,10 @@ artifacts/
 /test/**/all_nodes.csv
 /test/**/exact_truth*.json
 /test/**/index
+/test/**/graph_checkpoints/
+/test/**/payloads/
+/test/**/wheels/
+/test/execution_timestamps_20261018/before/
 /test/**/*.log
 !/test/**/unit_tests*.log
 !/test/**/regression*.log

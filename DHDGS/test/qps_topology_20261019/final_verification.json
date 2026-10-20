@@ -1,0 +1,14 @@
+{
+  "production_ready": true,
+  "production_idle": true,
+  "same_revision": true,
+  "same_node_pid": true,
+  "all_workers32_budget200": true,
+  "local_cleanup.json": true,
+  "control16/cleanup.json": true,
+  "legacy20local/cleanup.json": true,
+  "legacy20_clients_stopped": true,
+  "legacy20local_clients_stopped": true,
+  "production_source_unchanged": true,
+  "production_sources_checked": 623
+}

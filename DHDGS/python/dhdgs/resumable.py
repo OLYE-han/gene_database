@@ -6,7 +6,7 @@ from .peer_search import branch_steps
 
 class BranchTask:
     def __init__(self, runtime, key):
-        self.runtime=runtime;self.key=key;self.rec=runtime.records[key];self.started=time.perf_counter()
+        self.runtime=runtime;self.key=key;self.rec=runtime.records[key];self.started=self.rec['created_perf']
         self.generator=branch_steps(self.rec['state'],runtime.shard,runtime.directory,
                                     runtime.c,self.spawn,self.cancelled)
         self.request=None;self.cpu_ms=0.;self.ready_ms=0.;self.slices=0
@@ -29,8 +29,11 @@ class BranchTask:
             raise ValueError('Remote branch lacks an approved search decision')
         with self.runtime.lock:
             self.rec['children'].append(descriptor);self.pending_transfers+=1
-        self.runtime.control_wakeup.set()
-        future=self.runtime.transfers.submit(self.runtime._transfer,self.key,state)
+        self.runtime._control_changed(self.key)
+        try:future=self.runtime.submit_transfer(self.key,state)
+        except Exception:
+            with self.runtime.lock:self.pending_transfers-=1
+            raise
         future.add_done_callback(self.transferred)
 
     def transferred(self, future):
@@ -46,11 +49,12 @@ class BranchTask:
         if self.error is not None:
             self.rec['error']=f'{type(self.error).__name__}: {self.error}';self.rec['status']='failed'
         else:
-            self.report['peer_transfer']={k:self.rec[k] for k in
-                ('peer_rpc_count','peer_request_bytes','peer_response_bytes','peer_transfer_errors')}
+            self.report['peer_transfer']={k:v for k,v in self.rec.items() if k.startswith('peer_')}
             self.report['execution']={'model':'resumable','io_backend':self.runtime.io.backend,
                                      'fallback_reason':self.runtime.io.fallback_reason}
             self.report['stats'].update(server_thread_cpu_ms=self.cpu_ms,query_ready_queue_ms=self.ready_ms,
+                query_admission_queue_ms=self.rec['query_admission_queue_ms'],
+                query_executor_start_wait_ms=self.rec['query_executor_start_wait_ms'],
                 query_compute_slice_wall_ms=self.slice_wall_ms,query_io_wait_ms=self.io_wall_ms,
                 query_resume_count=self.slices,
                 query_transfer_finalize_wait_ms=(time.perf_counter()-self.transfer_wait_start)*1000)
@@ -59,10 +63,13 @@ class BranchTask:
             st['query_state_other_ms']=max(0.,st['query_branch_wall_ms']-sum(st[k] for k in (
                 'query_ready_queue_ms','query_compute_slice_wall_ms','query_io_wait_ms','query_transfer_finalize_wait_ms')))
             self.rec['report']=self.report;self.rec['status']='complete'
-        self.rec['touched']=time.monotonic();self.runtime.control_wakeup.set();self.done.set()
+        self.rec['touched']=time.monotonic();self.runtime._control_changed(self.key);self.done.set()
 
     def step(self, future, queued):
         start=time.perf_counter();cpu=time.thread_time();self.ready_ms+=(start-queued)*1000
+        if self.slices==0:
+            self.runtime._execution_started(self.key,time.monotonic())
+            self.ready_ms+=max(0.,queued-self.started)*1000
         self.slices+=1;batch=None;next_future=None
         with self.runtime.lock:self.rec['status']='running'
         try:

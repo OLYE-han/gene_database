@@ -1,0 +1,14 @@
+[
+  {
+    "node": 0,
+    "stop": true
+  },
+  {
+    "node": 1,
+    "stop": true
+  },
+  {
+    "node": 2,
+    "stop": true
+  }
+]

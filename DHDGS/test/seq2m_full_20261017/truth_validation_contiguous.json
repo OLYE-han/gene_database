@@ -1,0 +1,81 @@
+{
+  "passed": true,
+  "provenance": {
+    "kind": "supplied_full_corpus_euclidean_truth",
+    "path": "/sharenvme/usershome/xulihan/gene_database/Data/seq_2M/seq_2M/queries200K/euclidean/knn/000000000_000200000.npz",
+    "sha256": "bd1e6e824c84ba262b26a84256a1c89e08f2265e535a8fb48b0d310f6b073ff3",
+    "dataset": {
+      "root": "/sharenvme/usershome/xulihan/gene_database/Data/seq_2M/seq_2M",
+      "rows": 2000000,
+      "dimension": 2560,
+      "manifest_sha256": "3a346cf5aa1c52aaf5418e99444207e71283a3c0463d2226c29947fd6db8c2a8",
+      "file_snapshots": [
+        {
+          "path": "manifest.json",
+          "bytes": 6150,
+          "mtime_ns": 1792087767193695510
+        },
+        {
+          "path": "base/part_00.npy",
+          "bytes": 20480000128,
+          "mtime_ns": 1792087766962695499
+        }
+      ],
+      "content_checksum_verified": false
+    },
+    "query_vectors_fingerprint": [
+      66304,
+      191707964,
+      2048000128,
+      1792054284731098941
+    ],
+    "query_ids_sha256": "18f4976ad0ff4691840004e440a979fc11b6ea33cab896006fa8db3e731f74a2",
+    "indexed_rows": 2000000,
+    "self_excluded": true,
+    "verification": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/seq2m_full_20261017/truth_validation.json"
+  },
+  "queries": [
+    {
+      "row": 4096,
+      "id": 41566,
+      "matches": true
+    },
+    {
+      "row": 4138,
+      "id": 41946,
+      "matches": true
+    },
+    {
+      "row": 4180,
+      "id": 42354,
+      "matches": true
+    },
+    {
+      "row": 4223,
+      "id": 42876,
+      "matches": true
+    },
+    {
+      "row": 8192,
+      "id": 82564,
+      "matches": true
+    },
+    {
+      "row": 8533,
+      "id": 85873,
+      "matches": true
+    },
+    {
+      "row": 8874,
+      "id": 89339,
+      "matches": true
+    },
+    {
+      "row": 9215,
+      "id": 92913,
+      "matches": true
+    }
+  ],
+  "seconds": 445.28414099197835,
+  "scope": "Exact direct-difference fp64 full 2M scan on selected queries; other supplied rows not independently rescanned"
+}

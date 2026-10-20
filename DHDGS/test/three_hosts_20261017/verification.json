@@ -1,0 +1,125 @@
+{
+  "hosts": [
+    "cxl-four-numa",
+    "intel-bigmem-nvm-stratix",
+    "sugon-intel-four-numa"
+  ],
+  "tests": 9,
+  "requests": 2304,
+  "incomplete_metrics": 0,
+  "source_and_index_hashes_verified": true,
+  "all_dispatches_approved": true,
+  "all_budgets_conserved": true,
+  "all_services_stopped_gracefully": true,
+  "all_data_and_callback_paths_verified": true,
+  "results": [
+    {
+      "mode": "blocking",
+      "concurrency": 1,
+      "qps": 47.658921248065845,
+      "recall": 0.996875,
+      "p99_ms": 34.6102548064664,
+      "mean_ms": 20.906159217702225,
+      "physical_read_bytes": 0,
+      "complete_metrics": 256,
+      "mean_branches": 1.49609375,
+      "mean_file_bytes": 786432
+    },
+    {
+      "mode": "blocking",
+      "concurrency": 4,
+      "qps": 102.53080428875622,
+      "recall": 0.996484375,
+      "p99_ms": 75.70633220020679,
+      "mean_ms": 38.686711219270364,
+      "physical_read_bytes": 0,
+      "complete_metrics": 256,
+      "mean_branches": 1.50390625,
+      "mean_file_bytes": 786432
+    },
+    {
+      "mode": "blocking",
+      "concurrency": 8,
+      "qps": 114.5812464822858,
+      "recall": 0.996484375,
+      "p99_ms": 139.407375943847,
+      "mean_ms": 68.60683827835601,
+      "physical_read_bytes": 0,
+      "complete_metrics": 256,
+      "mean_branches": 1.5078125,
+      "mean_file_bytes": 786432
+    },
+    {
+      "mode": "thread_pool",
+      "concurrency": 1,
+      "qps": 33.245055080704645,
+      "recall": 0.99609375,
+      "p99_ms": 45.83925055339931,
+      "mean_ms": 30.004903655935777,
+      "physical_read_bytes": 0,
+      "complete_metrics": 256,
+      "mean_branches": 1.5234375,
+      "mean_file_bytes": 786432
+    },
+    {
+      "mode": "thread_pool",
+      "concurrency": 4,
+      "qps": 59.23575316862792,
+      "recall": 0.99609375,
+      "p99_ms": 113.42848576605314,
+      "mean_ms": 67.20672473420564,
+      "physical_read_bytes": 0,
+      "complete_metrics": 256,
+      "mean_branches": 1.52734375,
+      "mean_file_bytes": 786432
+    },
+    {
+      "mode": "thread_pool",
+      "concurrency": 8,
+      "qps": 63.07616760524846,
+      "recall": 0.99609375,
+      "p99_ms": 228.63225648179647,
+      "mean_ms": 126.223556289915,
+      "physical_read_bytes": 0,
+      "complete_metrics": 256,
+      "mean_branches": 1.5234375,
+      "mean_file_bytes": 786432
+    },
+    {
+      "mode": "io_uring",
+      "concurrency": 1,
+      "qps": 39.37723940369728,
+      "recall": 0.996875,
+      "p99_ms": 34.546989761292906,
+      "mean_ms": 25.317210413049906,
+      "physical_read_bytes": 0,
+      "complete_metrics": 256,
+      "mean_branches": 1.5078125,
+      "mean_file_bytes": 786432
+    },
+    {
+      "mode": "io_uring",
+      "concurrency": 4,
+      "qps": 69.07929307023278,
+      "recall": 0.99609375,
+      "p99_ms": 120.58510025963186,
+      "mean_ms": 57.62387613140163,
+      "physical_read_bytes": 0,
+      "complete_metrics": 256,
+      "mean_branches": 1.51171875,
+      "mean_file_bytes": 786432
+    },
+    {
+      "mode": "io_uring",
+      "concurrency": 8,
+      "qps": 76.86809366995881,
+      "recall": 0.99609375,
+      "p99_ms": 188.88887253124264,
+      "mean_ms": 103.46065063822607,
+      "physical_read_bytes": 0,
+      "complete_metrics": 256,
+      "mean_branches": 1.515625,
+      "mean_file_bytes": 786432
+    }
+  ]
+}

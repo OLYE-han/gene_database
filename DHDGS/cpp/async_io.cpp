@@ -51,7 +51,8 @@ public:
       auto read=std::make_unique<Read>(size);
       auto sqe=io_uring_get_sqe(&ring);
       io_uring_prep_read(sqe,fd,read->data.data(),size,offset);
-      io_uring_sqe_set_data64(sqe,token);
+      // The user_data ABI predates the convenience helpers in newer liburing.
+      sqe->user_data=token;
       reads.emplace(token,std::move(read));
     }
     py::gil_scoped_release release;
@@ -64,7 +65,7 @@ public:
     for(unsigned i=0;i<limit;++i) {
       io_uring_cqe* cqe=nullptr;
       if(io_uring_peek_cqe(&ring,&cqe)!=0) break;
-      auto token=io_uring_cqe_get_data64(cqe);
+      uint64_t token=cqe->user_data;
       auto it=reads.find(token);
       if(it==reads.end()) throw std::runtime_error("Unknown CQE token");
       auto &read=*it->second;

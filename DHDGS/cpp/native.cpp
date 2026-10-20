@@ -15,6 +15,9 @@
 #include <stdexcept>
 #include <unordered_set>
 #include <vector>
+#include <thread>
+#include <mutex>
+#include <atomic>
 
 namespace py = pybind11;
 namespace api = rabitqlib::quant::v1;
@@ -115,6 +118,39 @@ public:
     return py::make_tuple(codes, extra, factors);
   }
 
+  struct Prepared {
+    std::vector<float> rotated;
+    std::vector<api::QueryState> states;
+    std::vector<float> norms;
+  };
+
+  Prepared prepare_native(const float* query) const {
+    Prepared out;
+    out.rotated.resize(padded_);
+    rotation_->rotate(query, out.rotated.data());
+    for (size_t c = 0; c < centers_count_; ++c) {
+      out.states.push_back(api::prepare_query(parameters_, out.rotated.data(),
+                                              centers_.data() + c * padded_));
+      double sum = 0;
+      for (size_t j = 0; j < padded_; ++j) {
+        double d = double(out.rotated[j]) - centers_[c * padded_ + j];
+        sum += d * d;
+      }
+      out.norms.push_back(std::sqrt(sum));
+    }
+    return out;
+  }
+
+  std::pair<float, float> score_native(const Prepared& query, const uint8_t* codes,
+      const uint8_t* extra, const float* factors, uint32_t center) const {
+    require(center < centers_count_, "Invalid center ID");
+    api::Factors f{factors[0], factors[1], factors[2]};
+    return {api::compute(query.states[center],
+        {api::CodeLayout::SplitPacked, {codes, sizes_.code_bytes},
+         {sizes_.extra_bytes ? extra : nullptr, sizes_.extra_bytes}}, f),
+        std::abs(f.error) * query.norms[center]};
+  }
+
   py::tuple score(Array<float> q, Array<uint8_t> codes, Array<uint8_t> extra,
                   Array<float> factors, Array<uint32_t> center_ids) const {
     require(q.ndim() == 1 && size_t(q.size()) == dim_, "Wrong query dimension");
@@ -172,12 +208,14 @@ public:
 std::vector<std::vector<uint32_t>> build_vamana(Array<float> vectors,
                                                 size_t degree, size_t width,
                                                 std::vector<double> alphas,
-                                                uint32_t seed) {
+                                                uint32_t seed,
+                                                py::object progress = py::none(),
+                                                size_t threads = 1) {
   require(vectors.ndim() == 2 && vectors.shape(0) > 0 && vectors.shape(1) > 0,
           "Vamana requires a nonempty matrix");
   size_t n = vectors.shape(0), dim = vectors.shape(1);
   require(n < uint64_t(1) << 32 && degree > 0 && width >= degree &&
-              !alphas.empty(),
+              !alphas.empty() && threads > 0,
           "Invalid Vamana limits");
   for (double a : alphas)
     require(std::isfinite(a) && a >= 1, "Pruning alpha must be >= 1");
@@ -186,6 +224,7 @@ std::vector<std::vector<uint32_t>> build_vamana(Array<float> vectors,
   const float *x = vectors.data();
   auto distance = [&](uint32_t a, uint32_t b) {
     double sum = 0;
+    #pragma omp simd reduction(+:sum)
     for (size_t j = 0; j < dim; ++j) {
       double d = double(x[a * dim + j]) - x[b * dim + j];
       sum += d * d;
@@ -248,9 +287,21 @@ std::vector<std::vector<uint32_t>> build_vamana(Array<float> vectors,
   }
   std::vector<uint32_t> order(n);
   std::iota(order.begin(), order.end(), 0);
+  // Each adjacency list has one lock. No operation holds two graph locks;
+  // reciprocal updates and candidate snapshots are race-free.
+  std::vector<std::mutex> graph_locks(n);
   for (double alpha : alphas) {
     std::shuffle(order.begin(), order.end(), rng);
-    for (uint32_t node : order) {
+    std::atomic<size_t> next{0},completed{0};
+    std::atomic<bool> failed{false};
+    std::exception_ptr failure;
+    std::mutex failure_lock;
+    auto work = [&]() {
+      try {
+      while (!failed.load()) {
+      size_t position=next.fetch_add(1);
+      if (position>=n) break;
+      uint32_t node=order[position];
       using Item = std::pair<double, uint32_t>;
       std::set<Item> frontier, best;
       std::unordered_set<uint32_t> seen;
@@ -265,7 +316,12 @@ std::vector<std::vector<uint32_t>> build_vamana(Array<float> vectors,
         if (best.size() >= width && current > *best.rbegin())
           break;
         visited.push_back(current.second);
-        for (auto neighbor : graph[current.second])
+        std::vector<uint32_t> neighbors;
+        {
+          std::lock_guard<std::mutex> guard(graph_locks[current.second]);
+          neighbors=graph[current.second];
+        }
+        for (auto neighbor : neighbors)
           if (seen.insert(neighbor).second) {
             Item next{distance(node, neighbor), neighbor};
             if (best.size() < width || next < *best.rbegin()) {
@@ -276,23 +332,53 @@ std::vector<std::vector<uint32_t>> build_vamana(Array<float> vectors,
             }
           }
       }
-      visited.insert(visited.end(), graph[node].begin(), graph[node].end());
-      graph[node] = prune(node, std::move(visited), alpha);
-      auto outgoing = graph[node];
+      std::vector<uint32_t> outgoing;
+      {
+        std::lock_guard<std::mutex> guard(graph_locks[node]);
+        visited.insert(visited.end(), graph[node].begin(), graph[node].end());
+        graph[node] = prune(node, std::move(visited), alpha);
+        outgoing = graph[node];
+      }
       for (auto other : outgoing) {
+        std::lock_guard<std::mutex> guard(graph_locks[other]);
         auto &reverse = graph[other];
         if (std::find(reverse.begin(), reverse.end(), node) == reverse.end())
           reverse.push_back(node);
         if (reverse.size() > degree)
           reverse = prune(other, reverse, alpha);
       }
+      size_t done=completed.fetch_add(1)+1;
+      if (!progress.is_none() && (done % std::max(size_t(1), n / 100) == 0 || done == n)) {
+        py::gil_scoped_acquire acquire;
+        progress(alpha, done, n);
+      }
+      }
+      } catch (...) {
+        std::lock_guard<std::mutex> guard(failure_lock);
+        if (!failure) failure=std::current_exception();
+        failed=true;
+      }
+    };
+    if (threads==1) work();
+    else {
+      std::vector<std::thread> workers;
+      try {
+        for (size_t i=0;i<std::min(threads,n);++i)workers.emplace_back(work);
+      } catch (...) {
+        failed=true;
+        for (auto &worker:workers)worker.join();
+        throw;
+      }
+      for (auto &worker:workers)worker.join();
     }
+    if (failure) std::rethrow_exception(failure);
   }
   return graph;
 }
 
 class Router {
   size_t dim_;
+  size_t query_ef_ = 0;
   hnswlib::L2Space space_;
   std::unique_ptr<hnswlib::HierarchicalNSW<float>> index_;
 
@@ -306,6 +392,7 @@ public:
         &space_, capacity, degree, construction, seed);
   }
   void add(Array<float> x, Array<uint64_t> ids) {
+    require(query_ef_ == 0, "Cannot modify HNSW after serving queries");
     require(x.ndim() == 2 && size_t(x.shape(1)) == dim_ && ids.ndim() == 1 &&
                 ids.shape(0) == x.shape(0),
             "HNSW input mismatch");
@@ -319,8 +406,15 @@ public:
                 ef >= k,
             "Invalid HNSW query");
     finite(query.data(), query.size());
+    // Configure once under the GIL, before any query releases it. Concurrent
+    // read-only queries must not write hnswlib's shared ef_ field.
+    if (query_ef_ == 0) {
+      index_->setEf(ef);
+      query_ef_ = ef;
+    }
+    require(query_ef_ == ef,
+            "HNSW ef_search is fixed after first query; create a new Router to change it");
     py::gil_scoped_release release;
-    index_->setEf(ef);
     auto result = index_->searchKnn(query.data(), k);
     std::vector<uint64_t> ids;
     while (!result.empty()) {
@@ -331,13 +425,23 @@ public:
     return ids;
   }
   void save(const std::string &path) { index_->saveIndex(path); }
-  void load(const std::string &path) { index_->loadIndex(path, &space_); }
+  void load(const std::string &path) {
+    require(query_ef_ == 0, "Cannot reload HNSW after serving queries");
+    index_->loadIndex(path, &space_);
+  }
 };
 
+#include "search_loop.hpp"
+
 void register_async_io(py::module_ &m);
+void register_read_metrics(py::module_ &m);
 
 PYBIND11_MODULE(_native, m) {
   register_async_io(m);
+  register_read_metrics(m);
+  register_native_search(m);
+  dhwire::bind_native_wire(m);
+  dhcontrol::register_native_control(m);
   m.doc() =
       "DHDGS RaBitQ core integration, Vamana construction and sample HNSW";
   py::class_<Quantizer>(m, "Quantizer")
@@ -345,7 +449,8 @@ PYBIND11_MODULE(_native, m) {
       .def("state", &Quantizer::state)
       .def("encode", &Quantizer::encode)
       .def("score", &Quantizer::score);
-  m.def("build_vamana", &build_vamana);
+  m.def("build_vamana", &build_vamana, py::arg("vectors"), py::arg("degree"),
+        py::arg("width"), py::arg("alphas"), py::arg("seed"), py::arg("progress")=py::none(), py::arg("threads")=1);
   py::class_<Router>(m, "Router")
       .def(py::init<size_t, size_t, size_t, size_t, size_t>())
       .def("add", &Router::add)

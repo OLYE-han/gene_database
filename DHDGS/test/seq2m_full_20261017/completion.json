@@ -1,0 +1,9 @@
+{
+  "complete": true,
+  "build_rows": 2000000,
+  "final_requests": 3072,
+  "final_verification": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/seq2m_full_20261017/backlog128/verification.json",
+  "initial_control_metric_issue_preserved": true,
+  "all_final_recall_targets_met": true,
+  "all_final_services_stopped": true
+}

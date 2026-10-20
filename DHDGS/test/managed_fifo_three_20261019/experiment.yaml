@@ -1,0 +1,9 @@
+repetitions: 3
+queries: 2000
+concurrency: 128
+warmup: 32
+trace_query_id: 734744
+plan: cluster.yaml
+previous_plan: ../managed_three_hosts_20261019/cluster.yaml
+worker_threads: 32
+budget: 200

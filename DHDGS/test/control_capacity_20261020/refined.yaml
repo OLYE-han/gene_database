@@ -1,0 +1,12 @@
+base_plan: gene_database/DHDGS/test/managed_continuation_three_20261019/cluster.yaml
+directory: refined
+queries: 2000
+concurrency: 128
+warmup: 32
+port: 34000
+order: [lanes2, lanes4, lanes6, legacy, lanes4, legacy]
+variants:
+  lanes2: {snapshot: refined_source, mode: lanes, lanes: {processes: 2}}
+  lanes4: {snapshot: refined_source, mode: lanes, lanes: {processes: 4}}
+  lanes6: {snapshot: refined_source, mode: lanes, lanes: {processes: 6}}
+  legacy: {snapshot: refined_source, mode: legacy}

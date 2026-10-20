@@ -1,0 +1,7 @@
+{
+  "tests": 12,
+  "requests": 12288,
+  "all_services_stopped": true,
+  "valid_measurements": 12,
+  "all_recall_targets_met": true
+}

@@ -1,0 +1,86 @@
+[
+  {
+    "case": "0_broadcast",
+    "physical_reads": [
+      0,
+      0,
+      0
+    ],
+    "audit": {
+      "metrics_complete": true,
+      "no_node_revisit": true,
+      "budget_respected": true,
+      "no_router_expansion": true
+    }
+  },
+  {
+    "case": "1_fifo",
+    "physical_reads": [
+      0,
+      0,
+      0
+    ],
+    "audit": {
+      "metrics_complete": true,
+      "no_node_revisit": true,
+      "budget_respected": true,
+      "no_router_expansion": true
+    }
+  },
+  {
+    "case": "2_fifo",
+    "physical_reads": [
+      0,
+      0,
+      0
+    ],
+    "audit": {
+      "metrics_complete": true,
+      "no_node_revisit": true,
+      "budget_respected": true,
+      "no_router_expansion": true
+    }
+  },
+  {
+    "case": "3_broadcast",
+    "physical_reads": [
+      0,
+      0,
+      0
+    ],
+    "audit": {
+      "metrics_complete": true,
+      "no_node_revisit": true,
+      "budget_respected": true,
+      "no_router_expansion": true
+    }
+  },
+  {
+    "case": "4_broadcast",
+    "physical_reads": [
+      0,
+      0,
+      0
+    ],
+    "audit": {
+      "metrics_complete": true,
+      "no_node_revisit": true,
+      "budget_respected": true,
+      "no_router_expansion": true
+    }
+  },
+  {
+    "case": "5_fifo",
+    "physical_reads": [
+      0,
+      0,
+      0
+    ],
+    "audit": {
+      "metrics_complete": true,
+      "no_node_revisit": true,
+      "budget_respected": true,
+      "no_router_expansion": true
+    }
+  }
+]

@@ -1,0 +1,8 @@
+{
+  "formal_queries": 54000,
+  "failed_queries": 0,
+  "audit_passed": true,
+  "recall_min": 0.9695499999999999,
+  "recall_max": 0.97065,
+  "physical_read_delta_sum": 0
+}

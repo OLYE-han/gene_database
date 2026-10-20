@@ -1,0 +1,10 @@
+{
+  "requests": 8000,
+  "all_successful": true,
+  "hashes_verified": true,
+  "timestamps_and_budgets_verified": true,
+  "tcp_sender_thread_separation_verified": true,
+  "all_test_processes_stopped": true,
+  "pending_at_end": 0,
+  "queue_rejections": 0
+}

@@ -5,7 +5,6 @@ from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 import json
 import math
 from pathlib import Path
-import threading
 import time
 import uuid
 
@@ -45,7 +44,6 @@ class Engine:
         routing = c["routing"]
         self.router = native().Router(m["dimension"], m["route_samples"], routing["hnsw_m"], routing["ef_construction"], c["seed"])
         self.router.load(str(root/"router.hnsw"))
-        self.router_lock = threading.Lock()
         self.quantizer = native().Quantizer(self.route_bank["centers"], m["bits"], m["rotation_seed"], (root/"rotation.bin").read_bytes())
         self.transport = LocalTransport(c) if c["network"]["transport"] == "local" else TCPTransport(c)
         self.policy = Policy(c["scheduler"]["kappa"], c["scheduler"]["exploration"], c["scheduler"]["max_wait_ms"])
@@ -83,8 +81,7 @@ class Engine:
         k = cfg["top_k"]
         if k > self.manifest["rows"]-int(cfg["exclude_self"] and query_id in self.owners):
             raise ValueError("top_k exceeds eligible index rows")
-        with self.router_lock:
-            entries = list(map(int, self.router.search(query, min(c["routing"]["entry_candidates"], self.manifest["route_samples"]), c["routing"]["ef_search"])))
+        entries = list(map(int, self.router.search(query, min(c["routing"]["entry_candidates"], self.manifest["route_samples"]), c["routing"]["ef_search"])))
         positions = np.array([self.route_positions[gid] for gid in entries], dtype=np.int64)
         bank = self.route_bank
         route_quant_started = time.perf_counter_ns()

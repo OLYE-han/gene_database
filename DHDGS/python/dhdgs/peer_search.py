@@ -1,6 +1,7 @@
 """Data-node search branch. No router RPC is used for graph expansion."""
 from __future__ import annotations
 
+from .tracing import trace_query
 import math
 import time
 import uuid
@@ -13,6 +14,7 @@ COUNTERS = ('file_read_bytes','pread_calls','cache_hits','scanned_edges','rabitq
             'exact_distance_evaluations','pread_ms','rabitq_ms','exact_distance_ms','service_ms',
             'async_read_requests','io_batch_wall_ms','io_capacity_wait_ms','io_queue_wait_ms',
             'io_read_residence_ms','query_ready_queue_ms','query_compute_slice_wall_ms',
+            'query_admission_queue_ms','query_executor_start_wait_ms',
             'query_io_wait_ms','query_resume_count','query_transfer_finalize_wait_ms',
             'query_branch_wall_ms','query_state_other_ms')
 
@@ -231,7 +233,7 @@ def branch_steps(state, shard, directory, c, spawn, cancelled):
             frontier={gid:frontier[gid] for gid in retained}
             queued_at={gid:queued_at[gid] for gid in retained}
         if stagnation>=cfg['stagnation_batches']: fallback()
-        if c['metrics']['detailed_trace']:
+        if trace_query(c,state.get('query_id')):
             traces.append({'ids':batch,'shard_id':sid,'service_trace':reply['service_trace'],
                            'stats':reply['stats'],'io_trace':reply.get('io_trace')})
     if remaining==0: stop_reason='branch_work_credit_exhausted'
@@ -251,7 +253,7 @@ def branch_steps(state, shard, directory, c, spawn, cancelled):
         'ids':[gid for gid,_ in ranked],'squared_distances':[d for _,d in ranked],
         'expanded_ids':expanded_ids,'result_paths':[p for p in paths if p['id'] in dict(ranked)],
         'stats':stats,'fork_events':events,'decisions':decisions}
-    if c['metrics']['detailed_trace']: report['local_batch_trace']=traces
+    if trace_query(c,state.get('query_id')): report['local_batch_trace']=traces
     return report
 
 

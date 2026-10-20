@@ -139,6 +139,8 @@ class TCPTransport:
 def create_server(c, sid):
     if not 0 <= sid < len(c["cluster"]["nodes"]):
         raise ValueError("Invalid node ID")
+    from .runtime import apply_process_runtime
+    apply_process_runtime(c)
     worker = Shard(shard_path(c, sid), c["storage"]["cache_bytes_per_shard"])
     if (worker.meta["shard_id"] != sid or worker.meta["dimension"] != c["data"]["dimension"]
             or worker.meta["metric"] != c["data"]["metric"]
@@ -159,6 +161,7 @@ def create_server(c, sid):
             while True:
                 try:
                     request, _ = receive(self.request, limit)
+                    received_ns=time.monotonic_ns()
                 except (ConnectionError, OSError, ValueError, msgpack.UnpackException):
                     return
                 request_id = request.get("request_id")
@@ -166,14 +169,28 @@ def create_server(c, sid):
                     op=request.get('op')
                     if request.get('version')==1 and op in ('peer_submit','peer_lease','peer_cancel'):
                         if peer is None: raise ValueError('Peer execution is disabled')
-                        if op=='peer_submit': result=peer.accept(request['state'])
+                        trace=None
+                        if op=='peer_submit':
+                            accept_enter_ns=time.monotonic_ns()
+                            result=peer.accept(request['state'])
+                            state=request['state']
+                            trace=peer.records[(state['query_request_id'],state['branch_id'])].get('execution_timestamps')
+                            if trace is not None and not result.get('duplicate'):
+                                trace.update(receiver_message_ready_ns=received_ns,
+                                    receiver_accept_enter_ns=accept_enter_ns,
+                                    receiver_accept_return_ns=time.monotonic_ns())
+                            else:trace=None
                         else: result=peer.lease(request['query_request_id'],request['token'],op=='peer_cancel')
+                        if trace is not None:trace['receiver_ack_send_enter_ns']=time.monotonic_ns()
                         send(self.request,{'ok':True,'result':result},limit)
+                        if trace is not None:trace['receiver_ack_send_return_ns']=time.monotonic_ns()
                         continue
                     if request.get("version") != 1 or op not in ("expand", "metrics") or not isinstance(request_id, str):
                         raise ValueError("Unsupported request")
                     if request["op"] == "metrics":
                         result = worker.metrics()
+                        from .gc_profile import snapshot as gc_snapshot
+                        result['gc_profile'] = gc_snapshot()
                         if peer is not None: result['peer_lifecycle']=peer.metrics()
                         result["resource_samples"] = list(sampler.samples)
                         send(self.request, {"ok":True,"request_id":request_id,"result":result},limit)
@@ -200,6 +217,7 @@ def create_server(c, sid):
     class Server(socketserver.ThreadingTCPServer):
         allow_reuse_address = True
         daemon_threads = True
+        request_queue_size = c['network'].get('listen_backlog',5)
 
         def server_close(self):
             super().server_close()

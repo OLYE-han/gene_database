@@ -13,7 +13,7 @@ from .data import write_json
 from .index import build, shard_path
 
 
-def run_local_cluster(c, directory):
+def run_local_cluster(c, directory, truth_provider=None, query_rows=None):
     if c['network']['transport'] != 'tcp' or any(n['host'] not in ('127.0.0.1','::1','localhost')
                                                 for n in c['cluster']['nodes']):
         raise ValueError('local-cluster-test requires TCP and loopback-only node hosts')
@@ -46,7 +46,10 @@ def run_local_cluster(c, directory):
                 raise RuntimeError(f'Shard {sid} failed to start; see {root}/server_{sid}.stderr.log')
             record['ready'] = True
         startup_seconds = time.perf_counter()-started
-        report = run_benchmark(c)
+        report = run_benchmark(c,truth_provider=truth_provider,query_rows=query_rows)
+        if truth_provider is not None:
+            report['truth_preparation_seconds']=report.pop('exact_scan_seconds')
+            report['ground_truth_source']=truth_provider.provenance
         quotas={}
         for node in c['cluster']['nodes']:
             path=shard_path(c,node['id'])/'nodes.bin'
@@ -55,7 +58,7 @@ def run_local_cluster(c, directory):
                                            'max_inflight_requests_sum':0,'max_inflight_bytes_sum':0,
                                            'buffer_pool_bytes_sum':0})
             entry['node_ids'].append(node['id'])
-            if c['peer']['execution_model']=='resumable':
+            if c['peer']['execution_model']=='resumable' or (c['peer']['execution_model']=='native' and c['storage']['io']['backend']!='sync_pread'):
                 io=c['storage']['io']
                 entry['max_inflight_requests_sum']+=io['max_inflight_per_device']
                 entry['max_inflight_bytes_sum']+=io['max_inflight_bytes_per_device']

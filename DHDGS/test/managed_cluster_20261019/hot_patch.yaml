@@ -1,0 +1,3 @@
+search.max_expansions: 160
+scheduler.remote_weight: 0.5
+peer.worker_threads: 6

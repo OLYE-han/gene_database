@@ -13,14 +13,20 @@ from .partition import prepare
 from .search import Engine
 
 
-def query_input(c, count):
+def query_input(c, count, rows=None):
     path = Path(c["query"]["vectors"])
     paths = [path]
     vectors = load_complete_npy(path)
     start = c["query"]["row"]
     if (vectors.ndim != 2 or vectors.shape[1] != c["data"]["dimension"]
-            or vectors.dtype != np.dtype("<f4") or start+count > len(vectors)):
+            or vectors.dtype != np.dtype("<f4") or (rows is None and start+count > len(vectors))):
         raise ValueError("Query file shape/dtype/range mismatch")
+    selection=slice(start,start+count)
+    if rows is not None:
+        selection=np.asarray(rows)
+        if (selection.shape!=(count,) or selection.dtype.kind not in 'iu' or np.any(selection<0)
+                or np.any(selection>=len(vectors)) or len(np.unique(selection))!=count):
+            raise ValueError('Invalid explicit query row selection')
     ids = None
     if c["query"]["ids"] is not None:
         paths.append(Path(c["query"]["ids"]))
@@ -28,7 +34,7 @@ def query_input(c, count):
         if ids.shape != (len(vectors),) or ids.dtype.kind not in "iu" or np.any(ids < 0):
             raise ValueError("Invalid query IDs")
     snapshots = {p: fingerprint(p) for p in paths}
-    return vectors[start:start+count], None if ids is None else ids[start:start+count], snapshots
+    return vectors[selection], None if ids is None else ids[selection], snapshots
 
 
 def exact_topk(dataset, indexed_ids, query, k, metric, excluded_id, block_rows):
@@ -53,7 +59,7 @@ def exact_topk(dataset, indexed_ids, query, k, metric, excluded_id, block_rows):
     return best_ids.tolist(), best_distances.tolist()
 
 
-def run_benchmark(c):
+def run_benchmark(c, truth_provider=None, query_rows=None):
     """Closed-loop concurrent load; ground truth and warmup are outside timing."""
     from concurrent.futures import ThreadPoolExecutor
     import threading
@@ -63,7 +69,7 @@ def run_benchmark(c):
 
     e = c["experiment"]
     count = e["benchmark_queries"]
-    queries, qids, snapshots = query_input(c, count)
+    queries, qids, snapshots = query_input(c, count, rows=query_rows)
     dataset = Dataset(c["paths"]["dataset"])
     engines = []
     engine_load_seconds = []
@@ -79,7 +85,7 @@ def run_benchmark(c):
         truth = []
         for i, query in enumerate(queries):
             qid = None if qids is None else int(qids[i])
-            truth.append(exact_topk(dataset,indexed,query,c["search"]["top_k"],c["data"]["metric"],
+            truth.append((truth_provider or exact_topk)(dataset,indexed,query,c["search"]["top_k"],c["data"]["metric"],
                 qid if c["search"]["exclude_self"] else None,e["exact_block_rows"]))
         exact_seconds = time.perf_counter()-started
         for engine in engines:
@@ -118,7 +124,7 @@ def run_benchmark(c):
                 hits = len(set(found["ids"]) & set(truth_ids))
                 found["stats"]["queue_wait_ms"] = None  # no measured end-to-end admission/server queue
                 row = {"job":job,"worker":worker_id,"repetition":job//count,
-                    "query_row":c["query"]["row"]+i,"query_id":qid,"recall":hits/len(truth_ids),
+                    "query_row":int(query_rows[i]) if query_rows is not None else c["query"]["row"]+i,"query_id":qid,"recall":hits/len(truth_ids),
                     "truth_ids":truth_ids,"truth_squared_distances":distances,
                     "returned_count":len(found["ids"]),"duplicate_result_ids":len(found["ids"])-len(set(found["ids"])),
                     **found}
@@ -162,6 +168,9 @@ def run_benchmark(c):
                     "active_after":current["counters"]["active"],
                     "stored_vectors":current["stored_vectors"],"code_rows":current["code_rows"],
                     "index_file_bytes":current["index_file_bytes"],"cache_bytes_after":current["cache_bytes"],
+                    "storage_access":current.get("storage_access", "unknown"),
+                    "os_page_cache_bypassed":current.get("os_page_cache_bypassed"),
+                    "expansion_counters_lock_free":current.get("expansion_counters_lock_free"),
                     "peer_lifecycle_after":current.get('peer_lifecycle'),
                     "peak_active_since_start":current["counters"]["peak_active"],
                     "resource_samples":[sample for sample in current.get("resource_samples",[])

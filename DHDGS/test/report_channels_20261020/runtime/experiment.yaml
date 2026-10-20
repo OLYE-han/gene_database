@@ -1,0 +1,9 @@
+base_plan: gene_database/DHDGS/test/managed_continuation_three_20261019/cluster.yaml
+queries: 2000
+concurrency: 128
+warmup: 32
+head_port: 28000
+order: [direct, direct1, inline4, inline4, direct1, direct]
+switch_ms: {direct: 0.1, direct1: 1.0, inline4: 1.0}
+dispatch_workers: 4
+merge_workers: 1

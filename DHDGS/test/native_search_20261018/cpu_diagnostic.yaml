@@ -1,0 +1,12 @@
+# Single data-node compute diagnostic; not an end-to-end ANN recall benchmark.
+experiment_plan: experiment.yaml
+budget_selection: selection.json
+shard_id: 0
+query_count: 512
+query_start_row: 30000
+threads: [1, 2, 4, 8, 16]
+repetitions: 2
+warmup_queries: 16
+entry: first_local_vertex
+backend: sync_pread
+trace: false

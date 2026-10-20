@@ -1,0 +1,7 @@
+base_plan: /sharenvme/usershome/xulihan/gene_database/DHDGS/test/managed_receivers_three_20261019/cluster.yaml
+order: [1, 2, 4, 4, 2, 1, 1, 4, 2]
+entry_workers: 4
+queries: 2000
+concurrency: 128
+warmup: 32
+head_port: 21920

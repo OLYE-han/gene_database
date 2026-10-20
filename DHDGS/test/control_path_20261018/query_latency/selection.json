@@ -1,0 +1,10 @@
+{
+  "seed": 20261018,
+  "method": "random.Random.choice over query_row-sorted multi-node requests",
+  "eligible": 682,
+  "query_row": 73656,
+  "query_id": 734744,
+  "request_id": "0234097c-3e3e-4489-a2b0-041cb94617c9",
+  "source": "optimized/runs/20261018T120948/report.json.gz",
+  "source_sha256": "60b31c4a61c627d5e9211ca345deb9fd56467530abbabbb44fbf677cb206043b"
+}

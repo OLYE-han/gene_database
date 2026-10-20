@@ -1,0 +1,11 @@
+{
+  "three_physical_hosts": true,
+  "same_pid_and_fd": true,
+  "all_audits_passed": true,
+  "successful_queries": 6000,
+  "worker_threads": 32,
+  "concurrency": 128,
+  "budget": 200,
+  "services_left_running": true,
+  "previous_cluster_stopped": true
+}

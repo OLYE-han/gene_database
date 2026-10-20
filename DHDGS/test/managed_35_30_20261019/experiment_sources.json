@@ -1,0 +1,9 @@
+{
+  "cluster.yaml": "215b92ddc472eae31033d86718c3f80e6c9e10a9c6dfdf4924e52018d437e1bd",
+  "benchmark.yaml": "3cfd51c8b4cf4e33543f2da028b792707cbdeee6776eebff771db400477cb37a",
+  "hot_patch.yaml": "0e3d8330782015394575cc25a7776090b42cf25c927511907fed872a72d85ab6",
+  "restore.yaml": "2290934fca95b68e4b32bf22c1212a28189fef1bf345915436286ad9037a0ae3",
+  "run_acceptance.py": "98c6f0c64b3c3d89b2364da072735334f7e0369e05d76f025c4977345f8d97ce",
+  "finalize_shard.py": "ae8f9ab4ec149ad39b52e8eb539cb3409f2c08454789a24fa3b3bb718d5f29f9",
+  "shard_1_manifest.json": "8ca6a17ddf9ec7cea4778e193e6bdee57e9aea4eb1efddc6e455a7e8e9b82799"
+}

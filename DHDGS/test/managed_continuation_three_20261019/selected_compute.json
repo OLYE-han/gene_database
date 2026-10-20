@@ -1,0 +1,20 @@
+[
+  {
+    "node": "1",
+    "loop_wall_ms": 4.013357,
+    "pread_ms": 0.25858,
+    "exact_distance_ms": 1.089903,
+    "rabitq_ms": 0.959383,
+    "other_wall_ms": 1.7054909999999999,
+    "thread_released_after_accept_ms": 6.325288
+  },
+  {
+    "node": "2",
+    "loop_wall_ms": 7.879448,
+    "pread_ms": 0.536246,
+    "exact_distance_ms": 2.15612,
+    "rabitq_ms": 1.89224,
+    "other_wall_ms": 3.294842,
+    "thread_released_after_accept_ms": 9.916807
+  }
+]

@@ -1,10 +1,24 @@
 # DHDGS
 
+原常驻三机部署为 **Intel-35：head + data-0；Intel-32：data-1；Intel-30：data-2**。每节点32个查询工作线程，见 [原入口操作命令](test/managed_continuation_three_20261019/README.md)。
+
+2026-10-20：选型改为 **QPS优先**，约束平均Recall@10≥0.95且无失败。新增按查询划分顶层执行进程的 `peer.head_lanes` 模式，减少中间IPC交接；完整2M三机固定并发128短测，QPS中位数604.73→1168.58，Recall约97%。扩大去重容量后的双向扫描选中并发256、约1103QPS；但100000次连续请求仅527QPS、p99约6.24秒，持续性能问题尚未解决，未替换常驻入口。最新候选、并发扫描及长测边界见 [控制链容量优化报告](test/control_capacity_20261020/REPORT.md) 和 [运行说明](test/control_capacity_20261020/README.md)。
+
+持久三机部署、head 下发查询配置与集中收集结果：见 [操作手册](test/managed_cluster_20261019/README.md) 和 [验证状态](test/managed_cluster_20261019/REPORT.md)。
+
 Distributed Hierarchical Disk Graph Search：面向高维向量的分布式图检索研究系统，采用样本 HNSW 路由、可调重叠分片、RaBitQ 估距、磁盘节点记录和跨分片批量扩展。
 
-当前版本提供可运行的端到端原型，包含 C++ 算法内核和 Python 构建、调度、TCP 服务及实验工具。已经完成本地磁盘检索与三个独立进程的 TCP 正确性测试。**当前建图是内存中的 Vamana 实现，尚未集成上游 DiskANN 的外存构建器，也尚未部署到三台物理服务器。** 规模与性能限制见下文。
+当前版本提供可运行的端到端原型，包含 C++ 算法内核和 Python 构建、调度、TCP 服务及实验工具。已经完成本地磁盘检索与三个独立进程的 TCP 正确性测试。**当前建图是内存中的 Vamana 实现，尚未集成上游 DiskANN 的外存构建器，物理三机部署及实测状态见 [DEPLOYMENT.md](DEPLOYMENT.md)。** 规模与性能限制见下文。
 
 所有已开放的运行及实验参数集中在 **[configs/dhdgs.yaml](configs/dhdgs.yaml)**。命令行只选择操作、配置文件和服务节点角色，不提供另一套调参覆盖项。YAML 默认值用于探索性测试，不代表已通过实验选定最终方案。
+
+2026-10-18：默认执行模式改为 `native`，完整本地搜索循环在 C++ 中释放 GIL 执行，每个查询分支固定由一个计算线程负责；不同查询并行，I/O reactor 聚合已选定的读取。Python `blocking/resumable` 模式保留作对照。默认关闭应用 LRU，扩展统计使用原子计数，HNSW 固定每实例 `ef_search` 后支持并发查询，必要的生命周期同步保留。需重新编译原生模块。质量目标改为平均 Recall@10≥0.95，本轮完整 2M 校准后默认预算192/frontier64、每节点8个计算线程。实现和验收边界见 [DESIGN.md 第 6.14 节](DESIGN.md#614-原生完整搜索循环与固定查询线程)。
+
+现有读取后端均为 buffered I/O；应用缓存为零、使用 C++ 或 io_uring 都不代表绕过 OS 页缓存。物理 SSD 验证计划见 DESIGN.md 第 6.13 节。默认 `local + sync_pread` 用于功能验证；启用跨查询聚合时，将 YAML 设为 `network.transport: tcp`，`peer.execution_model: native`，`storage.io.backend: io_uring`（或 `thread_pool`），启动数据服务后压测。
+
+通信优化已实现，见 [DESIGN 第 11 节](DESIGN.md) 和 [2000 查询对照报告](test/control_path_20261018/REPORT.md)。`optimized` 模式让计算线程在本地搜索完成后立即处理其他查询，派发确认由完成回调结算；控制消息并发回传、响应携带续租，正常完成无需取消 RPC。同一进程共享入口回调服务，RPC 使用有界连接池。远端分支仍只由原扩展函数决定。这不等于原生搜索已经能在 SSD 等待中交出计算线程：native 在一次本地搜索内部仍固定线程等待 I/O。
+
+接收端新增 `peer.admission.mode: buffered` 有界接纳队列。成功校验、去重并入队后即可返回接纳确认，计算线程池提交由独立接纳线程完成。`queue_capacity` 限制已接纳但尚未开始执行的总任务数，包括计算线程池中的等待任务；队列满明确拒绝。`direct` 用于旧路径对照，旧YAML缺少整个admission组时显式迁移为direct。接纳成功只表示进程内接纳，不是搜索完成或持久化确认。设计及指标见 DESIGN 第11.10节与 METRICS.md。
 
 ## 安装与运行
 
@@ -26,7 +40,7 @@ cmake --build build --parallel 4
 
 默认从 `seq_2M` 均匀抽取 4096 条 2560 维向量，构建三个分片。`build` 拒绝覆盖已有 `paths.output/index`；已有测试索引只有在构建参数与 YAML 一致时才能直接执行 `query` 和 `benchmark`；例如将 RaBitQ 从 4 bit 改为 1 bit 后，需要新建输出目录并重建。新建实验索引前修改 YAML 的 `paths.output`。每次查询、检查或 benchmark 自动生成独立的 `runs/<操作>_<时间>_<随机标识>/`，保存可重新加载的 `resolved.yaml`、配置来源哈希和 `report.json`。
 
-所有相对路径均相对于 YAML 文件位置。未知、重复、缺失字段和非法参数组合均报错。`runtime.blas_threads` 控制 Python 数值库线程数，`search.max_inflight` 在 peer 模式控制每个数据进程的传输工作线程数，在 reference 模式控制单查询的并行分片请求数。CMake 构建类型和编译进程数属于开发工具设置，不是检索实验参数。
+所有相对路径均相对于 YAML 文件位置。未知、重复、缺失字段和非法参数组合均报错，已支持的旧配置按显式迁移规则补全并记录。`runtime.blas_threads` 控制 Python 数值库线程数。`search.max_inflight` 在 legacy peer 模式控制传输工作线程数，在 reference 模式控制单查询并行分片请求数；optimized peer 使用 `peer.communication.transfer_workers`。CMake 构建类型和编译进程数属于开发工具设置，不是检索实验参数。
 
 ## 配置与实验
 
@@ -39,6 +53,7 @@ cmake --build build --parallel 4
 | `storage` | 节点页大小、应用缓存、异步 I/O 后端/队列/字节预算 | 页大小需要；缓存和 I/O 参数不需要 |
 | `routing` | 样本比例与数量、HNSW M/efConstruction/efSearch、备用入口候选数 | 采样和建图参数需要；查询参数不需要 |
 | `search` | top-k、frontier、全局扩展预算、本地批量、并发、self 排除、备用入口 | 不需要 |
+| `peer`、`peer.communication` | 计算线程、租约/接纳、通信模式、派发与控制线程、待发送上限、连接复用与容量 | 不需要；数据节点和入口配置必须一致 |
 | `scheduler` | adaptive/reference/local_first、收益和不确定性权重、等待阈值、冷启动成本、EWMA | 不需要 |
 | `network`、`cluster` | local/tcp、批大小、超时、帧大小、重试、节点地址、分片目录 | 改分片数需要；部署和通信参数不需要 |
 | `query` | 查询文件、可选全局 ID 文件、查询起始行 | 不需要 |
@@ -70,7 +85,7 @@ cmake --build build --parallel 4
 
 再执行 `query` 或 `benchmark`。默认地址是本机回环地址，测试不依赖另外两台服务器。服务启动时输出监听端点；Ctrl-C 停止。peer 模式只在入口提交和跨节点分支时传输查询与种子，节点内部直接调用本地扩展；各分支主动回传最终结果，顶层负责保活及合并。协议校验索引版本、配置、预算、目的节点和消息长度；失败显式上报。
 
-真实多机部署时，设置各节点可达的 `host/port/index_directory`，将构建完成的 `index/shard_<id>` 完整分发至相应节点，路由端保留根目录文件。构建命令始终在本地输出分片，不自动复制到远端自定义目录。各机器需要对应环境及原生模块；RPC 当前用于可信私有网络，没有 TLS/身份认证。物理多机部署、传输和网络成本测量尚未执行。
+真实多机部署时，设置各节点可达的 `host/port/index_directory`，将构建完成的 `index/shard_<id>` 完整分发至相应节点，路由端保留根目录文件。构建命令始终在本地输出分片，不自动复制到远端自定义目录。各机器需要对应环境及原生模块；RPC 当前用于可信私有网络，没有 TLS/身份认证。物理三机部署、分片传输、网络检查及测试可使用 [部署流程](DEPLOYMENT.md)，执行结果以对应测试报告为准。
 
 ## 当前实现边界
 
@@ -104,3 +119,13 @@ cmake --build build --parallel 4
 `*_per_device` 当前表示该数据进程分得的设备额度；同机多进程共用 SSD 时需在 YAML 中分配保守配额，启动器报告合计，不会自动创建主机级限流器。实现细节见 [DESIGN.md 第 6.12.12 节](DESIGN.md#61212-首阶段实现范围与使用方式2026-10-17)，测试见 [异步 SSD 测试记录](test/async_ssd_20261017/SUMMARY.md)。
 
 旧 v1 配置若同时缺少 `peer.execution_model` 与 `storage.io`，会按 blocking 兼容加载并在快照记录补齐过程；其他字段继续严格校验。
+
+物理三机自动部署入口：`.venv/bin/python tools/deploy_cluster.py --plan <deployment.yaml> --phase all`。全部部署与运行参数从一个 YAML 生成，远端离线安装、独立编译、测试后自动清理本次服务；详见 [DEPLOYMENT.md](DEPLOYMENT.md)。
+
+完整 seq_2M 的集中构建与测试使用 [FULL_DATASET.md](FULL_DATASET.md) 中的流程：支持分片内并行 Vamana、分片检查点、完整索引容量预检、流式部署打包、随机且互不重叠的校准/验证查询，以及已有全库真值的精确抽查。主配置与记录位于 `test/seq2m_full_20261017/`，不会覆盖历史 pilot 实验。
+
+数据节点TCP收发与计算职责隔离：新配置默认 `peer.sender.mode: queued`，预启动独立的远程派发和控制发送线程。计算线程仅提交消息，通信线程负责连接、编码、发送及等待ACK；连接处理线程负责接收和协议回复。`peer.sender.transfer_queue_capacity`限制等待派发的任务数，队列满明确失败；`peer.communication.transfer_workers/control_workers`控制发送并发。旧YAML缺少sender组时迁移为executor对照模式。此设置在optimized通信模式生效，不改变远端扩展算法，也不把一个查询分支拆给多个计算线程。详细设计见DESIGN第11.11节。
+
+C++完成报告和控制发送路径已实现。在完整实验YAML中设置`peer.control.scheduler: native`，同时使用`peer.execution_model: native`、`network.transport: tcp`、`storage.io.backend: sync_pread`、`peer.communication.mode: optimized`、`reuse_connections: true`和`peer.control.completion_fast_path: false`。重新编译原生模块、重启服务即可使用，不需要重建索引。该路径用一个原生事件线程和一个TCP reactor替代Python完成/控制发送队列；接纳、远程分支派发和入口merge仍由Python执行。通用默认保持event以兼容其他后端。
+
+可复用的完整配置、222项回归和2000查询ABBA对照见 [C++控制路径测试报告](test/native_control_20261018/REPORT.md)。同负载p99约降低25.9%，报告控制等待大幅缩短，但接纳队列仍未满足100ms系统等待目标。

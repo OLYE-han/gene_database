@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "measured_queries": 1024,
+  "exact_distance_checks": 320,
+  "frozen_rows_verified": true,
+  "recall_recomputed": true,
+  "jsonl_report_identical": true,
+  "source_hashes_verified": true,
+  "global_budget_verified": true,
+  "budget_conservation_verified": true,
+  "dispatch_decision_verified": true,
+  "node_revisits": 0,
+  "thread_migrations": 0,
+  "router_expansion_rpcs": 0,
+  "services_stopped": true
+}

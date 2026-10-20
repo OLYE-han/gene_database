@@ -28,8 +28,8 @@ StrictLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _ma
 # Types are the schema, not a second set of parameter defaults.
 SCHEMA = {
     "version": int, "seed": int,
-    "runtime": {"blas_threads": int},
-    "metrics": {"detailed_trace": bool, "resource_sample_interval_ms": int, "resource_max_samples": int},
+    "runtime": {"blas_threads": int,"python_switch_interval_ms":float},
+    "metrics": {"detailed_trace": bool,"trace_query_ids":list,"lifecycle_trace":bool,"gc_trace":bool, "resource_sample_interval_ms": int, "resource_max_samples": int},
     "paths": {"dataset": str, "output": str},
     "data": {"metric": str, "dimension": int, "row_limit": int, "block_rows": int, "inspection_rows": int},
     "partition": {"method": str, "overlap_fraction": float, "max_copies": int, "train_rows": int,
@@ -51,13 +51,32 @@ SCHEMA = {
              "max_active_queries": int,"heartbeat_interval_ms": int,"lease_timeout_ms": int,
              "query_timeout_seconds": float,"control_timeout_seconds": float,"handoff_timeout_seconds": float,
              "retention_seconds": float,"max_tombstones": int,"head_bind_host": str,
-             "head_advertise_host": str,"head_port": int},
+             "head_advertise_host": str,"head_port": int,"head_receiver_processes":int,"head_receiver_ipc":str,
+             "head_query_workers":int,"head_entry_workers":int,
+             "head_lanes":{"enabled":bool,"processes":int,"route_threads":int,"dispatch_threads":int,
+                           "callback_connections":int,"startup_timeout_seconds":float,"save_results":bool,"results_directory":str},
+             "head_direct":{"enabled":bool,"distribution_threads":int,"confirmation_threads":int,
+                 "result_processes":int,"ack_timeout_ms":int,"submit_retries":int,
+                 "result_queue_capacity":int,"startup_timeout_seconds":float,"save_results":bool,
+                 "results_directory":str,"queued_reports":bool,"result_channels":int,
+                 "report_queue_capacity":int,"report_connections_per_channel":int,"completion_threads":int,"report_backend":str,"report_registration":str,"completion_dispatch":str,"result_backend":str},
+             "head_pipeline":{"enabled":bool,"receive_min":int,"receive_max":int,
+                 "receive_backlog":int,"receive_idle_ms":int,"route_workers":int,"merge_workers":int,
+                 "dispatch_workers":int,"callback_connections":int,"ack_inline":bool},
+             "admission": {"mode":str,"queue_capacity":int,"queue_lock":str,"dispatch_threads":int},
+             "sender": {"mode":str,"transfer_queue_capacity":int},
+             "compute": {"mode":str,"queue_capacity":int},
+             "connection_pool": {"probe_mode":str,"head_scheduling":str},
+             "control": {"initial_heartbeat_delay_ms":int,"scheduler":str,"max_events_per_turn":int,"completion_fast_path":bool},
+             "communication": {"mode":str,"transfer_workers":int,"control_workers":int,
+                 "max_pending_control":int,"reuse_connections":bool,"connections_per_endpoint":int,
+                 "max_connection_endpoints":int}},
     "scheduler": {"mode": str, "kappa": float, "exploration": float, "max_wait_ms": float,
                   "local_batch_ms": float, "remote_rtt_ms": float, "bandwidth_bytes_per_ms": float,
                   "ewma_weight": float,"remote_selection": str,"remote_weight": float,
                   "probability_temperature": float},
     "network": {"transport": str, "batch_size": int, "timeout_seconds": float,
-                "max_message_bytes": int, "max_retries": int},
+                "max_message_bytes": int, "max_retries": int, "listen_backlog": int},
     "cluster": {"nodes": list},
     "query": {"vectors": str, "ids": (str, type(None)), "row": int},
     "assignment": {"model": str, "threshold": str},
@@ -69,11 +88,17 @@ SCHEMA = {
 
 
 def _check(values, schema, path=""):
-    if not isinstance(values, dict) or set(values) != set(schema):
+    optional={'listen_backlog'} if path=='network' else set()
+    if path=='peer.connection_pool':optional={'head_scheduling'}
+    if path=='peer.head_pipeline':optional={'ack_inline'}
+    if path=='peer.head_direct':optional={'queued_reports','result_channels','report_queue_capacity','report_connections_per_channel','completion_threads','report_backend','report_registration','completion_dispatch','result_backend'}
+    if path=='peer':optional={'head_receiver_processes','head_receiver_ipc','head_query_workers','head_entry_workers','head_pipeline','head_direct','head_lanes'}
+    if not isinstance(values, dict) or (set(values)-set(schema)) or (set(schema)-set(values)-optional):
         missing = set(schema) - set(values) if isinstance(values, dict) else set(schema)
         extra = set(values) - set(schema) if isinstance(values, dict) else set()
         raise ValueError(f"Configuration keys at {path or 'root'}: missing={sorted(missing)}, unknown={sorted(extra)}")
     for key, expected in schema.items():
+        if key in optional and key not in values:continue
         value = values[key]
         label = f"{path}.{key}".lstrip(".")
         if isinstance(expected, dict):
@@ -90,6 +115,10 @@ def _check(values, schema, path=""):
 
 def validate(c):
     _check(c, SCHEMA)
+    if c['runtime']['python_switch_interval_ms']<=0:
+        raise ValueError('runtime.python_switch_interval_ms must be positive')
+    if any(type(qid) is not int or not 0<=qid<2**64 for qid in c['metrics']['trace_query_ids']):
+        raise ValueError('metrics.trace_query_ids must contain uint64 integers')
     if c["version"] != 1 or not 0 <= c["seed"] < 2**32:
         raise ValueError("Unsupported config version or seed")
     for section, key, choices in [
@@ -98,7 +127,7 @@ def validate(c):
         ("scheduler", "mode", ("adaptive", "reference", "local_first")),
         ("network", "transport", ("local", "tcp")),
         ("search", "execution", ("peer", "reference")),
-        ("peer", "execution_model", ("blocking", "resumable")),
+        ("peer", "execution_model", ("blocking", "resumable", "native")),
         ("scheduler", "remote_selection", ("probabilistic", "threshold")),
     ]:
         if c[section][key] not in choices:
@@ -107,6 +136,53 @@ def validate(c):
                     ("search", "max_fallback_entries"), ("network", "max_retries"), ("query", "row"),
                     ("experiment", "warmup_queries")}
     zero_allowed.add(("peer", "head_port"))
+    zero_allowed.add(("peer", "head_receiver_processes"))
+    zero_allowed.add(("peer", "head_query_workers"))
+    receivers=c['peer'].get('head_receiver_processes',0)
+    pipeline=c['peer'].get('head_pipeline',{})
+    direct=c['peer'].get('head_direct',{})
+    lanes=c['peer'].get('head_lanes',{})
+    if lanes:
+        if any(type(v)is int and v<1 for v in lanes.values()) or lanes['startup_timeout_seconds']<=0:
+            raise ValueError('Invalid head lane capacity')
+        if lanes['processes']>32 or c['peer']['head_port']+lanes['processes']-1>65535:
+            raise ValueError('Invalid head lane endpoint range')
+        if lanes['enabled'] and (receivers or c['peer'].get('head_query_workers',0) or pipeline.get('enabled') or direct.get('enabled') or
+                c['peer']['communication']['mode']!='optimized' or c['network']['transport']!='tcp' or c['search']['execution']!='peer'):
+            raise ValueError('Head lanes require exclusive optimized TCP peer mode')
+    if direct:
+        if direct.get('result_backend','process') not in ('process','inline'):raise ValueError('Invalid result backend')
+        if direct.get('result_backend','process')=='inline' and not (direct.get('queued_reports') and direct.get('report_backend')=='process'):
+            raise ValueError('Inline results require independent process report receivers')
+        if direct.get('report_backend','thread') not in ('thread','process'):raise ValueError('Invalid report backend')
+        if direct.get('report_registration','ipc') not in ('ipc','shared'):raise ValueError('Invalid report registration')
+        if direct.get('completion_dispatch','queued') not in ('queued','inline'):raise ValueError('Invalid completion dispatch')
+        if any(type(v)is int and (v<0 if k=='submit_retries' else v<1) for k,v in direct.items()):
+            raise ValueError('Invalid head_direct capacity or retries')
+        if direct['startup_timeout_seconds']<=0:raise ValueError('Invalid head_direct startup timeout')
+        if direct['enabled'] and (receivers or c['peer'].get('head_query_workers',0) or pipeline.get('enabled') or
+                c['peer']['communication']['mode']!='optimized' or c['network']['transport']!='tcp' or c['search']['execution']!='peer'):
+            raise ValueError('head_direct requires exclusive optimized TCP peer mode')
+        if direct['confirmation_threads']>32 or c['peer']['head_port']+direct['confirmation_threads']-1>65535:
+            raise ValueError('Invalid head_direct confirmation endpoint range')
+        if direct.get('result_channels',8)>64 or direct.get('completion_threads',2)>32:
+            raise ValueError('Invalid report channel or completion worker count')
+        if direct.get('queued_reports',False) and c['peer']['head_port']+direct['confirmation_threads']+direct.get('result_channels',8)-1>65535:
+            raise ValueError('Invalid head_direct report endpoint range')
+    if pipeline:
+        if any(type(v) is int and v<1 for v in pipeline.values()):raise ValueError('Invalid head_pipeline capacity')
+        if not 1<=pipeline['receive_min']<=pipeline['receive_max']<=4:raise ValueError('head_pipeline receive threads must be in [1,4]')
+        if pipeline['enabled'] and (receivers or c['peer'].get('head_query_workers',0) or
+                c['peer']['communication']['mode']!='optimized' or c['network']['transport']!='tcp' or c['search']['execution']!='peer'):
+            raise ValueError('head_pipeline requires single-process optimized TCP peer mode')
+    if c['peer'].get('head_receiver_ipc','shared') not in ('shared','split'):
+        raise ValueError('Invalid peer.head_receiver_ipc')
+    if c['peer'].get('head_query_workers',0) and (not receivers or c['peer'].get('head_receiver_ipc','shared')!='split'):
+        raise ValueError('head_query_workers requires independent receivers and split IPC')
+    if receivers>32 or (receivers and c['peer']['communication']['mode']!='optimized'):
+        raise ValueError('head_receiver_processes requires optimized mode and must be in [0,32]')
+    if c['peer']['head_port']+max(0,receivers-1)>65535:
+        raise ValueError('Head receiver port range exceeds 65535')
     zero_allowed.update({("scheduler", "remote_weight"), ("scheduler", "kappa"),
                          ("scheduler", "remote_rtt_ms")})
     for section, fields in c.items():
@@ -154,14 +230,58 @@ def validate(c):
     if page < 512 or page & (page-1):
         raise ValueError("page_bytes must be a power of two >= 512")
     io = c['storage']['io']
-    if io['backend'] not in ('io_uring','thread_pool') or io['fallback_backend'] not in ('error','thread_pool'):
+    if io['backend'] not in ('io_uring','thread_pool','sync_pread') or io['fallback_backend'] not in ('error','thread_pool'):
         raise ValueError('Invalid storage.io backend')
     if any(type(v) is int and v <= 0 for v in io.values()):
         raise ValueError('storage.io capacities must be positive')
     if c['peer']['execution_model']=='resumable' and (s['execution']!='peer' or net['transport']!='tcp'):
         raise ValueError('resumable execution requires peer search over TCP data services')
+    if c['peer']['execution_model']=='resumable' and io['backend']=='sync_pread':
+        raise ValueError('Resumable execution requires an asynchronous I/O backend')
+    if c['peer']['execution_model']=='native':
+        if s['execution']!='peer' or c['storage']['cache_bytes_per_shard']!=0:
+            raise ValueError('Native execution requires peer search and disabled application cache')
+        if net['transport']=='local' and io['backend']!='sync_pread':
+            raise ValueError('Native local simulation supports sync_pread; use TCP for shared asynchronous I/O')
     exp = c["experiment"]
     peer = c["peer"]
+    if peer['admission']['mode'] not in ('direct','buffered') or peer['admission']['queue_capacity']<=0:
+        raise ValueError('Invalid peer.admission settings')
+    if peer['admission']['queue_lock'] not in ('shared','independent'):
+        raise ValueError('Invalid peer.admission.queue_lock')
+    if peer['admission']['dispatch_threads']<=0:
+        raise ValueError('peer.admission.dispatch_threads must be positive')
+    comm=peer['communication']
+    if (peer['sender']['mode'] not in ('executor','queued')
+            or peer['sender']['transfer_queue_capacity']<=0):
+        raise ValueError('Invalid peer.sender settings')
+    if peer['compute']['mode'] not in ('executor','prestarted','fixed') or peer['compute']['queue_capacity']<=0:
+        raise ValueError('Invalid peer.compute settings')
+    if peer['compute']['mode']=='fixed' and peer['execution_model']!='native':
+        raise ValueError('Fixed compute queue currently requires native execution')
+    if peer['connection_pool']['probe_mode'] not in ('locked','reserved'):
+        raise ValueError('Invalid peer.connection_pool.probe_mode')
+    if peer['connection_pool'].get('head_scheduling','broadcast') not in ('broadcast','fifo'):
+        raise ValueError('Invalid peer.connection_pool.head_scheduling')
+    if not 0<=peer['control']['initial_heartbeat_delay_ms']<=peer['heartbeat_interval_ms']:
+        raise ValueError('Initial heartbeat delay must be between zero and heartbeat_interval_ms')
+    if peer['control']['scheduler'] not in ('scan','event','native'):
+        raise ValueError('Invalid peer.control.scheduler')
+    if peer['control']['max_events_per_turn']<0:
+        raise ValueError('peer.control.max_events_per_turn must be nonnegative')
+    if peer['control']['scheduler'] in ('event','native') and comm['mode']!='optimized':
+        raise ValueError('Event control scheduler requires optimized communication')
+    if peer['control']['scheduler']=='native':
+        if (peer['execution_model']!='native' or c['network']['transport']!='tcp'
+                or c['storage']['io']['backend']!='sync_pread'):
+            raise ValueError('Native control requires native search, TCP and sync_pread')
+        if peer['control']['completion_fast_path']:
+            raise ValueError('Native control does not use Python completion_fast_path')
+        if not comm['reuse_connections']:
+            raise ValueError('Native control requires reuse_connections')
+    if (comm['mode'] not in ('legacy','optimized') or any(type(v) is int and v<=0 for v in comm.values())
+            or comm['max_pending_control']<comm['control_workers']):
+        raise ValueError('Invalid peer.communication settings')
     if (peer["lease_timeout_ms"] <= 3*peer["heartbeat_interval_ms"]
             or not 0 < peer["child_budget_fraction"] < 1
             or any(peer[k] <= 0 for k in ("query_timeout_seconds","control_timeout_seconds",
@@ -170,7 +290,7 @@ def validate(c):
             or peer["head_advertise_host"] in ("0.0.0.0", "::")
             or not 0 <= peer["head_port"] <= 65535):
         raise ValueError("Invalid peer lifecycle settings")
-    if peer["head_port"] and exp["benchmark_concurrency"] > 1:
+    if peer["head_port"] and exp["benchmark_concurrency"] > 1 and comm['mode']=='legacy':
         raise ValueError("Use head_port=0 for multiple benchmark Engine instances")
     if (not exp["metrics"] or any(m not in ("l2", "cosine") for m in exp["metrics"])
             or len(set(exp["metrics"])) != len(exp["metrics"])):
@@ -186,6 +306,21 @@ def load_config(path):
     path = Path(path).resolve()
     raw = yaml.load(path.read_text(), Loader=StrictLoader)
     migration=[]
+    if isinstance(raw,dict) and isinstance(raw.get('metrics'),dict) and 'lifecycle_trace' not in raw['metrics']:
+        raw['metrics']['lifecycle_trace']=False
+        migration.append('metrics.lifecycle_trace=False (archived trace selection)')
+    if isinstance(raw,dict) and isinstance(raw.get('metrics'),dict) and 'gc_trace' not in raw['metrics']:
+        raw['metrics']['gc_trace']=False
+        migration.append('metrics.gc_trace=False (archived GC diagnostics disabled)')
+    if isinstance(raw,dict) and isinstance(raw.get('runtime'),dict) and 'python_switch_interval_ms' not in raw['runtime']:
+        raw['runtime']['python_switch_interval_ms']=5.0
+        migration.append('runtime.python_switch_interval_ms=5.0 (archived Python switch interval)')
+    if isinstance(raw,dict) and isinstance(raw.get('metrics'),dict) and 'trace_query_ids' not in raw['metrics']:
+        raw['metrics']['trace_query_ids']=[]
+        migration.append('metrics.trace_query_ids=[] (archived global trace selection)')
+    if isinstance(raw,dict) and isinstance(raw.get('network'),dict) and 'listen_backlog' not in raw['network']:
+        raw['network']['listen_backlog']=5
+        migration.append('network.listen_backlog=5 (legacy Python TCP default)')
     # Old v1 archives predate both async fields. Keep their blocking semantics;
     # hydrate inactive I/O settings from the single canonical YAML, and archive
     # the resulting values. Partly specified new configs still fail strictly.
@@ -195,7 +330,60 @@ def load_config(path):
         defaults=yaml.load((Path(__file__).resolve().parents[2]/'configs/dhdgs.yaml').read_text(),Loader=StrictLoader)
         raw['peer']['execution_model']='blocking'
         raw['storage']['io']=copy.deepcopy(defaults['storage']['io'])
-        migration=['peer.execution_model=blocking','storage.io (inactive canonical defaults)']
+        migration+=['peer.execution_model=blocking','storage.io (inactive canonical defaults)']
+    if isinstance(raw,dict) and isinstance(raw.get('peer'),dict) and 'communication' not in raw['peer']:
+        defaults=yaml.load((Path(__file__).resolve().parents[2]/'configs/dhdgs.yaml').read_text(),Loader=StrictLoader)
+        raw['peer']['communication']=copy.deepcopy(defaults['peer']['communication'])
+        raw['peer']['communication']['mode']='legacy'
+        migration.append('peer.communication.mode=legacy (archived protocol behavior); inactive capacities from canonical YAML')
+    if isinstance(raw,dict) and isinstance(raw.get('peer'),dict) and 'admission' not in raw['peer']:
+        defaults=yaml.load((Path(__file__).resolve().parents[2]/'configs/dhdgs.yaml').read_text(),Loader=StrictLoader)
+        raw['peer']['admission']=copy.deepcopy(defaults['peer']['admission'])
+        raw['peer']['admission']['mode']='direct'
+        migration.append('peer.admission.mode=direct (archived synchronous executor submission)')
+    if isinstance(raw,dict) and isinstance(raw.get('peer'),dict) and 'sender' not in raw['peer']:
+        defaults=yaml.load((Path(__file__).resolve().parents[2]/'configs/dhdgs.yaml').read_text(),Loader=StrictLoader)
+        raw['peer']['sender']=copy.deepcopy(defaults['peer']['sender'])
+        raw['peer']['sender']['mode']='executor'
+        migration.append('peer.sender.mode=executor (archived communication submission)')
+    if isinstance(raw,dict) and isinstance(raw.get('peer'),dict) and 'compute' not in raw['peer']:
+        defaults=yaml.load((Path(__file__).resolve().parents[2]/'configs/dhdgs.yaml').read_text(),Loader=StrictLoader)
+        raw['peer']['compute']=copy.deepcopy(defaults['peer']['compute'])
+        raw['peer']['compute']['mode']='executor'
+        migration.append('peer.compute.mode=executor (archived on-demand compute workers)')
+    if isinstance(raw,dict) and isinstance(raw.get('peer'),dict) and 'connection_pool' not in raw['peer']:
+        raw['peer']['connection_pool']={'probe_mode':'locked'}
+        migration.append('peer.connection_pool.probe_mode=locked (archived connection health checks under pool lock)')
+    if isinstance(raw,dict) and isinstance(raw.get('peer'),dict) and 'control' not in raw['peer']:
+        raw['peer']['control']={'initial_heartbeat_delay_ms':0,'scheduler':'scan'}
+        migration.append('peer.control.initial_heartbeat_delay_ms=0 (archived immediate initial heartbeat)')
+        migration.append('peer.control.scheduler=scan (archived control table scans)')
+    elif (isinstance(raw,dict) and isinstance(raw.get('peer'),dict)
+          and isinstance(raw['peer'].get('control'),dict)
+          and 'initial_heartbeat_delay_ms' in raw['peer']['control']
+          and 'scheduler' not in raw['peer']['control']):
+        raw['peer']['control']['scheduler']='scan'
+        migration.append('peer.control.scheduler=scan (archived control table scans)')
+    if (isinstance(raw,dict) and isinstance(raw.get('peer'),dict)
+          and isinstance(raw['peer'].get('control'),dict)
+          and 'max_events_per_turn' not in raw['peer']['control']):
+        raw['peer']['control']['max_events_per_turn']=0
+        migration.append('peer.control.max_events_per_turn=0 (archived unbounded event consumption)')
+    if (isinstance(raw,dict) and isinstance(raw.get('peer'),dict)
+          and isinstance(raw['peer'].get('admission'),dict)
+          and 'queue_lock' not in raw['peer']['admission']):
+        raw['peer']['admission']['queue_lock']='shared'
+        migration.append('peer.admission.queue_lock=shared (archived queue shares branch-state lock)')
+    if (isinstance(raw,dict) and isinstance(raw.get('peer'),dict)
+          and isinstance(raw['peer'].get('admission'),dict)
+          and 'dispatch_threads' not in raw['peer']['admission']):
+        raw['peer']['admission']['dispatch_threads']=1
+        migration.append('peer.admission.dispatch_threads=1 (archived single admission consumer)')
+    if (isinstance(raw,dict) and isinstance(raw.get('peer'),dict)
+          and isinstance(raw['peer'].get('control'),dict)
+          and 'completion_fast_path' not in raw['peer']['control']):
+        raw['peer']['control']['completion_fast_path']=False
+        migration.append('peer.control.completion_fast_path=False (archived queued local completion)')
     validate(raw)
     c = copy.deepcopy(raw)
     for section, key in (("paths","dataset"), ("paths","output"), ("query","vectors"), ("query","ids"),

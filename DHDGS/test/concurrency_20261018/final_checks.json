@@ -1,0 +1,10 @@
+{
+  "source_config_hashes_match": true,
+  "formal_runs": 18,
+  "queries": 36000,
+  "all_audits_passed": true,
+  "report_links_valid": true,
+  "production_search_changes": false,
+  "native_control_enabled": true,
+  "physical_read_bytes": 0
+}

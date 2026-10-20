@@ -106,7 +106,10 @@ WORK_TIMINGS = ('pread_ms','rabitq_ms','exact_distance_ms','service_ms',
                 'server_thread_cpu_ms','coordinator_thread_cpu_ms',
                 'io_batch_wall_ms','io_capacity_wait_ms','io_queue_wait_ms','io_read_residence_ms',
                 'query_ready_queue_ms','query_compute_slice_wall_ms','query_io_wait_ms',
-                'query_transfer_finalize_wait_ms','query_branch_wall_ms','query_state_other_ms')
+                'query_admission_queue_ms','query_executor_start_wait_ms',
+                'query_transfer_finalize_wait_ms','query_branch_wall_ms','query_state_other_ms',
+                'peer_transfer_queue_ms','peer_pool_wait_ms','peer_connect_ms','peer_send_ms',
+                'peer_response_wait_ms','peer_transfer_wall_ms')
 
 
 def summarize_query_timings(queries):
@@ -135,7 +138,7 @@ def summarize_query_timings(queries):
     complete=[q.get('stats',{}) for q in successful if q.get('stats',{}).get('metrics_complete') is not False]
     for key in WORK_TIMINGS:
         values=[s[key] for s in complete if measured(s.get(key))
-                and (not key.startswith(('io_','query_')) or s.get('peer_execution_model')=='resumable')]
+                and (not key.startswith(('io_','query_')) or s.get('peer_execution_model') in ('resumable','native'))]
         cumulative[key]={'sample_count':len(values),'mean_ms':mean(values),
                          'total_ms':math.fsum(values) if values else None,
                          'mean_query_fraction':None,'fraction_of_total_latency':None}
@@ -231,8 +234,12 @@ def export_query_csv(path, queries):
                'visited_nodes','node_revisit_count','visited_node_candidates_dropped',
                'remote_candidates_dropped_after_forward']
     fields += ['peer_execution_model','io_backends','async_read_requests','query_resume_count'] + [k for k in WORK_TIMINGS if k not in fields]
+    fields += ['head_receive_queue_ms','head_route_queue_ms','head_dispatch_queue_ms','head_merge_queue_ms',
+               'head_stage_queue_ms','head_stage_resume_queue_ms',
+               'head_distribution_queue_ms','head_result_queue_ms','result_return_ipc_ms','result_write_ms',
+               'result_process_pid','entry_submit_retries']
     breakdown_keys = list(dict.fromkeys(key for q in queries for key in q.get('stats',{}).get('latency_breakdown_ms',{})))
-    fields += breakdown_keys + [key.replace('_ms','_fraction') for key in breakdown_keys]
+    fields += [key for key in breakdown_keys if key not in fields] + [key.replace('_ms','_fraction') for key in breakdown_keys]
     with Path(path).open('x',newline='') as handle:
         writer = csv.DictWriter(handle,fieldnames=fields)
         writer.writeheader()

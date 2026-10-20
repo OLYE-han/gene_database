@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "points": 8,
+  "queries": 4608,
+  "original_vector_exact_distance_checks": 2560,
+  "archives_verified": true,
+  "sources_verified": true,
+  "all_services_stopped": true,
+  "resource_summary_corrected_from_raw_records": true
+}

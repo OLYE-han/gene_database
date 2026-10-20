@@ -1,0 +1,18 @@
+{
+  "selected": {
+    "candidate": {
+      "max_expansions": 1024,
+      "frontier_size": 256
+    },
+    "recall": 0.99140625,
+    "p99_ms": 327.8123916080222,
+    "qps": 5.867384198419211,
+    "failed_queries": 0,
+    "incomplete_metrics": 0,
+    "index_manifest_sha256": "7c954b90723b4060745c8529693492da3410baf6ca1c0204c1fdc86887f4cfd6",
+    "report": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/seq2m_full_20261017/calibration/budget1024_frontier256/run/report.json"
+  },
+  "target_recall": 0.99,
+  "policy": "Lowest measured calibration p99 among successful complete-metric candidates meeting requested recall; then highest QPS",
+  "held_out_validation_still_required": true
+}

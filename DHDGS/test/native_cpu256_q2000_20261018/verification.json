@@ -1,0 +1,13 @@
+{
+  "records_verified": true,
+  "requests": 2000,
+  "successes": 2000,
+  "failures": 0,
+  "complete_metric_successes": 2000,
+  "source_hashes_verified": true,
+  "independent_exact_distance_checks": 320,
+  "successful_request_budget_dispatch_thread_invariants_verified": true,
+  "all_test_processes_stopped": true,
+  "actual_peak_inflight": 2000,
+  "cpu_saturation_achieved": false
+}

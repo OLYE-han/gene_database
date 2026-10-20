@@ -1,0 +1,9 @@
+{
+  "reason": "Workspace received independent compute-executor changes after experiment completion; production files left untouched.",
+  "method": "Frozen copies reconstructed by removing only later compute additions, then validated byte-for-byte against pre-experiment SHA256 hashes.",
+  "reconstructed_files": [
+    "python/dhdgs/peer.py",
+    "python/dhdgs/config.py"
+  ],
+  "all_original_hashes_match": true
+}

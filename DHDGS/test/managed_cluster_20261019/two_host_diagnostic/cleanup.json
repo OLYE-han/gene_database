@@ -1,0 +1,14 @@
+[
+  {
+    "node": 0,
+    "stop": "acknowledged"
+  },
+  {
+    "node": 1,
+    "stop": "acknowledged"
+  },
+  {
+    "node": 2,
+    "stop": "acknowledged"
+  }
+]

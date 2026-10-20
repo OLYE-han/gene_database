@@ -1,0 +1,42 @@
+{
+  "frozen_manifests": [
+    {
+      "manifest": "sources.json",
+      "verified_files": 64
+    },
+    {
+      "manifest": "pool_sources.json",
+      "verified_files": 39
+    },
+    {
+      "manifest": "control_sources.json",
+      "verified_files": 47
+    },
+    {
+      "manifest": "transfer_sources.json",
+      "verified_files": 47
+    }
+  ],
+  "resolved_configs_match": [
+    "control_base/runs/20261018T170908",
+    "control_base/runs/20261018T171638",
+    "control_both/runs/20261018T171123",
+    "control_delay/runs/20261018T170953",
+    "control_delay/runs/20261018T171553",
+    "control_workers32/runs/20261018T171038",
+    "executor_w256/runs/20261018T145444",
+    "fixed_w128/runs/20261018T150156",
+    "fixed_w16/runs/20261018T145940",
+    "fixed_w256/runs/20261018T145616",
+    "fixed_w32/runs/20261018T150025",
+    "fixed_w64/runs/20261018T150110",
+    "fixed_w8/runs/20261018T145854",
+    "pool_locked_w32/runs/20261018T151358",
+    "pool_locked_w32/runs/20261018T151614",
+    "pool_reserved_w32/runs/20261018T151444",
+    "pool_reserved_w32/runs/20261018T151529",
+    "prestarted_w256/runs/20261018T145530",
+    "transfer32/runs/20261018T171422",
+    "transfer64/runs/20261018T171508"
+  ]
+}

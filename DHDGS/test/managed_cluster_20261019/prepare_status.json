@@ -1,0 +1,9 @@
+{
+  "errors": [
+    {
+      "node": 1,
+      "error": "mkdir failed for node 1: /sharenvme/usershome/xulihan/gene_database/DHDGS/test/managed_cluster_20261019/deployment_logs/node1_mkdir.log"
+    }
+  ],
+  "source_digest": "05b5f3cf0079fd9ca3dd"
+}

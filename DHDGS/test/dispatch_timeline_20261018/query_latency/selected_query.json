@@ -1,0 +1,5389 @@
+{
+  "status": "ok",
+  "request_id": "fd4f8063-0fc9-4e27-ac3e-899f713c9931",
+  "ids": [
+    697577,
+    1956861,
+    785146,
+    722042,
+    1963215,
+    683148,
+    599934,
+    1096919,
+    1957964,
+    625288
+  ],
+  "squared_distances": [
+    1.1099990253044538,
+    1.1163423200604348,
+    1.1206742992243337,
+    1.1915302558617573,
+    1.4253353456441675,
+    1.4707830005014317,
+    1.6951074231054735,
+    1.701911625115872,
+    1.7734727075919985,
+    1.8639167611271235
+  ],
+  "epoch": "b133c73b-75e9-49a6-af66-0a725cb302c8",
+  "metric": "l2",
+  "stats": {
+    "file_read_bytes": 2457600.0,
+    "pread_calls": 200.0,
+    "cache_hits": 0,
+    "scanned_edges": 6711.0,
+    "rabitq_evaluations": 5524.0,
+    "exact_distance_evaluations": 200.0,
+    "pread_ms": 0.7944990000000002,
+    "rabitq_ms": 3.2604360000000003,
+    "exact_distance_ms": 2.7973940000000006,
+    "service_ms": 8.28324,
+    "async_read_requests": 0,
+    "io_batch_wall_ms": 0,
+    "io_capacity_wait_ms": 0,
+    "io_queue_wait_ms": 0,
+    "io_read_residence_ms": 0,
+    "query_ready_queue_ms": 2009.5563041977584,
+    "query_compute_slice_wall_ms": 21.587570663541555,
+    "query_admission_queue_ms": 2004.9361833371222,
+    "query_executor_start_wait_ms": 4.620120860636234,
+    "query_io_wait_ms": 0,
+    "query_resume_count": 0,
+    "query_transfer_finalize_wait_ms": 411.1428293399513,
+    "query_branch_wall_ms": 2442.3710484988987,
+    "query_state_other_ms": 0.0843442976474762,
+    "expanded": 200,
+    "batches": 52.0,
+    "fallback_entries": 0,
+    "frontier_dropped": 1859.0,
+    "improved_topk_batches": 13.0,
+    "server_thread_cpu_ms": 13.160235000000002,
+    "visited_node_candidates_dropped": 266.0,
+    "remote_candidates_dropped_after_forward": 47.0,
+    "peer_execution_model": "native",
+    "io_backends": [
+      "sync_pread"
+    ],
+    "per_shard": {
+      "0": {},
+      "1": {
+        "file_read_bytes": 552960.0,
+        "pread_calls": 45.0,
+        "cache_hits": 0,
+        "scanned_edges": 1932.0,
+        "rabitq_evaluations": 1732.0,
+        "exact_distance_evaluations": 45.0,
+        "pread_ms": 0.14315599999999998,
+        "rabitq_ms": 1.0612640000000002,
+        "exact_distance_ms": 0.29467200000000005,
+        "service_ms": 1.7106779999999997,
+        "async_read_requests": 0,
+        "io_batch_wall_ms": 0,
+        "io_capacity_wait_ms": 0,
+        "io_queue_wait_ms": 0,
+        "io_read_residence_ms": 0,
+        "query_ready_queue_ms": 1613.0655519664288,
+        "query_compute_slice_wall_ms": 4.586947616189718,
+        "query_admission_queue_ms": 1612.6193800009787,
+        "query_executor_start_wait_ms": 0.44617196545004845,
+        "query_io_wait_ms": 0,
+        "query_resume_count": 0,
+        "query_transfer_finalize_wait_ms": 0.006529036909341812,
+        "query_branch_wall_ms": 1617.6926363259554,
+        "query_state_other_ms": 0.03360770642757416,
+        "expanded": 45,
+        "batches": 12.0,
+        "server_thread_cpu_ms": 2.7375700000000016
+      },
+      "2": {
+        "file_read_bytes": 1904640.0,
+        "pread_calls": 155.0,
+        "cache_hits": 0,
+        "scanned_edges": 4779.0,
+        "rabitq_evaluations": 3792.0,
+        "exact_distance_evaluations": 155.0,
+        "pread_ms": 0.6513430000000002,
+        "rabitq_ms": 2.199172,
+        "exact_distance_ms": 2.5027220000000003,
+        "service_ms": 6.572562,
+        "async_read_requests": 0,
+        "io_batch_wall_ms": 0,
+        "io_capacity_wait_ms": 0,
+        "io_queue_wait_ms": 0,
+        "io_read_residence_ms": 0,
+        "query_ready_queue_ms": 396.4907522313297,
+        "query_compute_slice_wall_ms": 17.000623047351837,
+        "query_admission_queue_ms": 392.3168033361435,
+        "query_executor_start_wait_ms": 4.173948895186186,
+        "query_io_wait_ms": 0,
+        "query_resume_count": 0,
+        "query_transfer_finalize_wait_ms": 411.13630030304193,
+        "query_branch_wall_ms": 824.6784121729434,
+        "query_state_other_ms": 0.05073659121990204,
+        "expanded": 155,
+        "batches": 40.0,
+        "server_thread_cpu_ms": 10.422665
+      }
+    },
+    "unique_expanded": 198,
+    "duplicate_expansions": 2,
+    "branch_count": 2,
+    "branch_unused_credit": 0,
+    "visited_nodes": [
+      2,
+      1
+    ],
+    "node_revisit_count": 0,
+    "router_submit_rpc_count": 1,
+    "peer_branch_rpc_count": 1,
+    "router_expand_rpc_count": 0,
+    "rpc_count": 2,
+    "request_bytes": 27458,
+    "response_bytes": 76,
+    "wire_bytes": 27534,
+    "peer_request_bytes": 15968,
+    "peer_response_bytes": 38,
+    "rpc_retries": 0,
+    "shards_visited": [
+      1,
+      2
+    ],
+    "keepalive_nodes": [
+      1,
+      2
+    ],
+    "expansions_by_shard": {
+      "0": 0,
+      "1": 45,
+      "2": 155
+    },
+    "max_expanded_depth": 12,
+    "max_discovery_depth": null,
+    "max_cross_shard_depth": 1,
+    "graph_rounds": null,
+    "server_to_server_migrations": 0,
+    "server_to_server_branches": 1,
+    "exact_reranked": 200.0,
+    "transport": "tcp",
+    "execution": "peer_single_visit_parallel_local",
+    "stop_reason": "all_branch_manifests_complete",
+    "branch_stop_reasons": [
+      "branch_work_credit_exhausted",
+      "branch_work_credit_exhausted"
+    ],
+    "pending_at_stop": 128,
+    "coordinator_thread_cpu_ms": 2.95757,
+    "pure_network_latency_fraction": null,
+    "physical_ssd_latency_fraction": null,
+    "result_paths": [
+      {
+        "id": 1956861,
+        "parent": 1095406,
+        "depth": 1,
+        "cross_shard_depth": 0,
+        "root": 1095406,
+        "shard": 2
+      },
+      {
+        "id": 1096919,
+        "parent": 1095406,
+        "depth": 1,
+        "cross_shard_depth": 0,
+        "root": 1095406,
+        "shard": 2
+      },
+      {
+        "id": 697577,
+        "parent": 1956861,
+        "depth": 2,
+        "cross_shard_depth": 0,
+        "root": 1095406,
+        "shard": 2
+      },
+      {
+        "id": 785146,
+        "parent": 1956861,
+        "depth": 2,
+        "cross_shard_depth": 0,
+        "root": 1095406,
+        "shard": 2
+      },
+      {
+        "id": 1963215,
+        "parent": 1956861,
+        "depth": 2,
+        "cross_shard_depth": 0,
+        "root": 1095406,
+        "shard": 2
+      },
+      {
+        "id": 722042,
+        "parent": 697577,
+        "depth": 3,
+        "cross_shard_depth": 0,
+        "root": 1095406,
+        "shard": 2
+      },
+      {
+        "id": 683148,
+        "parent": 1956861,
+        "depth": 2,
+        "cross_shard_depth": 0,
+        "root": 1095406,
+        "shard": 2
+      },
+      {
+        "id": 599934,
+        "parent": 1956861,
+        "depth": 2,
+        "cross_shard_depth": 0,
+        "root": 1095406,
+        "shard": 2
+      },
+      {
+        "id": 1957964,
+        "parent": 1956861,
+        "depth": 2,
+        "cross_shard_depth": 0,
+        "root": 1095406,
+        "shard": 2
+      },
+      {
+        "id": 625288,
+        "parent": 1956861,
+        "depth": 2,
+        "cross_shard_depth": 0,
+        "root": 1095406,
+        "shard": 2
+      }
+    ],
+    "peer_transfer_queue_ms": 3.392262849956751,
+    "peer_pool_wait_ms": 22.7873963303864,
+    "peer_connect_ms": 3.76679515466094,
+    "peer_send_ms": 1.4075390063226223,
+    "peer_response_wait_ms": 344.1811930388212,
+    "peer_transfer_wall_ms": 417.88443829864264,
+    "peer_connections_created": 1,
+    "peer_connections_reused": 0,
+    "communication_mode": "optimized",
+    "control_rpc_count": 3,
+    "control_request_bytes": 54452,
+    "control_response_bytes": 149,
+    "control_errors": 0,
+    "control_by_kind": {
+      "heartbeat": {
+        "rpc_count": 1,
+        "request_bytes": 208,
+        "response_bytes": 49
+      },
+      "result": {
+        "rpc_count": 2,
+        "request_bytes": 54244,
+        "response_bytes": 100
+      },
+      "lease": {
+        "rpc_count": 0,
+        "request_bytes": 0,
+        "response_bytes": 0
+      },
+      "cancel": {
+        "rpc_count": 0,
+        "request_bytes": 0,
+        "response_bytes": 0
+      }
+    },
+    "control_error_details": [],
+    "control_wire_bytes": 54601,
+    "all_protocol_bytes": 82135,
+    "all_protocol_rpc_count": 5,
+    "latency_ms": 3429.937268141657,
+    "latency_breakdown_ms": {
+      "routing_wall_ms": 35.05690302699804,
+      "peer_execution_and_control_wait_ms": 3390.032347291708,
+      "head_merge_and_lifecycle_ms": 4.848017822951078
+    },
+    "latency_breakdown_fraction": {
+      "routing_wall_ms": 0.01022085836747443,
+      "peer_execution_and_control_wait_ms": 0.9883656995069272,
+      "head_merge_and_lifecycle_ms": 0.0014134421255983316
+    },
+    "metrics_complete": true
+  },
+  "branch_reports": [
+    {
+      "branch_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f",
+      "parent_branch_id": null,
+      "visited_nodes": [
+        2
+      ],
+      "work_grant": 200,
+      "branch_slots": 15,
+      "node_id": 2,
+      "work_spent": 155,
+      "work_unused": 0,
+      "children": [
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:28",
+          "branch_id": "db206fd5-d971-410c-8072-d40b2b9a55f2",
+          "node_id": 1,
+          "work_grant": 45,
+          "branch_slots": 14,
+          "parent_branch_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f"
+        }
+      ],
+      "ids": [
+        697577,
+        1956861,
+        785146,
+        722042,
+        1963215,
+        683148,
+        599934,
+        1096919,
+        1957964,
+        625288
+      ],
+      "squared_distances": [
+        1.1099990253044538,
+        1.1163423200604348,
+        1.1206742992243337,
+        1.1915302558617573,
+        1.4253353456441675,
+        1.4707830005014317,
+        1.6951074231054735,
+        1.701911625115872,
+        1.7734727075919985,
+        1.8639167611271235
+      ],
+      "expanded_ids": [
+        1095406,
+        1956861,
+        1096919,
+        779891,
+        424492,
+        734744,
+        697577,
+        785146,
+        1963215,
+        722042,
+        683148,
+        599934,
+        1957964,
+        625288,
+        440959,
+        625252,
+        1092554,
+        925076,
+        659348,
+        1158502,
+        1095556,
+        648445,
+        632876,
+        1096932,
+        448345,
+        1092191,
+        598197,
+        1091730,
+        124846,
+        1094611,
+        1095555,
+        659318,
+        1092027,
+        1092720,
+        492650,
+        1092625,
+        546103,
+        1095515,
+        1095441,
+        783814,
+        1097242,
+        659319,
+        911236,
+        1155928,
+        1184920,
+        1095407,
+        580775,
+        1180612,
+        1986242,
+        1088992,
+        625314,
+        1957665,
+        1299436,
+        1965033,
+        1088010,
+        1092555,
+        921955,
+        726086,
+        530434,
+        1096123,
+        1298503,
+        887121,
+        1093502,
+        1087437,
+        457075,
+        675374,
+        580545,
+        711294,
+        758118,
+        1030054,
+        723060,
+        1996068,
+        1150836,
+        580415,
+        1192716,
+        767049,
+        264008,
+        883543,
+        1979471,
+        755648,
+        522009,
+        573913,
+        484518,
+        1038842,
+        308825,
+        728041,
+        1170670,
+        279671,
+        575695,
+        725509,
+        1411306,
+        1695925,
+        489837,
+        1347045,
+        1411305,
+        1403279,
+        1586925,
+        1583156,
+        1671122,
+        1862732,
+        1411311,
+        1239877,
+        1411307,
+        758065,
+        1527802,
+        780273,
+        1497467,
+        489389,
+        769454,
+        1912775,
+        424409,
+        1651132,
+        1545913,
+        1607663,
+        1607662,
+        1411310,
+        1964011,
+        492199,
+        1450355,
+        534218,
+        1411308,
+        668232,
+        324784,
+        1747346,
+        788721,
+        755295,
+        430097,
+        1669157,
+        1143087,
+        1518316,
+        795250,
+        79766,
+        1273516,
+        568079,
+        1670229,
+        1749208,
+        1631610,
+        1645237,
+        1268753,
+        1931936,
+        422777,
+        863606,
+        438831,
+        1275006,
+        422776,
+        433505,
+        677575,
+        278684,
+        355502,
+        1630131,
+        1669035,
+        668623,
+        280249,
+        857944,
+        1519053
+      ],
+      "result_paths": [
+        {
+          "id": 1956861,
+          "parent": 1095406,
+          "depth": 1,
+          "cross_shard_depth": 0,
+          "root": 1095406,
+          "shard": 2
+        },
+        {
+          "id": 1096919,
+          "parent": 1095406,
+          "depth": 1,
+          "cross_shard_depth": 0,
+          "root": 1095406,
+          "shard": 2
+        },
+        {
+          "id": 697577,
+          "parent": 1956861,
+          "depth": 2,
+          "cross_shard_depth": 0,
+          "root": 1095406,
+          "shard": 2
+        },
+        {
+          "id": 785146,
+          "parent": 1956861,
+          "depth": 2,
+          "cross_shard_depth": 0,
+          "root": 1095406,
+          "shard": 2
+        },
+        {
+          "id": 1963215,
+          "parent": 1956861,
+          "depth": 2,
+          "cross_shard_depth": 0,
+          "root": 1095406,
+          "shard": 2
+        },
+        {
+          "id": 722042,
+          "parent": 697577,
+          "depth": 3,
+          "cross_shard_depth": 0,
+          "root": 1095406,
+          "shard": 2
+        },
+        {
+          "id": 683148,
+          "parent": 1956861,
+          "depth": 2,
+          "cross_shard_depth": 0,
+          "root": 1095406,
+          "shard": 2
+        },
+        {
+          "id": 599934,
+          "parent": 1956861,
+          "depth": 2,
+          "cross_shard_depth": 0,
+          "root": 1095406,
+          "shard": 2
+        },
+        {
+          "id": 1957964,
+          "parent": 1956861,
+          "depth": 2,
+          "cross_shard_depth": 0,
+          "root": 1095406,
+          "shard": 2
+        },
+        {
+          "id": 625288,
+          "parent": 1956861,
+          "depth": 2,
+          "cross_shard_depth": 0,
+          "root": 1095406,
+          "shard": 2
+        }
+      ],
+      "stats": {
+        "server_thread_cpu_ms": 10.422665,
+        "remote_candidates_dropped_after_forward": 47.0,
+        "batches": 40.0,
+        "service_ms": 6.572562,
+        "rabitq_evaluations": 3792.0,
+        "rabitq_ms": 2.199172,
+        "exact_distance_evaluations": 155.0,
+        "exact_distance_ms": 2.5027220000000003,
+        "improved_topk_batches": 5.0,
+        "frontier_dropped": 1148.0,
+        "rabitq_prepare_ms": 0.075703,
+        "scanned_edges": 4779.0,
+        "file_read_bytes": 1904640.0,
+        "branch_wall_ms": 15.222398,
+        "pread_calls": 155.0,
+        "pread_ms": 0.6513430000000002,
+        "expanded": 155,
+        "fallback_entries": 0,
+        "max_expanded_depth": 6,
+        "max_cross_shard_depth": 0,
+        "pending_at_stop": 64,
+        "stop_reason": "branch_work_credit_exhausted",
+        "cache_hits": 0,
+        "async_read_requests": 0,
+        "io_batch_wall_ms": 0,
+        "io_capacity_wait_ms": 0,
+        "io_queue_wait_ms": 0,
+        "io_read_residence_ms": 0,
+        "query_ready_queue_ms": 396.4907522313297,
+        "query_compute_slice_wall_ms": 17.000623047351837,
+        "query_admission_queue_ms": 392.3168033361435,
+        "query_executor_start_wait_ms": 4.173948895186186,
+        "query_io_wait_ms": 0,
+        "query_resume_count": 0,
+        "query_transfer_finalize_wait_ms": 411.13630030304193,
+        "query_branch_wall_ms": 824.6784121729434,
+        "query_state_other_ms": 0.05073659121990204,
+        "visited_node_candidates_dropped": 0
+      },
+      "fork_events": [
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:28",
+          "target": 1,
+          "child_branch_id": "db206fd5-d971-410c-8072-d40b2b9a55f2",
+          "work_grant": 45,
+          "local_expansions_before": 109,
+          "candidate_count": 2,
+          "carried_candidate_count": 0,
+          "elapsed_ms": 11.31968
+        }
+      ],
+      "decisions": [
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:0",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 0.11094
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:1",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 0.032046
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:2",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 0.044276
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:3",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 0.290721
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:4",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 0.550851
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:5",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 1.086894
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:6",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 1.326305
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:7",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 1.565788
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:8",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 1.838368
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:9",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 2.089826
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:10",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 2.34013
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:11",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 2.559649
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:12",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 2.807444
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:13",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 3.096567
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:14",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 3.271579
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:15",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 3.404551
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:16",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 3.500467
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:17",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 3.304195
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:18",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 3.68491
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:19",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 3.236546
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:20",
+          "reason": "probability_draw",
+          "probability": 0.008627107244304563,
+          "draw": 0.7739560485559633,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": 0.030657974280587752,
+          "local_utility": 3.523021539884199,
+          "selected_wait_ms": 3.604677
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:21",
+          "reason": "probability_draw",
+          "probability": 0.008155846475659399,
+          "draw": 0.4388784397520523,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": 0.033563697365356845,
+          "local_utility": 4.081729235811541,
+          "selected_wait_ms": 3.997516
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:22",
+          "reason": "probability_draw",
+          "probability": 0.01665084947495809,
+          "draw": 0.8585979199113825,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": 0.07155090755257612,
+          "local_utility": 4.225581659778872,
+          "selected_wait_ms": 4.121521
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:23",
+          "reason": "probability_draw",
+          "probability": 0.010022572777063862,
+          "draw": 0.6973680290593639,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": 0.041135187219097744,
+          "local_utility": 4.0631190930025936,
+          "selected_wait_ms": 3.97032
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:24",
+          "reason": "probability_draw",
+          "probability": 0.012494426905590071,
+          "draw": 0.09417734788764953,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": 0.04583562954513684,
+          "local_utility": 3.6226503195486734,
+          "selected_wait_ms": 3.630903
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:25",
+          "reason": "probability_draw",
+          "probability": 0.011810432768740022,
+          "draw": 0.9756223516367559,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": 0.04958406529039743,
+          "local_utility": 4.148743486400772,
+          "selected_wait_ms": 4.265773
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:26",
+          "reason": "probability_draw",
+          "probability": 0.011824496436308674,
+          "draw": 0.761139701990353,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": 0.05344818647544452,
+          "local_utility": 4.466675504485704,
+          "selected_wait_ms": 4.69859
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:27",
+          "reason": "probability_draw",
+          "probability": 0.018235795460206834,
+          "draw": 0.7860643052769538,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": 0.05655751304402949,
+          "local_utility": 3.0448982565957556,
+          "selected_wait_ms": 2.746225
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:28",
+          "reason": "max_wait",
+          "probability": 1.0,
+          "draw": null,
+          "selected_node": 1,
+          "remote": true,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 1.158664
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:29",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 8.33005
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:30",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 9.926465
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:31",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 9.261424
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:32",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 7.659797
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:33",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 7.883921
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:34",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 8.648479
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:35",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 8.907537
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:36",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 9.153968
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:37",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 10.135635
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:38",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 11.402684
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:39",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 11.733306
+        },
+        {
+          "decision_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f:40",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 2,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 10.238185
+        }
+      ],
+      "local_batch_trace": [
+        {
+          "ids": [
+            1095406
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134391822853,
+            "end_ns": 2514134391915106,
+            "spans": [
+              [
+                "pread",
+                2514134391826043,
+                2514134391836046
+              ],
+              [
+                "exact_distance",
+                2514134391838327,
+                2514134391859468
+              ],
+              [
+                "rabitq",
+                2514134391874703,
+                2514134391914043
+              ]
+            ],
+            "thread_cpu_ms": 0.09219900000000081
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.092253,
+            "server_thread_cpu_ms": 0.09219900000000081,
+            "rabitq_evaluations": 33.0,
+            "rabitq_ms": 0.03934,
+            "scanned_edges": 33.0,
+            "exact_distance_evaluations": 1.0,
+            "exact_distance_ms": 0.021141,
+            "file_read_bytes": 12288.0,
+            "pread_calls": 1.0,
+            "pread_ms": 0.010003
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            1956861,
+            1096919,
+            779891,
+            424492
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134391980696,
+            "end_ns": 2514134392200167,
+            "spans": [
+              [
+                "pread",
+                2514134391982810,
+                2514134391988538
+              ],
+              [
+                "exact_distance",
+                2514134391990256,
+                2514134392020292
+              ],
+              [
+                "pread",
+                2514134392030952,
+                2514134392035798
+              ],
+              [
+                "exact_distance",
+                2514134392036688,
+                2514134392057357
+              ],
+              [
+                "pread",
+                2514134392064103,
+                2514134392068678
+              ],
+              [
+                "exact_distance",
+                2514134392069147,
+                2514134392089807
+              ],
+              [
+                "pread",
+                2514134392096868,
+                2514134392100903
+              ],
+              [
+                "exact_distance",
+                2514134392101292,
+                2514134392121877
+              ],
+              [
+                "rabitq",
+                2514134392133098,
+                2514134392199243
+              ]
+            ],
+            "thread_cpu_ms": 0.2196940000000005
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.219471,
+            "server_thread_cpu_ms": 0.2196940000000005,
+            "rabitq_evaluations": 73.0,
+            "rabitq_ms": 0.066145,
+            "scanned_edges": 128.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.09195,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.019184
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            734744,
+            697577,
+            785146,
+            1963215
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134392286748,
+            "end_ns": 2514134392465623,
+            "spans": [
+              [
+                "pread",
+                2514134392288768,
+                2514134392293498
+              ],
+              [
+                "exact_distance",
+                2514134392295313,
+                2514134392316088
+              ],
+              [
+                "pread",
+                2514134392325702,
+                2514134392330342
+              ],
+              [
+                "exact_distance",
+                2514134392330987,
+                2514134392351718
+              ],
+              [
+                "pread",
+                2514134392357706,
+                2514134392362003
+              ],
+              [
+                "exact_distance",
+                2514134392362438,
+                2514134392383088
+              ],
+              [
+                "pread",
+                2514134392388397,
+                2514134392392803
+              ],
+              [
+                "exact_distance",
+                2514134392393203,
+                2514134392413757
+              ],
+              [
+                "rabitq",
+                2514134392427008,
+                2514134392464803
+              ]
+            ],
+            "thread_cpu_ms": 0.1789500000000004
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.178875,
+            "server_thread_cpu_ms": 0.1789500000000004,
+            "rabitq_evaluations": 63.0,
+            "rabitq_ms": 0.037795,
+            "scanned_edges": 131.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.08271,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.018073
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            722042,
+            683148,
+            599934,
+            1957964
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134392528186,
+            "end_ns": 2514134392716102,
+            "spans": [
+              [
+                "pread",
+                2514134392530012,
+                2514134392534743
+              ],
+              [
+                "exact_distance",
+                2514134392535997,
+                2514134392556678
+              ],
+              [
+                "pread",
+                2514134392566138,
+                2514134392570633
+              ],
+              [
+                "exact_distance",
+                2514134392571167,
+                2514134392591878
+              ],
+              [
+                "pread",
+                2514134392596737,
+                2514134392601663
+              ],
+              [
+                "exact_distance",
+                2514134392602108,
+                2514134392622773
+              ],
+              [
+                "pread",
+                2514134392627767,
+                2514134392632047
+              ],
+              [
+                "exact_distance",
+                2514134392632457,
+                2514134392653028
+              ],
+              [
+                "rabitq",
+                2514134392667167,
+                2514134392714822
+              ]
+            ],
+            "thread_cpu_ms": 0.18801799999999957
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.187916,
+            "server_thread_cpu_ms": 0.18801799999999957,
+            "rabitq_evaluations": 71.0,
+            "rabitq_ms": 0.047655,
+            "scanned_edges": 118.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.08262800000000001,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.018432
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            625288,
+            440959,
+            625252,
+            1092554
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134392784603,
+            "end_ns": 2514134392963312,
+            "spans": [
+              [
+                "pread",
+                2514134392786266,
+                2514134392790988
+              ],
+              [
+                "exact_distance",
+                2514134392792577,
+                2514134392813253
+              ],
+              [
+                "pread",
+                2514134392820146,
+                2514134392825143
+              ],
+              [
+                "exact_distance",
+                2514134392825557,
+                2514134392846236
+              ],
+              [
+                "pread",
+                2514134392852947,
+                2514134392858166
+              ],
+              [
+                "exact_distance",
+                2514134392858607,
+                2514134392879308
+              ],
+              [
+                "pread",
+                2514134392883594,
+                2514134392888003
+              ],
+              [
+                "exact_distance",
+                2514134392888383,
+                2514134392908947
+              ],
+              [
+                "rabitq",
+                2514134392923323,
+                2514134392962646
+              ]
+            ],
+            "thread_cpu_ms": 0.1788899999999991
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.178709,
+            "server_thread_cpu_ms": 0.1788899999999991,
+            "rabitq_evaluations": 66.0,
+            "rabitq_ms": 0.039323,
+            "scanned_edges": 109.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.08262,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.019346999999999996
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            925076,
+            659348,
+            1158502,
+            1095556
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134393038116,
+            "end_ns": 2514134393222418,
+            "spans": [
+              [
+                "pread",
+                2514134393039866,
+                2514134393044542
+              ],
+              [
+                "exact_distance",
+                2514134393045833,
+                2514134393066506
+              ],
+              [
+                "pread",
+                2514134393075933,
+                2514134393081156
+              ],
+              [
+                "exact_distance",
+                2514134393081587,
+                2514134393102276
+              ],
+              [
+                "pread",
+                2514134393108907,
+                2514134393113563
+              ],
+              [
+                "exact_distance",
+                2514134393113998,
+                2514134393134683
+              ],
+              [
+                "pread",
+                2514134393142688,
+                2514134393147157
+              ],
+              [
+                "exact_distance",
+                2514134393147566,
+                2514134393168146
+              ],
+              [
+                "rabitq",
+                2514134393179778,
+                2514134393221697
+              ]
+            ],
+            "thread_cpu_ms": 0.1842800000000011
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.184302,
+            "server_thread_cpu_ms": 0.1842800000000011,
+            "rabitq_evaluations": 75.0,
+            "rabitq_ms": 0.041919,
+            "scanned_edges": 131.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.08262699999999999,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.019024
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            648445,
+            632876,
+            1096932,
+            448345
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134393274646,
+            "end_ns": 2514134393464847,
+            "spans": [
+              [
+                "pread",
+                2514134393276277,
+                2514134393280353
+              ],
+              [
+                "exact_distance",
+                2514134393281738,
+                2514134393302422
+              ],
+              [
+                "pread",
+                2514134393310196,
+                2514134393314632
+              ],
+              [
+                "exact_distance",
+                2514134393315078,
+                2514134393335733
+              ],
+              [
+                "pread",
+                2514134393342797,
+                2514134393347182
+              ],
+              [
+                "exact_distance",
+                2514134393347628,
+                2514134393368353
+              ],
+              [
+                "pread",
+                2514134393375556,
+                2514134393380283
+              ],
+              [
+                "exact_distance",
+                2514134393380712,
+                2514134393401277
+              ],
+              [
+                "rabitq",
+                2514134393414542,
+                2514134393463593
+              ]
+            ],
+            "thread_cpu_ms": 0.19036600000000092
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.190201,
+            "server_thread_cpu_ms": 0.19036600000000092,
+            "rabitq_evaluations": 82.0,
+            "rabitq_ms": 0.049051,
+            "scanned_edges": 127.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.08262900000000001,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.017624
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            1092191,
+            598197,
+            1091730,
+            124846
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134393522833,
+            "end_ns": 2514134393735173,
+            "spans": [
+              [
+                "pread",
+                2514134393524467,
+                2514134393529292
+              ],
+              [
+                "exact_distance",
+                2514134393530763,
+                2514134393551437
+              ],
+              [
+                "pread",
+                2514134393559382,
+                2514134393563996
+              ],
+              [
+                "exact_distance",
+                2514134393564443,
+                2514134393585093
+              ],
+              [
+                "pread",
+                2514134393590876,
+                2514134393595407
+              ],
+              [
+                "exact_distance",
+                2514134393595837,
+                2514134393616483
+              ],
+              [
+                "pread",
+                2514134393623983,
+                2514134393628722
+              ],
+              [
+                "exact_distance",
+                2514134393629198,
+                2514134393651123
+              ],
+              [
+                "rabitq",
+                2514134393668988,
+                2514134393733566
+              ]
+            ],
+            "thread_cpu_ms": 0.21247400000000027
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.21234,
+            "server_thread_cpu_ms": 0.21247400000000027,
+            "rabitq_evaluations": 82.0,
+            "rabitq_ms": 0.064578,
+            "scanned_edges": 121.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.083895,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.018709
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            1094611,
+            1095555,
+            659318,
+            1092027
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134393796523,
+            "end_ns": 2514134393984279,
+            "spans": [
+              [
+                "pread",
+                2514134393800942,
+                2514134393805612
+              ],
+              [
+                "exact_distance",
+                2514134393807057,
+                2514134393827717
+              ],
+              [
+                "pread",
+                2514134393835078,
+                2514134393839497
+              ],
+              [
+                "exact_distance",
+                2514134393840043,
+                2514134393860803
+              ],
+              [
+                "pread",
+                2514134393867227,
+                2514134393871933
+              ],
+              [
+                "exact_distance",
+                2514134393872396,
+                2514134393893096
+              ],
+              [
+                "pread",
+                2514134393899458,
+                2514134393904046
+              ],
+              [
+                "exact_distance",
+                2514134393904492,
+                2514134393925047
+              ],
+              [
+                "rabitq",
+                2514134393937957,
+                2514134393983299
+              ]
+            ],
+            "thread_cpu_ms": 0.185411000000002
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.187756,
+            "server_thread_cpu_ms": 0.185411000000002,
+            "rabitq_evaluations": 77.0,
+            "rabitq_ms": 0.045342,
+            "scanned_edges": 126.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.082675,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.018383
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            1092720,
+            492650,
+            1092625,
+            546103
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134394049947,
+            "end_ns": 2514134394236856,
+            "spans": [
+              [
+                "pread",
+                2514134394052046,
+                2514134394056669
+              ],
+              [
+                "exact_distance",
+                2514134394058212,
+                2514134394078857
+              ],
+              [
+                "pread",
+                2514134394085517,
+                2514134394090429
+              ],
+              [
+                "exact_distance",
+                2514134394090902,
+                2514134394111542
+              ],
+              [
+                "pread",
+                2514134394116447,
+                2514134394121586
+              ],
+              [
+                "exact_distance",
+                2514134394122116,
+                2514134394142777
+              ],
+              [
+                "pread",
+                2514134394149532,
+                2514134394154753
+              ],
+              [
+                "exact_distance",
+                2514134394155179,
+                2514134394175779
+              ],
+              [
+                "rabitq",
+                2514134394189199,
+                2514134394235689
+              ]
+            ],
+            "thread_cpu_ms": 0.1871299999999998
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.186909,
+            "server_thread_cpu_ms": 0.1871299999999998,
+            "rabitq_evaluations": 82.0,
+            "rabitq_ms": 0.04649,
+            "scanned_edges": 129.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.08254600000000001,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.019895
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            1095515,
+            1095441,
+            783814,
+            1097242
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134394293247,
+            "end_ns": 2514134394469443,
+            "spans": [
+              [
+                "pread",
+                2514134394294942,
+                2514134394299449
+              ],
+              [
+                "exact_distance",
+                2514134394300793,
+                2514134394321473
+              ],
+              [
+                "pread",
+                2514134394327809,
+                2514134394332112
+              ],
+              [
+                "exact_distance",
+                2514134394332587,
+                2514134394353229
+              ],
+              [
+                "pread",
+                2514134394358009,
+                2514134394362749
+              ],
+              [
+                "exact_distance",
+                2514134394363219,
+                2514134394383859
+              ],
+              [
+                "pread",
+                2514134394387877,
+                2514134394392832
+              ],
+              [
+                "exact_distance",
+                2514134394393256,
+                2514134394413846
+              ],
+              [
+                "rabitq",
+                2514134394426496,
+                2514134394468462
+              ]
+            ],
+            "thread_cpu_ms": 0.17610999999999777
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.176196,
+            "server_thread_cpu_ms": 0.17610999999999777,
+            "rabitq_evaluations": 72.0,
+            "rabitq_ms": 0.041966,
+            "scanned_edges": 122.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.082552,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.018505
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            659319,
+            911236,
+            1155928,
+            1184920
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134394522589,
+            "end_ns": 2514134394708939,
+            "spans": [
+              [
+                "pread",
+                2514134394523716,
+                2514134394527717
+              ],
+              [
+                "exact_distance",
+                2514134394529206,
+                2514134394549869
+              ],
+              [
+                "pread",
+                2514134394554646,
+                2514134394559482
+              ],
+              [
+                "exact_distance",
+                2514134394559942,
+                2514134394580726
+              ],
+              [
+                "pread",
+                2514134394586643,
+                2514134394591499
+              ],
+              [
+                "exact_distance",
+                2514134394591952,
+                2514134394612673
+              ],
+              [
+                "pread",
+                2514134394618843,
+                2514134394623733
+              ],
+              [
+                "exact_distance",
+                2514134394624149,
+                2514134394644799
+              ],
+              [
+                "rabitq",
+                2514134394657436,
+                2514134394707973
+              ]
+            ],
+            "thread_cpu_ms": 0.18739599999999967
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.18635,
+            "server_thread_cpu_ms": 0.18739599999999967,
+            "rabitq_evaluations": 85.0,
+            "rabitq_ms": 0.050537,
+            "scanned_edges": 111.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.082818,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.018583000000000002
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            1095407,
+            580775,
+            1180612,
+            1986242
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134394768586,
+            "end_ns": 2514134394961892,
+            "spans": [
+              [
+                "pread",
+                2514134394770267,
+                2514134394774569
+              ],
+              [
+                "exact_distance",
+                2514134394776223,
+                2514134394796899
+              ],
+              [
+                "pread",
+                2514134394803473,
+                2514134394808406
+              ],
+              [
+                "exact_distance",
+                2514134394808832,
+                2514134394829603
+              ],
+              [
+                "pread",
+                2514134394834512,
+                2514134394839806
+              ],
+              [
+                "exact_distance",
+                2514134394840243,
+                2514134394860897
+              ],
+              [
+                "pread",
+                2514134394867786,
+                2514134394873723
+              ],
+              [
+                "exact_distance",
+                2514134394874126,
+                2514134394894692
+              ],
+              [
+                "rabitq",
+                2514134394908603,
+                2514134394961099
+              ]
+            ],
+            "thread_cpu_ms": 0.19334599999999824
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.193306,
+            "server_thread_cpu_ms": 0.19334599999999824,
+            "rabitq_evaluations": 91.0,
+            "rabitq_ms": 0.052496,
+            "scanned_edges": 127.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.08266699999999999,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.020465999999999998
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            1088992,
+            625314,
+            1957665,
+            1299436
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134395052607,
+            "end_ns": 2514134395187254,
+            "spans": [
+              [
+                "pread",
+                2514134395054773,
+                2514134395059517
+              ],
+              [
+                "exact_distance",
+                2514134395060816,
+                2514134395081516
+              ],
+              [
+                "pread",
+                2514134395087836,
+                2514134395092086
+              ],
+              [
+                "exact_distance",
+                2514134395092613,
+                2514134395113319
+              ],
+              [
+                "pread",
+                2514134395117192,
+                2514134395122358
+              ],
+              [
+                "exact_distance",
+                2514134395122622,
+                2514134395134129
+              ],
+              [
+                "pread",
+                2514134395138294,
+                2514134395141818
+              ],
+              [
+                "exact_distance",
+                2514134395142055,
+                2514134395153473
+              ],
+              [
+                "rabitq",
+                2514134395159818,
+                2514134395186925
+              ]
+            ],
+            "thread_cpu_ms": 0.13450500000000076
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.134647,
+            "server_thread_cpu_ms": 0.13450500000000076,
+            "rabitq_evaluations": 77.0,
+            "rabitq_ms": 0.027107,
+            "scanned_edges": 119.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.064331,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.017684
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            1965033,
+            1088010,
+            1092555,
+            921955
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134395217177,
+            "end_ns": 2514134395321836,
+            "spans": [
+              [
+                "pread",
+                2514134395218578,
+                2514134395222485
+              ],
+              [
+                "exact_distance",
+                2514134395223171,
+                2514134395234641
+              ],
+              [
+                "pread",
+                2514134395238059,
+                2514134395241803
+              ],
+              [
+                "exact_distance",
+                2514134395242052,
+                2514134395253617
+              ],
+              [
+                "pread",
+                2514134395256058,
+                2514134395259087
+              ],
+              [
+                "exact_distance",
+                2514134395259347,
+                2514134395270804
+              ],
+              [
+                "pread",
+                2514134395273987,
+                2514134395277568
+              ],
+              [
+                "exact_distance",
+                2514134395277794,
+                2514134395289251
+              ],
+              [
+                "rabitq",
+                2514134395296264,
+                2514134395321607
+              ]
+            ],
+            "thread_cpu_ms": 0.10445199999999843
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.104659,
+            "server_thread_cpu_ms": 0.10445199999999843,
+            "rabitq_evaluations": 87.0,
+            "rabitq_ms": 0.025343,
+            "scanned_edges": 112.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.045949000000000004,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.014261
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            726086,
+            530434,
+            1096123,
+            1298503
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134395340583,
+            "end_ns": 2514134395415175,
+            "spans": [
+              [
+                "pread",
+                2514134395341861,
+                2514134395345141
+              ],
+              [
+                "exact_distance",
+                2514134395345587,
+                2514134395352711
+              ],
+              [
+                "pread",
+                2514134395354549,
+                2514134395357369
+              ],
+              [
+                "exact_distance",
+                2514134395357526,
+                2514134395364684
+              ],
+              [
+                "pread",
+                2514134395366841,
+                2514134395370330
+              ],
+              [
+                "exact_distance",
+                2514134395370493,
+                2514134395377625
+              ],
+              [
+                "pread",
+                2514134395379916,
+                2514134395382843
+              ],
+              [
+                "exact_distance",
+                2514134395382997,
+                2514134395390093
+              ],
+              [
+                "rabitq",
+                2514134395393846,
+                2514134395414825
+              ]
+            ],
+            "thread_cpu_ms": 0.0745660000000008
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.074592,
+            "server_thread_cpu_ms": 0.0745660000000008,
+            "rabitq_evaluations": 82.0,
+            "rabitq_ms": 0.020979,
+            "scanned_edges": 111.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.02851,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.012516
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            887121,
+            1093502,
+            1087437,
+            457075
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134395436334,
+            "end_ns": 2514134395506980,
+            "spans": [
+              [
+                "pread",
+                2514134395437388,
+                2514134395440379
+              ],
+              [
+                "exact_distance",
+                2514134395440854,
+                2514134395447982
+              ],
+              [
+                "pread",
+                2514134395450377,
+                2514134395453299
+              ],
+              [
+                "exact_distance",
+                2514134395453453,
+                2514134395460614
+              ],
+              [
+                "pread",
+                2514134395462078,
+                2514134395464971
+              ],
+              [
+                "exact_distance",
+                2514134395465142,
+                2514134395472255
+              ],
+              [
+                "pread",
+                2514134395473620,
+                2514134395476568
+              ],
+              [
+                "exact_distance",
+                2514134395476718,
+                2514134395483808
+              ],
+              [
+                "rabitq",
+                2514134395487606,
+                2514134395506518
+              ]
+            ],
+            "thread_cpu_ms": 0.07064599999999999
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.070646,
+            "server_thread_cpu_ms": 0.07064599999999999,
+            "rabitq_evaluations": 70.0,
+            "rabitq_ms": 0.018912,
+            "scanned_edges": 100.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.028492,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.011754
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            675374,
+            580545,
+            711294,
+            758118
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134395529526,
+            "end_ns": 2514134395605288,
+            "spans": [
+              [
+                "pread",
+                2514134395530622,
+                2514134395534070
+              ],
+              [
+                "exact_distance",
+                2514134395534544,
+                2514134395541668
+              ],
+              [
+                "pread",
+                2514134395543934,
+                2514134395546803
+              ],
+              [
+                "exact_distance",
+                2514134395546969,
+                2514134395554130
+              ],
+              [
+                "pread",
+                2514134395555846,
+                2514134395559294
+              ],
+              [
+                "exact_distance",
+                2514134395559458,
+                2514134395566569
+              ],
+              [
+                "pread",
+                2514134395569117,
+                2514134395572250
+              ],
+              [
+                "exact_distance",
+                2514134395572397,
+                2514134395579489
+              ],
+              [
+                "rabitq",
+                2514134395582965,
+                2514134395604970
+              ]
+            ],
+            "thread_cpu_ms": 0.0757399999999997
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.075762,
+            "server_thread_cpu_ms": 0.0757399999999997,
+            "rabitq_evaluations": 79.0,
+            "rabitq_ms": 0.022005,
+            "scanned_edges": 92.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.028488,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.012898
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            1030054,
+            723060,
+            1996068,
+            1150836
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134395628645,
+            "end_ns": 2514134395703150,
+            "spans": [
+              [
+                "pread",
+                2514134395629661,
+                2514134395633055
+              ],
+              [
+                "exact_distance",
+                2514134395633479,
+                2514134395640606
+              ],
+              [
+                "pread",
+                2514134395641954,
+                2514134395645022
+              ],
+              [
+                "exact_distance",
+                2514134395645171,
+                2514134395652299
+              ],
+              [
+                "pread",
+                2514134395654874,
+                2514134395658171
+              ],
+              [
+                "exact_distance",
+                2514134395658328,
+                2514134395665449
+              ],
+              [
+                "pread",
+                2514134395667540,
+                2514134395670362
+              ],
+              [
+                "exact_distance",
+                2514134395670504,
+                2514134395677603
+              ],
+              [
+                "rabitq",
+                2514134395680895,
+                2514134395702711
+              ]
+            ],
+            "thread_cpu_ms": 0.07452100000000073
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.074505,
+            "server_thread_cpu_ms": 0.07452100000000073,
+            "rabitq_evaluations": 73.0,
+            "rabitq_ms": 0.021816,
+            "scanned_edges": 89.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.028475,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.012581
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            580415,
+            1192716,
+            767049,
+            264008
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134395725719,
+            "end_ns": 2514134395805795,
+            "spans": [
+              [
+                "pread",
+                2514134395726427,
+                2514134395729373
+              ],
+              [
+                "exact_distance",
+                2514134395729796,
+                2514134395736923
+              ],
+              [
+                "pread",
+                2514134395738672,
+                2514134395741569
+              ],
+              [
+                "exact_distance",
+                2514134395741718,
+                2514134395748883
+              ],
+              [
+                "pread",
+                2514134395751455,
+                2514134395754358
+              ],
+              [
+                "exact_distance",
+                2514134395754531,
+                2514134395761652
+              ],
+              [
+                "pread",
+                2514134395763564,
+                2514134395766718
+              ],
+              [
+                "exact_distance",
+                2514134395766859,
+                2514134395773959
+              ],
+              [
+                "rabitq",
+                2514134395777890,
+                2514134395805447
+              ]
+            ],
+            "thread_cpu_ms": 0.08010799999999918
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.080076,
+            "server_thread_cpu_ms": 0.08010799999999918,
+            "rabitq_evaluations": 86.0,
+            "rabitq_ms": 0.027557,
+            "scanned_edges": 113.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.028512999999999997,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.0119
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            883543,
+            1979471,
+            755648,
+            522009
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134395838186,
+            "end_ns": 2514134395909683,
+            "spans": [
+              [
+                "pread",
+                2514134395839050,
+                2514134395842213
+              ],
+              [
+                "exact_distance",
+                2514134395842674,
+                2514134395849799
+              ],
+              [
+                "pread",
+                2514134395851709,
+                2514134395855308
+              ],
+              [
+                "exact_distance",
+                2514134395855538,
+                2514134395862704
+              ],
+              [
+                "pread",
+                2514134395864643,
+                2514134395867634
+              ],
+              [
+                "exact_distance",
+                2514134395867839,
+                2514134395874964
+              ],
+              [
+                "pread",
+                2514134395876498,
+                2514134395879590
+              ],
+              [
+                "exact_distance",
+                2514134395879730,
+                2514134395886818
+              ],
+              [
+                "rabitq",
+                2514134395890734,
+                2514134395909417
+              ]
+            ],
+            "thread_cpu_ms": 0.0715299999999992
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.071497,
+            "server_thread_cpu_ms": 0.0715299999999992,
+            "rabitq_evaluations": 67.0,
+            "rabitq_ms": 0.018683,
+            "scanned_edges": 87.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.028504,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.012845000000000002
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            573913,
+            484518,
+            1038842,
+            308825
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134395932814,
+            "end_ns": 2514134396025829,
+            "spans": [
+              [
+                "pread",
+                2514134395933619,
+                2514134395936677
+              ],
+              [
+                "exact_distance",
+                2514134395937209,
+                2514134395944346
+              ],
+              [
+                "pread",
+                2514134395946382,
+                2514134395949319
+              ],
+              [
+                "exact_distance",
+                2514134395949474,
+                2514134395956645
+              ],
+              [
+                "pread",
+                2514134395959045,
+                2514134395961966
+              ],
+              [
+                "exact_distance",
+                2514134395962124,
+                2514134395969225
+              ],
+              [
+                "pread",
+                2514134395971198,
+                2514134395974279
+              ],
+              [
+                "exact_distance",
+                2514134395974426,
+                2514134395981520
+              ],
+              [
+                "rabitq",
+                2514134395984419,
+                2514134396025525
+              ]
+            ],
+            "thread_cpu_ms": 0.08871099999999998
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.093015,
+            "server_thread_cpu_ms": 0.08871099999999998,
+            "rabitq_evaluations": 74.0,
+            "rabitq_ms": 0.041106,
+            "scanned_edges": 82.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.028503,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.011997
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            728041,
+            1170670,
+            279671,
+            575695
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134396056148,
+            "end_ns": 2514134396157610,
+            "spans": [
+              [
+                "pread",
+                2514134396057074,
+                2514134396060470
+              ],
+              [
+                "exact_distance",
+                2514134396060914,
+                2514134396068044
+              ],
+              [
+                "pread",
+                2514134396070956,
+                2514134396074014
+              ],
+              [
+                "exact_distance",
+                2514134396074178,
+                2514134396081305
+              ],
+              [
+                "pread",
+                2514134396082849,
+                2514134396085862
+              ],
+              [
+                "exact_distance",
+                2514134396086029,
+                2514134396093155
+              ],
+              [
+                "pread",
+                2514134396095321,
+                2514134396098688
+              ],
+              [
+                "exact_distance",
+                2514134396098830,
+                2514134396105918
+              ],
+              [
+                "rabitq",
+                2514134396110857,
+                2514134396157384
+              ]
+            ],
+            "thread_cpu_ms": 0.10145599999999888
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.101462,
+            "server_thread_cpu_ms": 0.10145599999999888,
+            "rabitq_evaluations": 103.0,
+            "rabitq_ms": 0.046527,
+            "scanned_edges": 113.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.028471,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.012834
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            725509,
+            1411306,
+            1695925,
+            489837
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134396199006,
+            "end_ns": 2514134396318885,
+            "spans": [
+              [
+                "pread",
+                2514134396199627,
+                2514134396202939
+              ],
+              [
+                "exact_distance",
+                2514134396203394,
+                2514134396210553
+              ],
+              [
+                "pread",
+                2514134396213074,
+                2514134396216649
+              ],
+              [
+                "exact_distance",
+                2514134396216803,
+                2514134396223964
+              ],
+              [
+                "pread",
+                2514134396226430,
+                2514134396229573
+              ],
+              [
+                "exact_distance",
+                2514134396229731,
+                2514134396236850
+              ],
+              [
+                "pread",
+                2514134396238893,
+                2514134396241723
+              ],
+              [
+                "exact_distance",
+                2514134396241870,
+                2514134396250052
+              ],
+              [
+                "rabitq",
+                2514134396257235,
+                2514134396318592
+              ]
+            ],
+            "thread_cpu_ms": 0.11998600000000081
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.119879,
+            "server_thread_cpu_ms": 0.11998600000000081,
+            "rabitq_evaluations": 129.0,
+            "rabitq_ms": 0.061357,
+            "scanned_edges": 131.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.029621,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.01286
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            1347045,
+            1411305,
+            1403279,
+            1586925
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134396374972,
+            "end_ns": 2514134396473608,
+            "spans": [
+              [
+                "pread",
+                2514134396375896,
+                2514134396379400
+              ],
+              [
+                "exact_distance",
+                2514134396379877,
+                2514134396386793
+              ],
+              [
+                "pread",
+                2514134396388815,
+                2514134396391058
+              ],
+              [
+                "exact_distance",
+                2514134396391209,
+                2514134396398133
+              ],
+              [
+                "pread",
+                2514134396400574,
+                2514134396404272
+              ],
+              [
+                "exact_distance",
+                2514134396404426,
+                2514134396411316
+              ],
+              [
+                "pread",
+                2514134396413196,
+                2514134396415826
+              ],
+              [
+                "exact_distance",
+                2514134396415970,
+                2514134396422822
+              ],
+              [
+                "rabitq",
+                2514134396428109,
+                2514134396473374
+              ]
+            ],
+            "thread_cpu_ms": 0.09865300000000232
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.098636,
+            "server_thread_cpu_ms": 0.09865300000000232,
+            "rabitq_evaluations": 116.0,
+            "rabitq_ms": 0.045265,
+            "scanned_edges": 129.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.027582,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.012075
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            1583156,
+            1671122,
+            1862732,
+            1411311
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134396512930,
+            "end_ns": 2514134396617092,
+            "spans": [
+              [
+                "pread",
+                2514134396513694,
+                2514134396517346
+              ],
+              [
+                "exact_distance",
+                2514134396517833,
+                2514134396524963
+              ],
+              [
+                "pread",
+                2514134396527479,
+                2514134396531029
+              ],
+              [
+                "exact_distance",
+                2514134396531179,
+                2514134396538403
+              ],
+              [
+                "pread",
+                2514134396540725,
+                2514134396544749
+              ],
+              [
+                "exact_distance",
+                2514134396544902,
+                2514134396552036
+              ],
+              [
+                "pread",
+                2514134396553815,
+                2514134396556611
+              ],
+              [
+                "exact_distance",
+                2514134396556745,
+                2514134396563830
+              ],
+              [
+                "rabitq",
+                2514134396569394,
+                2514134396616819
+              ]
+            ],
+            "thread_cpu_ms": 0.10430799999999962
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.104162,
+            "server_thread_cpu_ms": 0.10430799999999962,
+            "rabitq_evaluations": 121.0,
+            "rabitq_ms": 0.047425,
+            "scanned_edges": 134.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.028573,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.014022
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            1239877,
+            1411307,
+            758065,
+            1527802
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134396655890,
+            "end_ns": 2514134396739765,
+            "spans": [
+              [
+                "pread",
+                2514134396656756,
+                2514134396660034
+              ],
+              [
+                "exact_distance",
+                2514134396660466,
+                2514134396667582
+              ],
+              [
+                "pread",
+                2514134396669756,
+                2514134396671854
+              ],
+              [
+                "exact_distance",
+                2514134396672018,
+                2514134396679174
+              ],
+              [
+                "pread",
+                2514134396681649,
+                2514134396684369
+              ],
+              [
+                "exact_distance",
+                2514134396684532,
+                2514134396691658
+              ],
+              [
+                "pread",
+                2514134396692985,
+                2514134396696559
+              ],
+              [
+                "exact_distance",
+                2514134396696709,
+                2514134396703801
+              ],
+              [
+                "rabitq",
+                2514134396708323,
+                2514134396739351
+              ]
+            ],
+            "thread_cpu_ms": 0.08374900000000096
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.083875,
+            "server_thread_cpu_ms": 0.08374900000000096,
+            "rabitq_evaluations": 100.0,
+            "rabitq_ms": 0.031028,
+            "scanned_edges": 106.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.02849,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.01167
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            780273,
+            1497467,
+            489389,
+            769454
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134396764174,
+            "end_ns": 2514134396914418,
+            "spans": [
+              [
+                "pread",
+                2514134396765226,
+                2514134396768410
+              ],
+              [
+                "exact_distance",
+                2514134396768791,
+                2514134396775934
+              ],
+              [
+                "pread",
+                2514134396780366,
+                2514134396784370
+              ],
+              [
+                "exact_distance",
+                2514134396784524,
+                2514134396791705
+              ],
+              [
+                "pread",
+                2514134396793417,
+                2514134396797570
+              ],
+              [
+                "exact_distance",
+                2514134396797722,
+                2514134396804854
+              ],
+              [
+                "pread",
+                2514134396809139,
+                2514134396812682
+              ],
+              [
+                "exact_distance",
+                2514134396812824,
+                2514134396819918
+              ],
+              [
+                "rabitq",
+                2514134396827947,
+                2514134396913982
+              ]
+            ],
+            "thread_cpu_ms": 0.15035500000000113
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.150244,
+            "server_thread_cpu_ms": 0.15035500000000113,
+            "rabitq_evaluations": 164.0,
+            "rabitq_ms": 0.086035,
+            "scanned_edges": 173.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.02855,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.014884000000000001
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            1912775,
+            424409,
+            1651132,
+            1545913
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134403088670,
+            "end_ns": 2514134403345496,
+            "spans": [
+              [
+                "pread",
+                2514134403091408,
+                2514134403098793
+              ],
+              [
+                "exact_distance",
+                2514134403101135,
+                2514134403124208
+              ],
+              [
+                "pread",
+                2514134403132870,
+                2514134403137468
+              ],
+              [
+                "exact_distance",
+                2514134403138173,
+                2514134403161323
+              ],
+              [
+                "pread",
+                2514134403168600,
+                2514134403173966
+              ],
+              [
+                "exact_distance",
+                2514134403174533,
+                2514134403197516
+              ],
+              [
+                "pread",
+                2514134403203383,
+                2514134403208181
+              ],
+              [
+                "exact_distance",
+                2514134403208673,
+                2514134403231510
+              ],
+              [
+                "rabitq",
+                2514134403248688,
+                2514134403344196
+              ]
+            ],
+            "thread_cpu_ms": 0.25651399999999924
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.256826,
+            "server_thread_cpu_ms": 0.25651399999999924,
+            "rabitq_evaluations": 107.0,
+            "rabitq_ms": 0.095508,
+            "scanned_edges": 132.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.092043,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.022147
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            1607663,
+            1607662,
+            1411310,
+            1964011
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134403433428,
+            "end_ns": 2514134403683120,
+            "spans": [
+              [
+                "pread",
+                2514134403435588,
+                2514134403441163
+              ],
+              [
+                "exact_distance",
+                2514134403442508,
+                2514134403465576
+              ],
+              [
+                "pread",
+                2514134403473036,
+                2514134403477623
+              ],
+              [
+                "exact_distance",
+                2514134403478095,
+                2514134403501821
+              ],
+              [
+                "pread",
+                2514134403507148,
+                2514134403511335
+              ],
+              [
+                "exact_distance",
+                2514134403511900,
+                2514134403539163
+              ],
+              [
+                "pread",
+                2514134403547393,
+                2514134403552275
+              ],
+              [
+                "exact_distance",
+                2514134403552715,
+                2514134403575630
+              ],
+              [
+                "rabitq",
+                2514134403592021,
+                2514134403682010
+              ]
+            ],
+            "thread_cpu_ms": 0.24978699999999776
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.249692,
+            "server_thread_cpu_ms": 0.24978699999999776,
+            "rabitq_evaluations": 105.0,
+            "rabitq_ms": 0.089989,
+            "scanned_edges": 131.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.096972,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.019231
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            492199,
+            1450355,
+            534218,
+            1411308
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134403761248,
+            "end_ns": 2514134404039003,
+            "spans": [
+              [
+                "pread",
+                2514134403763376,
+                2514134403768380
+              ],
+              [
+                "exact_distance",
+                2514134403769610,
+                2514134403792583
+              ],
+              [
+                "pread",
+                2514134403799855,
+                2514134403805010
+              ],
+              [
+                "exact_distance",
+                2514134403805570,
+                2514134403828581
+              ],
+              [
+                "pread",
+                2514134403836150,
+                2514134403840780
+              ],
+              [
+                "exact_distance",
+                2514134403841316,
+                2514134403864220
+              ],
+              [
+                "pread",
+                2514134403868128,
+                2514134403872768
+              ],
+              [
+                "exact_distance",
+                2514134403873233,
+                2514134403896075
+              ],
+              [
+                "rabitq",
+                2514134403914288,
+                2514134404037688
+              ]
+            ],
+            "thread_cpu_ms": 0.27774300000000096
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.277755,
+            "server_thread_cpu_ms": 0.27774300000000096,
+            "rabitq_evaluations": 122.0,
+            "rabitq_ms": 0.1234,
+            "scanned_edges": 125.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.09173,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.019429000000000002
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            668232,
+            324784,
+            1747346,
+            788721
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134404176928,
+            "end_ns": 2514134404429683,
+            "spans": [
+              [
+                "pread",
+                2514134404179130,
+                2514134404184483
+              ],
+              [
+                "exact_distance",
+                2514134404185963,
+                2514134404209003
+              ],
+              [
+                "pread",
+                2514134404215303,
+                2514134404219983
+              ],
+              [
+                "exact_distance",
+                2514134404220513,
+                2514134404243543
+              ],
+              [
+                "pread",
+                2514134404251830,
+                2514134404256876
+              ],
+              [
+                "exact_distance",
+                2514134404257380,
+                2514134404280355
+              ],
+              [
+                "pread",
+                2514134404286396,
+                2514134404291108
+              ],
+              [
+                "exact_distance",
+                2514134404291573,
+                2514134404314433
+              ],
+              [
+                "rabitq",
+                2514134404331540,
+                2514134404428710
+              ]
+            ],
+            "thread_cpu_ms": 0.25275700000000256
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.252755,
+            "server_thread_cpu_ms": 0.25275700000000256,
+            "rabitq_evaluations": 121.0,
+            "rabitq_ms": 0.09717,
+            "scanned_edges": 121.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.09190499999999999,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.019791
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            755295,
+            430097,
+            1669157,
+            1143087
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134404540175,
+            "end_ns": 2514134404760462,
+            "spans": [
+              [
+                "pread",
+                2514134404542120,
+                2514134404547117
+              ],
+              [
+                "exact_distance",
+                2514134404548708,
+                2514134404571720
+              ],
+              [
+                "pread",
+                2514134404578773,
+                2514134404583148
+              ],
+              [
+                "exact_distance",
+                2514134404583655,
+                2514134404606733
+              ],
+              [
+                "pread",
+                2514134404612757,
+                2514134404617387
+              ],
+              [
+                "exact_distance",
+                2514134404617907,
+                2514134404640848
+              ],
+              [
+                "pread",
+                2514134404648283,
+                2514134404653043
+              ],
+              [
+                "exact_distance",
+                2514134404653530,
+                2514134404676393
+              ],
+              [
+                "rabitq",
+                2514134404690740,
+                2514134404759603
+              ]
+            ],
+            "thread_cpu_ms": 0.22026400000000024
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.220287,
+            "server_thread_cpu_ms": 0.22026400000000024,
+            "rabitq_evaluations": 94.0,
+            "rabitq_ms": 0.068863,
+            "scanned_edges": 133.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.091894,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.018762
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            1518316,
+            795250,
+            79766,
+            1273516
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134404846527,
+            "end_ns": 2514134405130080,
+            "spans": [
+              [
+                "pread",
+                2514134404848548,
+                2514134404853430
+              ],
+              [
+                "exact_distance",
+                2514134404854840,
+                2514134404877795
+              ],
+              [
+                "pread",
+                2514134404885467,
+                2514134404890275
+              ],
+              [
+                "exact_distance",
+                2514134404890873,
+                2514134404913903
+              ],
+              [
+                "pread",
+                2514134404921635,
+                2514134404926708
+              ],
+              [
+                "exact_distance",
+                2514134404927270,
+                2514134404950220
+              ],
+              [
+                "pread",
+                2514134404955863,
+                2514134404960675
+              ],
+              [
+                "exact_distance",
+                2514134404961163,
+                2514134404984008
+              ],
+              [
+                "rabitq",
+                2514134405021883,
+                2514134405128353
+              ]
+            ],
+            "thread_cpu_ms": 0.2836810000000014
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.283553,
+            "server_thread_cpu_ms": 0.2836810000000014,
+            "rabitq_evaluations": 128.0,
+            "rabitq_ms": 0.10647,
+            "scanned_edges": 135.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.09178,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.019575000000000002
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            568079,
+            1670229,
+            1749208,
+            1631610
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134405281070,
+            "end_ns": 2514134405553017,
+            "spans": [
+              [
+                "pread",
+                2514134405283163,
+                2514134405287900
+              ],
+              [
+                "exact_distance",
+                2514134405288940,
+                2514134405311880
+              ],
+              [
+                "pread",
+                2514134405321733,
+                2514134405326620
+              ],
+              [
+                "exact_distance",
+                2514134405327173,
+                2514134405350277
+              ],
+              [
+                "pread",
+                2514134405357330,
+                2514134405362003
+              ],
+              [
+                "exact_distance",
+                2514134405362553,
+                2514134405385488
+              ],
+              [
+                "pread",
+                2514134405391657,
+                2514134405397133
+              ],
+              [
+                "exact_distance",
+                2514134405397653,
+                2514134405420488
+              ],
+              [
+                "rabitq",
+                2514134405443035,
+                2514134405551747
+              ]
+            ],
+            "thread_cpu_ms": 0.2721309999999981
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.271947,
+            "server_thread_cpu_ms": 0.2721309999999981,
+            "rabitq_evaluations": 133.0,
+            "rabitq_ms": 0.108712,
+            "scanned_edges": 159.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.091814,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.019773
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            1645237,
+            1268753,
+            1931936,
+            422777
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134405675047,
+            "end_ns": 2514134405901293,
+            "spans": [
+              [
+                "pread",
+                2514134405677215,
+                2514134405682683
+              ],
+              [
+                "exact_distance",
+                2514134405684133,
+                2514134405707097
+              ],
+              [
+                "pread",
+                2514134405712355,
+                2514134405717450
+              ],
+              [
+                "exact_distance",
+                2514134405717935,
+                2514134405741068
+              ],
+              [
+                "pread",
+                2514134405747563,
+                2514134405752477
+              ],
+              [
+                "exact_distance",
+                2514134405753003,
+                2514134405775937
+              ],
+              [
+                "pread",
+                2514134405784148,
+                2514134405788815
+              ],
+              [
+                "exact_distance",
+                2514134405789297,
+                2514134405812155
+              ],
+              [
+                "rabitq",
+                2514134405828622,
+                2514134405900488
+              ]
+            ],
+            "thread_cpu_ms": 0.22602700000000198
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.226246,
+            "server_thread_cpu_ms": 0.22602700000000198,
+            "rabitq_evaluations": 112.0,
+            "rabitq_ms": 0.071866,
+            "scanned_edges": 122.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.091889,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.020144
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            863606,
+            438831,
+            1275006,
+            422776
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134405977168,
+            "end_ns": 2514134406271693,
+            "spans": [
+              [
+                "pread",
+                2514134405979990,
+                2514134405984875
+              ],
+              [
+                "exact_distance",
+                2514134405986123,
+                2514134406027557
+              ],
+              [
+                "pread",
+                2514134406038243,
+                2514134406043216
+              ],
+              [
+                "exact_distance",
+                2514134406043743,
+                2514134406066848
+              ],
+              [
+                "pread",
+                2514134406073320,
+                2514134406077603
+              ],
+              [
+                "exact_distance",
+                2514134406078148,
+                2514134406101195
+              ],
+              [
+                "pread",
+                2514134406106830,
+                2514134406110780
+              ],
+              [
+                "exact_distance",
+                2514134406111267,
+                2514134406134102
+              ],
+              [
+                "rabitq",
+                2514134406156900,
+                2514134406270473
+              ]
+            ],
+            "thread_cpu_ms": 0.2868819999999985
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.294525,
+            "server_thread_cpu_ms": 0.2868819999999985,
+            "rabitq_evaluations": 141.0,
+            "rabitq_ms": 0.113573,
+            "scanned_edges": 153.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.11042099999999999,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.018091
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            433505,
+            677575,
+            278684,
+            355502
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134406398803,
+            "end_ns": 2514134406657822,
+            "spans": [
+              [
+                "pread",
+                2514134406400635,
+                2514134406405590
+              ],
+              [
+                "exact_distance",
+                2514134406406833,
+                2514134406429893
+              ],
+              [
+                "pread",
+                2514134406436297,
+                2514134406441375
+              ],
+              [
+                "exact_distance",
+                2514134406441890,
+                2514134406464862
+              ],
+              [
+                "pread",
+                2514134406471730,
+                2514134406477823
+              ],
+              [
+                "exact_distance",
+                2514134406478515,
+                2514134406501462
+              ],
+              [
+                "pread",
+                2514134406508933,
+                2514134406514410
+              ],
+              [
+                "exact_distance",
+                2514134406514883,
+                2514134406537728
+              ],
+              [
+                "rabitq",
+                2514134406561093,
+                2514134406657123
+              ]
+            ],
+            "thread_cpu_ms": 0.2588779999999993
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.259019,
+            "server_thread_cpu_ms": 0.2588779999999993,
+            "rabitq_evaluations": 143.0,
+            "rabitq_ms": 0.09603,
+            "scanned_edges": 145.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.091824,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.021603
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            1630131,
+            1669035,
+            668623,
+            280249
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134406735632,
+            "end_ns": 2514134406845071,
+            "spans": [
+              [
+                "pread",
+                2514134406736856,
+                2514134406740579
+              ],
+              [
+                "exact_distance",
+                2514134406741255,
+                2514134406752757
+              ],
+              [
+                "pread",
+                2514134406756974,
+                2514134406760292
+              ],
+              [
+                "exact_distance",
+                2514134406760657,
+                2514134406772256
+              ],
+              [
+                "pread",
+                2514134406776202,
+                2514134406779595
+              ],
+              [
+                "exact_distance",
+                2514134406779868,
+                2514134406791313
+              ],
+              [
+                "pread",
+                2514134406793097,
+                2514134406796111
+              ],
+              [
+                "exact_distance",
+                2514134406796248,
+                2514134406803342
+              ],
+              [
+                "rabitq",
+                2514134406809267,
+                2514134406844735
+              ]
+            ],
+            "thread_cpu_ms": 0.10938100000000262
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.109439,
+            "server_thread_cpu_ms": 0.10938100000000262,
+            "rabitq_evaluations": 123.0,
+            "rabitq_ms": 0.035468,
+            "scanned_edges": 136.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.041639999999999996,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.013448000000000002
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            857944,
+            1519053
+          ],
+          "shard_id": 2,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514134406873950,
+            "end_ns": 2514134406932227,
+            "spans": [
+              [
+                "pread",
+                2514134406874957,
+                2514134406878011
+              ],
+              [
+                "exact_distance",
+                2514134406878380,
+                2514134406885511
+              ],
+              [
+                "pread",
+                2514134406888750,
+                2514134406892036
+              ],
+              [
+                "exact_distance",
+                2514134406892198,
+                2514134406899367
+              ],
+              [
+                "rabitq",
+                2514134406903630,
+                2514134406931971
+              ]
+            ],
+            "thread_cpu_ms": 0.05814200000000014
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.058277,
+            "server_thread_cpu_ms": 0.05814200000000014,
+            "rabitq_evaluations": 83.0,
+            "rabitq_ms": 0.028341,
+            "scanned_edges": 83.0,
+            "exact_distance_evaluations": 2.0,
+            "exact_distance_ms": 0.0143,
+            "file_read_bytes": 24576.0,
+            "pread_calls": 2.0,
+            "pread_ms": 0.00634
+          },
+          "io_trace": null
+        }
+      ],
+      "compute_thread_id": 99689,
+      "compute_thread_migrations": 0,
+      "native_search_loop": true,
+      "decision_rng": "numpy_pcg64_precomputed_v1",
+      "execution": {
+        "model": "native",
+        "io_backend": "sync_pread",
+        "fallback_reason": null,
+        "query_parallelism": "one_fixed_compute_thread_per_node_branch"
+      },
+      "peer_transfer": {
+        "peer_rpc_count": 1,
+        "peer_request_bytes": 15968,
+        "peer_response_bytes": 38,
+        "peer_transfer_errors": 0,
+        "peer_transfer_queue_ms": 3.392262849956751,
+        "peer_pool_wait_ms": 22.7873963303864,
+        "peer_connect_ms": 3.76679515466094,
+        "peer_send_ms": 1.4075390063226223,
+        "peer_response_wait_ms": 344.1811930388212,
+        "peer_connections_created": 1,
+        "peer_connections_reused": 0,
+        "peer_transfer_wall_ms": 417.88443829864264
+      }
+    },
+    {
+      "branch_id": "db206fd5-d971-410c-8072-d40b2b9a55f2",
+      "parent_branch_id": "11d363eb-f4f5-4a69-b455-7f302d207b2f",
+      "visited_nodes": [
+        2,
+        1
+      ],
+      "work_grant": 45,
+      "branch_slots": 14,
+      "node_id": 1,
+      "work_spent": 45,
+      "work_unused": 0,
+      "children": [],
+      "ids": [
+        881437,
+        767234,
+        568079,
+        496406,
+        784790,
+        1066053,
+        857944,
+        426965,
+        290360,
+        196408
+      ],
+      "squared_distances": [
+        5.563436542643504,
+        9.126420001929798,
+        9.57544585414492,
+        9.89012227052215,
+        9.967677297181423,
+        10.015047225199062,
+        10.134577045535043,
+        10.145143922376052,
+        10.158933103426676,
+        10.16719633273155
+      ],
+      "expanded_ids": [
+        881437,
+        767234,
+        598682,
+        838141,
+        682431,
+        1094570,
+        941684,
+        104204,
+        834780,
+        740697,
+        568079,
+        857944,
+        496406,
+        766743,
+        784790,
+        560352,
+        444211,
+        196410,
+        196408,
+        1066053,
+        196409,
+        421417,
+        426965,
+        599701,
+        421418,
+        196407,
+        290360,
+        229514,
+        400497,
+        846389,
+        1194131,
+        775236,
+        66743,
+        421419,
+        1410444,
+        196420,
+        1955464,
+        1057250,
+        1998468,
+        593737,
+        332651,
+        1194130,
+        1298293,
+        196411,
+        66650
+      ],
+      "result_paths": [
+        {
+          "id": 881437,
+          "parent": 1192716,
+          "depth": 4,
+          "cross_shard_depth": 1,
+          "root": 1095406,
+          "shard": 1
+        },
+        {
+          "id": 767234,
+          "parent": 780273,
+          "depth": 4,
+          "cross_shard_depth": 1,
+          "root": 1095406,
+          "shard": 1
+        },
+        {
+          "id": 568079,
+          "parent": 941684,
+          "depth": 7,
+          "cross_shard_depth": 1,
+          "root": 1095406,
+          "shard": 1
+        },
+        {
+          "id": 857944,
+          "parent": 941684,
+          "depth": 7,
+          "cross_shard_depth": 1,
+          "root": 1095406,
+          "shard": 1
+        },
+        {
+          "id": 496406,
+          "parent": 941684,
+          "depth": 7,
+          "cross_shard_depth": 1,
+          "root": 1095406,
+          "shard": 1
+        },
+        {
+          "id": 784790,
+          "parent": 857944,
+          "depth": 8,
+          "cross_shard_depth": 1,
+          "root": 1095406,
+          "shard": 1
+        },
+        {
+          "id": 196408,
+          "parent": 196410,
+          "depth": 8,
+          "cross_shard_depth": 1,
+          "root": 1095406,
+          "shard": 1
+        },
+        {
+          "id": 1066053,
+          "parent": 560352,
+          "depth": 9,
+          "cross_shard_depth": 1,
+          "root": 1095406,
+          "shard": 1
+        },
+        {
+          "id": 426965,
+          "parent": 421417,
+          "depth": 9,
+          "cross_shard_depth": 1,
+          "root": 1095406,
+          "shard": 1
+        },
+        {
+          "id": 290360,
+          "parent": 421417,
+          "depth": 9,
+          "cross_shard_depth": 1,
+          "root": 1095406,
+          "shard": 1
+        }
+      ],
+      "stats": {
+        "server_thread_cpu_ms": 2.7375700000000016,
+        "visited_node_candidates_dropped": 266.0,
+        "batches": 12.0,
+        "service_ms": 1.7106779999999997,
+        "rabitq_evaluations": 1732.0,
+        "rabitq_ms": 1.0612640000000002,
+        "exact_distance_evaluations": 45.0,
+        "exact_distance_ms": 0.29467200000000005,
+        "improved_topk_batches": 8.0,
+        "frontier_dropped": 711.0,
+        "rabitq_prepare_ms": 0.025846,
+        "scanned_edges": 1932.0,
+        "file_read_bytes": 552960.0,
+        "branch_wall_ms": 2.37775,
+        "pread_calls": 45.0,
+        "pread_ms": 0.14315599999999998,
+        "expanded": 45,
+        "fallback_entries": 0,
+        "max_expanded_depth": 12,
+        "max_cross_shard_depth": 1,
+        "pending_at_stop": 64,
+        "stop_reason": "branch_work_credit_exhausted",
+        "cache_hits": 0,
+        "async_read_requests": 0,
+        "io_batch_wall_ms": 0,
+        "io_capacity_wait_ms": 0,
+        "io_queue_wait_ms": 0,
+        "io_read_residence_ms": 0,
+        "query_ready_queue_ms": 1613.0655519664288,
+        "query_compute_slice_wall_ms": 4.586947616189718,
+        "query_admission_queue_ms": 1612.6193800009787,
+        "query_executor_start_wait_ms": 0.44617196545004845,
+        "query_io_wait_ms": 0,
+        "query_resume_count": 0,
+        "query_transfer_finalize_wait_ms": 0.006529036909341812,
+        "query_branch_wall_ms": 1617.6926363259554,
+        "query_state_other_ms": 0.03360770642757416,
+        "remote_candidates_dropped_after_forward": 0
+      },
+      "fork_events": [],
+      "decisions": [
+        {
+          "decision_id": "db206fd5-d971-410c-8072-d40b2b9a55f2:0",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 1,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 0.122021
+        },
+        {
+          "decision_id": "db206fd5-d971-410c-8072-d40b2b9a55f2:1",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 1,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 0.009066
+        },
+        {
+          "decision_id": "db206fd5-d971-410c-8072-d40b2b9a55f2:2",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 1,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 0.051945
+        },
+        {
+          "decision_id": "db206fd5-d971-410c-8072-d40b2b9a55f2:3",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 1,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 0.054648
+        },
+        {
+          "decision_id": "db206fd5-d971-410c-8072-d40b2b9a55f2:4",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 1,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 0.298922
+        },
+        {
+          "decision_id": "db206fd5-d971-410c-8072-d40b2b9a55f2:5",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 1,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 0.05686
+        },
+        {
+          "decision_id": "db206fd5-d971-410c-8072-d40b2b9a55f2:6",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 1,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 0.029606
+        },
+        {
+          "decision_id": "db206fd5-d971-410c-8072-d40b2b9a55f2:7",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 1,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 0.337516
+        },
+        {
+          "decision_id": "db206fd5-d971-410c-8072-d40b2b9a55f2:8",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 1,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 1.092475
+        },
+        {
+          "decision_id": "db206fd5-d971-410c-8072-d40b2b9a55f2:9",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 1,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 0.951869
+        },
+        {
+          "decision_id": "db206fd5-d971-410c-8072-d40b2b9a55f2:10",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 1,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 0.412804
+        },
+        {
+          "decision_id": "db206fd5-d971-410c-8072-d40b2b9a55f2:11",
+          "reason": "local_only",
+          "probability": 0.0,
+          "draw": null,
+          "selected_node": 1,
+          "remote": false,
+          "remote_utility": null,
+          "local_utility": null,
+          "selected_wait_ms": 1.194707
+        }
+      ],
+      "local_batch_trace": [
+        {
+          "ids": [
+            881437,
+            767234
+          ],
+          "shard_id": 1,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514136385427563,
+            "end_ns": 2514136385498989,
+            "spans": [
+              [
+                "pread",
+                2514136385428649,
+                2514136385432228
+              ],
+              [
+                "exact_distance",
+                2514136385432655,
+                2514136385439778
+              ],
+              [
+                "pread",
+                2514136385442098,
+                2514136385445036
+              ],
+              [
+                "exact_distance",
+                2514136385445276,
+                2514136385452412
+              ],
+              [
+                "rabitq",
+                2514136385456678,
+                2514136385498696
+              ]
+            ],
+            "thread_cpu_ms": 0.07159599999999955
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.071426,
+            "server_thread_cpu_ms": 0.07159599999999955,
+            "rabitq_evaluations": 47.0,
+            "rabitq_ms": 0.042018,
+            "scanned_edges": 47.0,
+            "exact_distance_evaluations": 2.0,
+            "exact_distance_ms": 0.014259,
+            "file_read_bytes": 24576.0,
+            "pread_calls": 2.0,
+            "pread_ms": 0.006517
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            598682,
+            838141,
+            682431,
+            1094570
+          ],
+          "shard_id": 1,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514136385516846,
+            "end_ns": 2514136385698413,
+            "spans": [
+              [
+                "pread",
+                2514136385517623,
+                2514136385521210
+              ],
+              [
+                "exact_distance",
+                2514136385521616,
+                2514136385528748
+              ],
+              [
+                "pread",
+                2514136385532383,
+                2514136385537386
+              ],
+              [
+                "exact_distance",
+                2514136385537572,
+                2514136385544701
+              ],
+              [
+                "pread",
+                2514136385548135,
+                2514136385552595
+              ],
+              [
+                "exact_distance",
+                2514136385552778,
+                2514136385559921
+              ],
+              [
+                "pread",
+                2514136385562749,
+                2514136385566028
+              ],
+              [
+                "exact_distance",
+                2514136385566174,
+                2514136385573263
+              ],
+              [
+                "rabitq",
+                2514136385580438,
+                2514136385697966
+              ]
+            ],
+            "thread_cpu_ms": 0.18157199999999918
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.181567,
+            "server_thread_cpu_ms": 0.18157199999999918,
+            "rabitq_evaluations": 128.0,
+            "rabitq_ms": 0.117528,
+            "scanned_edges": 136.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.028492999999999997,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.016329
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            941684,
+            104204,
+            834780,
+            740697
+          ],
+          "shard_id": 1,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514136385762474,
+            "end_ns": 2514136385943008,
+            "spans": [
+              [
+                "pread",
+                2514136385763389,
+                2514136385766571
+              ],
+              [
+                "exact_distance",
+                2514136385766972,
+                2514136385773430
+              ],
+              [
+                "pread",
+                2514136385777204,
+                2514136385779982
+              ],
+              [
+                "exact_distance",
+                2514136385780149,
+                2514136385786634
+              ],
+              [
+                "pread",
+                2514136385789810,
+                2514136385792464
+              ],
+              [
+                "exact_distance",
+                2514136385792617,
+                2514136385799083
+              ],
+              [
+                "pread",
+                2514136385801748,
+                2514136385804946
+              ],
+              [
+                "exact_distance",
+                2514136385805082,
+                2514136385811513
+              ],
+              [
+                "rabitq",
+                2514136385821297,
+                2514136385942669
+              ]
+            ],
+            "thread_cpu_ms": 0.18053500000000255
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.180534,
+            "server_thread_cpu_ms": 0.18053500000000255,
+            "rabitq_evaluations": 169.0,
+            "rabitq_ms": 0.121372,
+            "scanned_edges": 175.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.02584,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.011812
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            568079,
+            857944,
+            496406,
+            766743
+          ],
+          "shard_id": 1,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514136386021359,
+            "end_ns": 2514136386193147,
+            "spans": [
+              [
+                "pread",
+                2514136386022251,
+                2514136386025303
+              ],
+              [
+                "exact_distance",
+                2514136386025719,
+                2514136386032183
+              ],
+              [
+                "pread",
+                2514136386035562,
+                2514136386038531
+              ],
+              [
+                "exact_distance",
+                2514136386038690,
+                2514136386045174
+              ],
+              [
+                "pread",
+                2514136386048670,
+                2514136386052019
+              ],
+              [
+                "exact_distance",
+                2514136386052167,
+                2514136386058668
+              ],
+              [
+                "pread",
+                2514136386063079,
+                2514136386066268
+              ],
+              [
+                "exact_distance",
+                2514136386066398,
+                2514136386072818
+              ],
+              [
+                "rabitq",
+                2514136386080822,
+                2514136386192877
+              ]
+            ],
+            "thread_cpu_ms": 0.17182299999999984
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.171788,
+            "server_thread_cpu_ms": 0.17182299999999984,
+            "rabitq_evaluations": 165.0,
+            "rabitq_ms": 0.112055,
+            "scanned_edges": 215.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.025869000000000003,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.012559
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            784790,
+            560352,
+            444211,
+            196410
+          ],
+          "shard_id": 1,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514136386257058,
+            "end_ns": 2514136386433986,
+            "spans": [
+              [
+                "pread",
+                2514136386258031,
+                2514136386261498
+              ],
+              [
+                "exact_distance",
+                2514136386262059,
+                2514136386268523
+              ],
+              [
+                "pread",
+                2514136386271387,
+                2514136386274502
+              ],
+              [
+                "exact_distance",
+                2514136386274633,
+                2514136386281113
+              ],
+              [
+                "pread",
+                2514136386284601,
+                2514136386288419
+              ],
+              [
+                "exact_distance",
+                2514136386288580,
+                2514136386295047
+              ],
+              [
+                "pread",
+                2514136386298653,
+                2514136386301739
+              ],
+              [
+                "exact_distance",
+                2514136386301867,
+                2514136386308288
+              ],
+              [
+                "rabitq",
+                2514136386316080,
+                2514136386433567
+              ]
+            ],
+            "thread_cpu_ms": 0.17718499999999793
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.176928,
+            "server_thread_cpu_ms": 0.17718499999999793,
+            "rabitq_evaluations": 186.0,
+            "rabitq_ms": 0.117487,
+            "scanned_edges": 193.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.025832,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.013486
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            196408,
+            1066053,
+            196409,
+            421417
+          ],
+          "shard_id": 1,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514136386503072,
+            "end_ns": 2514136386619378,
+            "spans": [
+              [
+                "pread",
+                2514136386503603,
+                2514136386506604
+              ],
+              [
+                "exact_distance",
+                2514136386507028,
+                2514136386513491
+              ],
+              [
+                "pread",
+                2514136386515955,
+                2514136386518919
+              ],
+              [
+                "exact_distance",
+                2514136386519052,
+                2514136386525522
+              ],
+              [
+                "pread",
+                2514136386527940,
+                2514136386530109
+              ],
+              [
+                "exact_distance",
+                2514136386530277,
+                2514136386536737
+              ],
+              [
+                "pread",
+                2514136386539072,
+                2514136386542752
+              ],
+              [
+                "exact_distance",
+                2514136386542879,
+                2514136386549304
+              ],
+              [
+                "rabitq",
+                2514136386554667,
+                2514136386618933
+              ]
+            ],
+            "thread_cpu_ms": 0.11645200000000244
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.116306,
+            "server_thread_cpu_ms": 0.11645200000000244,
+            "rabitq_evaluations": 124.0,
+            "rabitq_ms": 0.064266,
+            "scanned_edges": 153.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.025818,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.011813999999999998
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            426965,
+            599701,
+            421418,
+            196407
+          ],
+          "shard_id": 1,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514136386657832,
+            "end_ns": 2514136386774404,
+            "spans": [
+              [
+                "pread",
+                2514136386659148,
+                2514136386663369
+              ],
+              [
+                "exact_distance",
+                2514136386663809,
+                2514136386670275
+              ],
+              [
+                "pread",
+                2514136386672789,
+                2514136386675859
+              ],
+              [
+                "exact_distance",
+                2514136386676018,
+                2514136386682484
+              ],
+              [
+                "pread",
+                2514136386684959,
+                2514136386687093
+              ],
+              [
+                "exact_distance",
+                2514136386687259,
+                2514136386693722
+              ],
+              [
+                "pread",
+                2514136386695093,
+                2514136386697334
+              ],
+              [
+                "exact_distance",
+                2514136386697467,
+                2514136386703893
+              ],
+              [
+                "rabitq",
+                2514136386710604,
+                2514136386774150
+              ]
+            ],
+            "thread_cpu_ms": 0.11673700000000053
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.116572,
+            "server_thread_cpu_ms": 0.11673700000000053,
+            "rabitq_evaluations": 131.0,
+            "rabitq_ms": 0.063546,
+            "scanned_edges": 148.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.025821000000000004,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.011666
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            290360,
+            229514,
+            400497,
+            846389
+          ],
+          "shard_id": 1,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514136386813446,
+            "end_ns": 2514136386974437,
+            "spans": [
+              [
+                "pread",
+                2514136386814494,
+                2514136386817487
+              ],
+              [
+                "exact_distance",
+                2514136386817811,
+                2514136386824277
+              ],
+              [
+                "pread",
+                2514136386827378,
+                2514136386830287
+              ],
+              [
+                "exact_distance",
+                2514136386830422,
+                2514136386836929
+              ],
+              [
+                "pread",
+                2514136386840683,
+                2514136386843778
+              ],
+              [
+                "exact_distance",
+                2514136386843924,
+                2514136386850392
+              ],
+              [
+                "pread",
+                2514136386853429,
+                2514136386856029
+              ],
+              [
+                "exact_distance",
+                2514136386856155,
+                2514136386862579
+              ],
+              [
+                "rabitq",
+                2514136386871457,
+                2514136386974058
+              ]
+            ],
+            "thread_cpu_ms": 0.16126399999999919
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.160991,
+            "server_thread_cpu_ms": 0.16126399999999919,
+            "rabitq_evaluations": 180.0,
+            "rabitq_ms": 0.102601,
+            "scanned_edges": 203.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.025865,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.011597
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            1194131,
+            775236,
+            66743,
+            421419
+          ],
+          "shard_id": 1,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514136387047379,
+            "end_ns": 2514136387154439,
+            "spans": [
+              [
+                "pread",
+                2514136387048680,
+                2514136387052047
+              ],
+              [
+                "exact_distance",
+                2514136387052396,
+                2514136387058858
+              ],
+              [
+                "pread",
+                2514136387061030,
+                2514136387064258
+              ],
+              [
+                "exact_distance",
+                2514136387064385,
+                2514136387070859
+              ],
+              [
+                "pread",
+                2514136387074376,
+                2514136387077264
+              ],
+              [
+                "exact_distance",
+                2514136387077419,
+                2514136387083864
+              ],
+              [
+                "pread",
+                2514136387085594,
+                2514136387087829
+              ],
+              [
+                "exact_distance",
+                2514136387087954,
+                2514136387094384
+              ],
+              [
+                "rabitq",
+                2514136387101327,
+                2514136387153980
+              ]
+            ],
+            "thread_cpu_ms": 0.10690400000000011
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.10706,
+            "server_thread_cpu_ms": 0.10690400000000011,
+            "rabitq_evaluations": 132.0,
+            "rabitq_ms": 0.052653,
+            "scanned_edges": 151.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.025811,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.011718
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            1410444,
+            196420,
+            1955464,
+            1057250
+          ],
+          "shard_id": 1,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514136387188301,
+            "end_ns": 2514136387365869,
+            "spans": [
+              [
+                "pread",
+                2514136387189244,
+                2514136387192804
+              ],
+              [
+                "exact_distance",
+                2514136387193127,
+                2514136387199584
+              ],
+              [
+                "pread",
+                2514136387203174,
+                2514136387205965
+              ],
+              [
+                "exact_distance",
+                2514136387206118,
+                2514136387212627
+              ],
+              [
+                "pread",
+                2514136387214677,
+                2514136387218666
+              ],
+              [
+                "exact_distance",
+                2514136387218812,
+                2514136387225262
+              ],
+              [
+                "pread",
+                2514136387229412,
+                2514136387232674
+              ],
+              [
+                "exact_distance",
+                2514136387232814,
+                2514136387239247
+              ],
+              [
+                "rabitq",
+                2514136387248479,
+                2514136387365432
+              ]
+            ],
+            "thread_cpu_ms": 0.17756800000000084
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.177568,
+            "server_thread_cpu_ms": 0.17756800000000084,
+            "rabitq_evaluations": 204.0,
+            "rabitq_ms": 0.116953,
+            "scanned_edges": 205.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.025849,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.013602
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            1998468,
+            593737,
+            332651,
+            1194130
+          ],
+          "shard_id": 1,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514136387438231,
+            "end_ns": 2514136387587432,
+            "spans": [
+              [
+                "pread",
+                2514136387439599,
+                2514136387442726
+              ],
+              [
+                "exact_distance",
+                2514136387442985,
+                2514136387449442
+              ],
+              [
+                "pread",
+                2514136387452890,
+                2514136387455882
+              ],
+              [
+                "exact_distance",
+                2514136387456030,
+                2514136387462517
+              ],
+              [
+                "pread",
+                2514136387465298,
+                2514136387468294
+              ],
+              [
+                "exact_distance",
+                2514136387468444,
+                2514136387474886
+              ],
+              [
+                "pread",
+                2514136387478731,
+                2514136387481019
+              ],
+              [
+                "exact_distance",
+                2514136387481159,
+                2514136387487583
+              ],
+              [
+                "rabitq",
+                2514136387494183,
+                2514136387587055
+              ]
+            ],
+            "thread_cpu_ms": 0.14890700000000123
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.149201,
+            "server_thread_cpu_ms": 0.14890700000000123,
+            "rabitq_evaluations": 163.0,
+            "rabitq_ms": 0.092872,
+            "scanned_edges": 184.0,
+            "exact_distance_evaluations": 4.0,
+            "exact_distance_ms": 0.02581,
+            "file_read_bytes": 49152.0,
+            "pread_calls": 4.0,
+            "pread_ms": 0.011403
+          },
+          "io_trace": null
+        },
+        {
+          "ids": [
+            1298293,
+            196411,
+            66650
+          ],
+          "shard_id": 1,
+          "service_trace": {
+            "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+            "start_ns": 2514136387641827,
+            "end_ns": 2514136387742564,
+            "spans": [
+              [
+                "pread",
+                2514136387642641,
+                2514136387645959
+              ],
+              [
+                "exact_distance",
+                2514136387646509,
+                2514136387652968
+              ],
+              [
+                "pread",
+                2514136387656189,
+                2514136387660349
+              ],
+              [
+                "exact_distance",
+                2514136387660492,
+                2514136387666962
+              ],
+              [
+                "pread",
+                2514136387669844,
+                2514136387673019
+              ],
+              [
+                "exact_distance",
+                2514136387673191,
+                2514136387679667
+              ],
+              [
+                "rabitq",
+                2514136387684411,
+                2514136387742324
+              ]
+            ],
+            "thread_cpu_ms": 0.10084400000000215
+          },
+          "stats": {
+            "io_batch_wall_ms": 0.0,
+            "service_ms": 0.100737,
+            "server_thread_cpu_ms": 0.10084400000000215,
+            "rabitq_evaluations": 103.0,
+            "rabitq_ms": 0.057913,
+            "scanned_edges": 122.0,
+            "exact_distance_evaluations": 3.0,
+            "exact_distance_ms": 0.019405,
+            "file_read_bytes": 36864.0,
+            "pread_calls": 3.0,
+            "pread_ms": 0.010653
+          },
+          "io_trace": null
+        }
+      ],
+      "compute_thread_id": 100306,
+      "compute_thread_migrations": 0,
+      "native_search_loop": true,
+      "decision_rng": "numpy_pcg64_precomputed_v1",
+      "execution": {
+        "model": "native",
+        "io_backend": "sync_pread",
+        "fallback_reason": null,
+        "query_parallelism": "one_fixed_compute_thread_per_node_branch"
+      },
+      "peer_transfer": {
+        "peer_rpc_count": 0,
+        "peer_request_bytes": 0,
+        "peer_response_bytes": 0,
+        "peer_transfer_errors": 0
+      }
+    }
+  ],
+  "job": 702,
+  "worker_process": 2,
+  "worker_thread": 97,
+  "repetition": 0,
+  "query_row": 73656,
+  "query_id": 734744,
+  "client_start_ns": 2514133935178743,
+  "client_end_ns": 2514137365153172,
+  "client_wall_ms": 3429.974429,
+  "truth_ids": [
+    697577,
+    1956861,
+    785146,
+    722042,
+    1963215,
+    683148,
+    599934,
+    1096919,
+    1957964,
+    625288
+  ],
+  "truth_squared_distances": [
+    1.1099990253033243,
+    1.116342320061477,
+    1.120674299223964,
+    1.191530255861892,
+    1.4253353456441857,
+    1.4707830005008589,
+    1.6951074231051562,
+    1.701911625115116,
+    1.7734727075921342,
+    1.8639167611267171
+  ],
+  "recall": 1.0,
+  "returned_count": 10
+}

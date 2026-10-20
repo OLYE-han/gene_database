@@ -1,0 +1,140 @@
+{
+  "comparison": [
+    {
+      "repeat": 0,
+      "qps": 374.4595885577677,
+      "mean_ms": 285.0973714885,
+      "p50_ms": 228.6784835,
+      "p95_ms": 924.9671118499999,
+      "p99_ms": 1932.1420647899995,
+      "max_ms": 2949.48276,
+      "recall": 0.97035,
+      "failures": 0,
+      "peak_inflight": 128
+    },
+    {
+      "repeat": 1,
+      "qps": 303.0116263118742,
+      "mean_ms": 338.823885348,
+      "p50_ms": 59.0885985,
+      "p95_ms": 1755.3427601499989,
+      "p99_ms": 3062.49504342,
+      "max_ms": 5966.868416,
+      "recall": 0.97005,
+      "failures": 0,
+      "peak_inflight": 128
+    },
+    {
+      "repeat": 2,
+      "qps": 299.5137677470408,
+      "mean_ms": 346.61968594350003,
+      "p50_ms": 67.105138,
+      "p95_ms": 1690.12770615,
+      "p99_ms": 3072.6163946599995,
+      "max_ms": 5592.474342,
+      "recall": 0.96985,
+      "failures": 0,
+      "peak_inflight": 128
+    }
+  ],
+  "median_qps": 303.0116263118742,
+  "median_p99_ms": 3062.49504342,
+  "head_stage_means": [
+    {
+      "repeat": 0,
+      "routing": 3.7686771665000007,
+      "entry_pool": 140.6752927156631,
+      "entry_rpc_after_pool": 2.7832605466246605,
+      "entry_return_scheduling": 2.9090242019999994,
+      "after_entry_ack": 124.41393063650001,
+      "head_merge_return": 3.8500522445,
+      "head_other": 6.697133976712249
+    },
+    {
+      "repeat": 1,
+      "routing": 2.5539358484999997,
+      "entry_pool": 311.4581983471289,
+      "entry_rpc_after_pool": 1.9384687019046396,
+      "entry_return_scheduling": 5.752913995499999,
+      "after_entry_ack": 14.083111879999999,
+      "head_merge_return": 1.3350920535,
+      "head_other": 1.7021645214664332
+    },
+    {
+      "repeat": 2,
+      "routing": 2.622548837,
+      "entry_pool": 319.2265113440808,
+      "entry_rpc_after_pool": 1.9830839675851166,
+      "entry_return_scheduling": 6.116305999500001,
+      "after_entry_ack": 12.983201191000001,
+      "head_merge_return": 1.367803496,
+      "head_other": 2.320231108334094
+    }
+  ],
+  "selected_query_id": 734744,
+  "selected_latency_ms": 158.67661,
+  "selected_recall": 1.0,
+  "selected_entry_node": 2,
+  "selected_nodes": [
+    1,
+    2
+  ],
+  "selected_head_stages": [
+    {
+      "clock_domain": "head",
+      "lane": "端到端",
+      "stage": "路由与入口准备",
+      "start_ms": 0.0,
+      "end_ms": 6.894688,
+      "duration_ms": 6.894688
+    },
+    {
+      "clock_domain": "head",
+      "lane": "端到端",
+      "stage": "入口连接池等待",
+      "start_ms": 6.894688,
+      "end_ms": 106.660292,
+      "duration_ms": 99.765604
+    },
+    {
+      "clock_domain": "head",
+      "lane": "端到端",
+      "stage": "入口建连/发送",
+      "start_ms": 106.660292,
+      "end_ms": 106.853655,
+      "duration_ms": 0.193363
+    },
+    {
+      "clock_domain": "head",
+      "lane": "端到端",
+      "stage": "接纳ACK等待",
+      "start_ms": 106.853655,
+      "end_ms": 108.790849,
+      "duration_ms": 1.937194
+    },
+    {
+      "clock_domain": "head",
+      "lane": "端到端",
+      "stage": "入口ACK后收尾/返回",
+      "start_ms": 108.790849,
+      "end_ms": 157.107338,
+      "duration_ms": 48.316489
+    },
+    {
+      "clock_domain": "head",
+      "lane": "端到端",
+      "stage": "返回后等齐报告",
+      "start_ms": 157.107338,
+      "end_ms": 157.160228,
+      "duration_ms": 0.05289
+    },
+    {
+      "clock_domain": "head",
+      "lane": "端到端",
+      "stage": "最终合并与返回",
+      "start_ms": 157.160228,
+      "end_ms": 158.67661,
+      "duration_ms": 1.516382
+    }
+  ]
+}

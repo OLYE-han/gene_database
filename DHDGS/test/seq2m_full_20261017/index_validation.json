@@ -1,0 +1,50 @@
+{
+  "passed": true,
+  "indexed_rows": 2000000,
+  "index_manifest_sha256": "7c954b90723b4060745c8529693492da3410baf6ca1c0204c1fdc86887f4cfd6",
+  "seconds": 3.187829122878611,
+  "nodes": [
+    {
+      "node": 0,
+      "rows": 907512,
+      "stored_samples_checked": 1024,
+      "code_samples_checked": 1024
+    },
+    {
+      "node": 1,
+      "rows": 644738,
+      "stored_samples_checked": 1024,
+      "code_samples_checked": 1024
+    },
+    {
+      "node": 2,
+      "rows": 644971,
+      "stored_samples_checked": 1024,
+      "code_samples_checked": 1024
+    }
+  ],
+  "shared_copies": [
+    {
+      "nodes": [
+        0,
+        1
+      ],
+      "all_shared_records_verified": 115845
+    },
+    {
+      "nodes": [
+        0,
+        2
+      ],
+      "all_shared_records_verified": 2193
+    },
+    {
+      "nodes": [
+        1,
+        2
+      ],
+      "all_shared_records_verified": 80305
+    }
+  ],
+  "scope": "All IDs/ownership and shared-copy vectors/edge unions; sampled original vectors and RaBitQ re-encoding"
+}

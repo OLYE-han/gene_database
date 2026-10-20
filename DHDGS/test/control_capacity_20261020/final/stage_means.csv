@@ -1,0 +1,97 @@
+case,mode,stage,mean_ms,fraction_of_total_wall
+final/02_lanes,lanes,Admission,0.011221727500000002,0.00011457295801062947
+final/02_lanes,lanes,Input queue + IPC,1.4059419080000009,0.014354556657223084
+final/02_lanes,lanes,Worker preparation,0.03993570949999993,0.0004077404631032243
+final/02_lanes,lanes,Receive queue,0.21974662449999996,0.002243595808382983
+final/02_lanes,lanes,Receive handoff,0.0026225335000000004,2.6775861432829224e-05
+final/02_lanes,lanes,Route queue,4.464882503000003,0.04558610031642752
+final/02_lanes,lanes,HNSW + route preparation,1.747673914500001,0.01784361365237937
+final/02_lanes,lanes,Dispatch queue,4.282351884500006,0.04372247701163293
+final/02_lanes,lanes,Register + request preparation,0.10116157149999973,0.0010328517141196627
+final/02_lanes,lanes,Entry RPC incl. ACK,5.403032249499995,0.055164535678846216
+final/02_lanes,lanes,Wait for complete reports,62.05266148849995,0.6335528089743498
+final/02_lanes,lanes,Merge queue,4.849118541999981,0.049509120151164654
+final/02_lanes,lanes,Merge + metrics,0.39311215900000024,0.004013644324064625
+final/02_lanes,lanes,Cleanup + persistence,1.1993404724999968,0.012245172197969575
+final/02_lanes,lanes,Output IPC,4.021252845000002,0.04105667628805898
+final/02_lanes,lanes,Client consumer,7.749888885499996,0.0791257579428332
+final/03_optimized,optimized,Admission,0.01846092050000001,0.00018630997483940764
+final/03_optimized,optimized,Input queue + IPC,1.5174746654999998,0.015314548738170633
+final/03_optimized,optimized,Worker preparation,0.034447225999999956,0.00034764581805914706
+final/03_optimized,optimized,Receive queue,0.21306833,0.0021503128839850966
+final/03_optimized,optimized,Receive handoff,0.003064062499999998,3.092291130777427e-05
+final/03_optimized,optimized,Route queue,3.738337940500002,0.03772778543928826
+final/03_optimized,optimized,HNSW + route preparation,1.6773546954999974,0.01692807848424279
+final/03_optimized,optimized,Dispatch queue,4.590749080000009,0.0463304278672797
+final/03_optimized,optimized,Register + request preparation,0.09968237800000006,0.001006007329759766
+final/03_optimized,optimized,Entry RPC incl. ACK,6.294145059999991,0.06352131833102145
+final/03_optimized,optimized,Wait for complete reports,62.889454598999905,0.6346884330065631
+final/03_optimized,optimized,Merge queue,2.953833052500005,0.02981046160136416
+final/03_optimized,optimized,Merge + metrics,0.2953379120000002,0.002980588045641776
+final/03_optimized,optimized,Cleanup + persistence,1.2418025984999996,0.012532430919793294
+final/03_optimized,optimized,Output IPC,3.3605223275000022,0.03391482186837827
+final/03_optimized,optimized,Client consumer,10.159394093500028,0.1025299067803047
+final/04_optimized,optimized,Admission,0.015036218499999995,0.0001431135244263165
+final/04_optimized,optimized,Input queue + IPC,1.2234364435000025,0.011644570165090608
+final/04_optimized,optimized,Worker preparation,0.03861141149999994,0.0003675003248216832
+final/04_optimized,optimized,Receive queue,0.19147440799999943,0.0018224380928171815
+final/04_optimized,optimized,Receive handoff,0.002775131999999992,2.64134842991442e-05
+final/04_optimized,optimized,Route queue,2.6917378924999995,0.02561974585748009
+final/04_optimized,optimized,HNSW + route preparation,1.6751603654999998,0.015944042305981496
+final/04_optimized,optimized,Dispatch queue,2.0372199820000025,0.01939009676240988
+final/04_optimized,optimized,Register + request preparation,0.17512195550000037,0.0016667967585090378
+final/04_optimized,optimized,Entry RPC incl. ACK,5.3675195105,0.05108762117115234
+final/04_optimized,optimized,Wait for complete reports,79.38826053300006,0.7556111107957288
+final/04_optimized,optimized,Merge queue,2.927488716999998,0.027863603339373214
+final/04_optimized,optimized,Merge + metrics,0.2853533025000003,0.0027159698981139365
+final/04_optimized,optimized,Cleanup + persistence,1.1655809745000032,0.011093906440968256
+final/04_optimized,optimized,Output IPC,3.0940898990000028,0.02944930005757473
+final/04_optimized,optimized,Client consumer,4.786105696999999,0.04555377102125393
+final/05_lanes,lanes,Admission,0.012463348999999978,0.00012023331680554161
+final/05_lanes,lanes,Input queue + IPC,1.2023947315000005,0.01159944302913719
+final/05_lanes,lanes,Worker preparation,0.08536316100000005,0.0008234942293628686
+final/05_lanes,lanes,Receive queue,0.22619446250000003,0.002182086890884766
+final/05_lanes,lanes,Receive handoff,0.0040090425000000075,3.867503646005438e-05
+final/05_lanes,lanes,Route queue,3.7043333274999934,0.03573552201086832
+final/05_lanes,lanes,HNSW + route preparation,1.6773752650000027,0.016181556950585672
+final/05_lanes,lanes,Dispatch queue,3.6751309414999938,0.03545380802473059
+final/05_lanes,lanes,Register + request preparation,0.09324518149999993,0.0008995316947218392
+final/05_lanes,lanes,Entry RPC incl. ACK,5.978220801999997,0.05767160300336178
+final/05_lanes,lanes,Wait for complete reports,71.21640086600006,0.6870211278743978
+final/05_lanes,lanes,Merge queue,4.300903304999989,0.04149060333784006
+final/05_lanes,lanes,Merge + metrics,0.29377745600000077,0.002834056716021851
+final/05_lanes,lanes,Cleanup + persistence,1.1940024394999986,0.011518482999633015
+final/05_lanes,lanes,Output IPC,3.843616185999996,0.037079176918679395
+final/05_lanes,lanes,Client consumer,6.152264908500017,0.059350597966509676
+final_remaining/00_optimized,optimized,Admission,0.014339783000000009,0.00011360074566542362
+final_remaining/00_optimized,optimized,Input queue + IPC,1.045367073499999,0.008281469743557592
+final_remaining/00_optimized,optimized,Worker preparation,0.03715612150000006,0.0002943533461025933
+final_remaining/00_optimized,optimized,Receive queue,0.21434882250000029,0.001698086091575134
+final_remaining/00_optimized,optimized,Receive handoff,0.003227329999999997,2.5567129886720815e-05
+final_remaining/00_optimized,optimized,Route queue,2.285066079499998,0.018102450401513454
+final_remaining/00_optimized,optimized,HNSW + route preparation,1.566458538999999,0.012409592117563414
+final_remaining/00_optimized,optimized,Dispatch queue,5.2133435600000055,0.04130046569226567
+final_remaining/00_optimized,optimized,Register + request preparation,0.107563159,0.000852122732159093
+final_remaining/00_optimized,optimized,Entry RPC incl. ACK,5.469663257499999,0.04333104793780836
+final_remaining/00_optimized,optimized,Wait for complete reports,99.63577058250017,0.7893214167272331
+final_remaining/00_optimized,optimized,Merge queue,2.3330441630000003,0.018482536073744213
+final_remaining/00_optimized,optimized,Merge + metrics,0.29486100750000016,0.0023359091500658037
+final_remaining/00_optimized,optimized,Cleanup + persistence,1.1732407434999994,0.009294493738619047
+final_remaining/00_optimized,optimized,Output IPC,2.4443654204999987,0.01936443072029587
+final_remaining/00_optimized,optimized,Client consumer,4.391839946499993,0.03479245765194586
+final_remaining/02_lanes,lanes,Admission,0.010682201499999993,8.420151428700112e-05
+final_remaining/02_lanes,lanes,Input queue + IPC,0.8932782940000008,0.00704118762733591
+final_remaining/02_lanes,lanes,Worker preparation,0.03180443,0.0002506956236535071
+final_remaining/02_lanes,lanes,Receive queue,0.20351131199999997,0.001604160026838508
+final_remaining/02_lanes,lanes,Receive handoff,0.0024614454999999963,1.9402127776275747e-05
+final_remaining/02_lanes,lanes,Route queue,1.5921591800000017,0.012550054774940374
+final_remaining/02_lanes,lanes,HNSW + route preparation,1.4369519004999975,0.011326647038036498
+final_remaining/02_lanes,lanes,Dispatch queue,2.0208646740000002,0.01592928814532351
+final_remaining/02_lanes,lanes,Register + request preparation,0.06931742500000014,0.0005463885090985828
+final_remaining/02_lanes,lanes,Entry RPC incl. ACK,4.970767361500008,0.03918163676342391
+final_remaining/02_lanes,lanes,Wait for complete reports,108.39602407399998,0.8544221310299224
+final_remaining/02_lanes,lanes,Merge queue,1.8482805674999996,0.014568909097131134
+final_remaining/02_lanes,lanes,Merge + metrics,0.30325930299999976,0.0023904147973824027
+final_remaining/02_lanes,lanes,Cleanup + persistence,1.0222636600000006,0.008057903436157067
+final_remaining/02_lanes,lanes,Output IPC,2.3210511205,0.018295481421469237
+final_remaining/02_lanes,lanes,Client consumer,1.7420426520000032,0.01373149806722366

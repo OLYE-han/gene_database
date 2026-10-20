@@ -1,0 +1,14 @@
+{
+  "project": "/sharenvme/usershome/xulihan/gene_database/DHDGS",
+  "plan": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/managed_three_hosts_20261019/cluster.yaml",
+  "python": "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+  "source_digest": "05b5f3cf0079fd9ca3dd",
+  "host": {
+    "id": 0,
+    "ssh": null,
+    "root": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/managed_three_hosts_20261019",
+    "python": "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+    "token_file": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/managed_three_hosts_20261019/cluster.token",
+    "state_file": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/managed_three_hosts_20261019/node_0_state.json"
+  }
+}

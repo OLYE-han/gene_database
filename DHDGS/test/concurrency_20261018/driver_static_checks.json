@@ -1,0 +1,65 @@
+[
+  {
+    "concurrency": 1,
+    "assigned_queries": 2000,
+    "unique_queries": 2000,
+    "client_processes": 20,
+    "passed": true
+  },
+  {
+    "concurrency": 16,
+    "assigned_queries": 2000,
+    "unique_queries": 2000,
+    "client_processes": 20,
+    "passed": true
+  },
+  {
+    "concurrency": 32,
+    "assigned_queries": 2000,
+    "unique_queries": 2000,
+    "client_processes": 20,
+    "passed": true
+  },
+  {
+    "concurrency": 64,
+    "assigned_queries": 2000,
+    "unique_queries": 2000,
+    "client_processes": 20,
+    "passed": true
+  },
+  {
+    "concurrency": 128,
+    "assigned_queries": 2000,
+    "unique_queries": 2000,
+    "client_processes": 20,
+    "passed": true
+  },
+  {
+    "concurrency": 256,
+    "assigned_queries": 2000,
+    "unique_queries": 2000,
+    "client_processes": 20,
+    "passed": true
+  },
+  {
+    "concurrency": 512,
+    "assigned_queries": 2000,
+    "unique_queries": 2000,
+    "client_processes": 20,
+    "passed": true
+  },
+  {
+    "concurrency": 1000,
+    "assigned_queries": 2000,
+    "unique_queries": 2000,
+    "client_processes": 20,
+    "passed": true
+  },
+  {
+    "concurrency": 2000,
+    "assigned_queries": 2000,
+    "unique_queries": 2000,
+    "client_processes": 20,
+    "passed": true
+  }
+]

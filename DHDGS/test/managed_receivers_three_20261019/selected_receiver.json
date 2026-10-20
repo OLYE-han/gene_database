@@ -1,0 +1,13 @@
+{
+  "registration_ms": 155.356358,
+  "registered_ns": 2630032888958870,
+  "first_callback_dispatch_ns": 2630032922242642,
+  "last_callback_dispatch_ns": 2630032928849237,
+  "callback_count": 3,
+  "terminal_publish_ns": 2630032929067787,
+  "receiver_pid": 1525258,
+  "clock_domain": "ba5b1c1b-e1d7-4dc3-a61a-8e9c4e485f34:time:[4026531834]",
+  "terminal_parent_received_ns": 2630032952737916,
+  "terminal_parent_applied_ns": 2630032952759208,
+  "receiver_index": 0
+}

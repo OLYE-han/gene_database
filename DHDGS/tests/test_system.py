@@ -40,6 +40,9 @@ def fixture(root, metric="l2"):
     c["build"].update(degree=8, candidate_list_size=16)
     c["routing"].update(min_samples=12, max_samples=24, entry_candidates=8, ef_search=24)
     c["search"].update(execution='reference',top_k=5, max_expansions=96, frontier_size=96, max_inflight=1)
+    c['peer']['execution_model'] = 'blocking'  # Legacy reference fixture; native has dedicated tests.
+    c['peer']['control']['scheduler'] = 'scan'  # Legacy fixture; event has dedicated handoff tests.
+    c['storage']['io']['backend'] = 'thread_pool'
     c["scheduler"]["mode"] = "reference"
     c["storage"]["cache_bytes_per_shard"] = 0
     c["query"] = {"vectors": "queries.npy", "ids": "query_ids.npy", "row": 0}

@@ -1,0 +1,8 @@
+{
+  "source_files_verified": 873,
+  "same_immutable_index_as_final": true,
+  "tests": 3,
+  "requests": 3072,
+  "incomplete_metrics": 14,
+  "scope": "Original source revision and index provenance verified; baseline concurrency 8 has incomplete control metrics and did not pass strict audit"
+}

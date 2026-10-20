@@ -1,0 +1,12 @@
+repetitions: 3
+queries: 2000
+concurrency: 128
+warmup: 32
+trace_query_id: 734744
+plan: cluster.yaml
+previous_plan: ../managed_receivers_three_20261019/cluster.yaml
+worker_threads: 32
+budget: 200
+receiver_processes: 1
+head_query_workers: 2
+head_entry_workers: 4

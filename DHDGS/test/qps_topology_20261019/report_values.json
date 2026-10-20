@@ -1,0 +1,111 @@
+{
+  "groups": [
+    {
+      "topology": "local",
+      "heads": 1,
+      "entry_connections": 16,
+      "control_connections": 2,
+      "qps_median": 491.8261261890214,
+      "qps_min": 487.6920661905728,
+      "qps_max": 496.46056224169104,
+      "p99_median": 1741.9952380599998,
+      "mean_latency_ms": 206.44711026116667
+    },
+    {
+      "topology": "local",
+      "heads": 1,
+      "entry_connections": 2,
+      "control_connections": 2,
+      "qps_median": 313.56619773145434,
+      "qps_min": 311.5583486272017,
+      "qps_max": 338.6001929120085,
+      "p99_median": 2769.1174958700003,
+      "mean_latency_ms": 322.45179919183335
+    },
+    {
+      "topology": "local",
+      "heads": 1,
+      "entry_connections": 64,
+      "control_connections": 2,
+      "qps_median": 515.3577081463869,
+      "qps_min": 495.1458890197403,
+      "qps_max": 517.94135316133,
+      "p99_median": 460.67904161,
+      "mean_latency_ms": 228.8506680113333
+    },
+    {
+      "topology": "remote",
+      "heads": 1,
+      "entry_connections": 16,
+      "control_connections": 2,
+      "qps_median": 469.5475815189503,
+      "qps_min": 461.06612614046577,
+      "qps_max": 480.79932926955007,
+      "p99_median": 1608.9798897099995,
+      "mean_latency_ms": 226.0077269036667
+    },
+    {
+      "topology": "remote",
+      "heads": 1,
+      "entry_connections": 2,
+      "control_connections": 2,
+      "qps_median": 293.5266739643239,
+      "qps_min": 290.41736172374857,
+      "qps_max": 297.6673816259136,
+      "p99_median": 3173.4318065099997,
+      "mean_latency_ms": 352.1041535063334
+    },
+    {
+      "topology": "remote",
+      "heads": 1,
+      "entry_connections": 64,
+      "control_connections": 2,
+      "qps_median": 486.6347004620945,
+      "qps_min": 469.4066345315047,
+      "qps_max": 488.6450960213035,
+      "p99_median": 513.12292812,
+      "mean_latency_ms": 242.87038225399994
+    },
+    {
+      "topology": "remote",
+      "heads": 1,
+      "entry_connections": 64,
+      "control_connections": 16,
+      "qps_median": 455.21628474768073,
+      "qps_min": 441.76019903505767,
+      "qps_max": 455.9284004021753,
+      "p99_median": 1171.06817839,
+      "mean_latency_ms": 256.22354282316667
+    },
+    {
+      "topology": "remote",
+      "heads": 20,
+      "entry_connections": 2,
+      "control_connections": 2,
+      "qps_median": 1099.7280587507546,
+      "qps_min": 1096.8704174964837,
+      "qps_max": 1143.6043889951413,
+      "p99_median": 244.91498291,
+      "mean_latency_ms": 100.02763400800002
+    },
+    {
+      "topology": "local",
+      "heads": 20,
+      "entry_connections": 2,
+      "control_connections": 2,
+      "qps_median": 1422.7241410883291,
+      "qps_min": 1344.9384575999643,
+      "qps_max": 1440.3812512869492,
+      "p99_median": 185.26743758,
+      "mean_latency_ms": 79.115236934
+    }
+  ],
+  "queries": 54000,
+  "failures": 0,
+  "all_audits": true,
+  "recall_range": [
+    0.9695499999999999,
+    0.97065
+  ],
+  "physical_bytes": 0
+}

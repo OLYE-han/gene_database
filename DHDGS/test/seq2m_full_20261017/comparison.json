@@ -1,0 +1,71 @@
+[
+  {
+    "mode": "blocking",
+    "concurrency": 1,
+    "qps": 5.090823992716922,
+    "recall": 0.9911132812500001,
+    "latency_ms": {
+      "count": 1024,
+      "mean": 196.36569417343708,
+      "p50": 193.88621905818582,
+      "p90": 244.33585042133927,
+      "p95": 268.1553717702627,
+      "p99": 516.7240514419964,
+      "max": 1299.0228948183358
+    },
+    "queries": 1024,
+    "audit": {
+      "failures": 0,
+      "incomplete_metrics": 0,
+      "node_revisits": 0,
+      "unapproved_dispatches": 0
+    },
+    "physical_read_bytes": 0
+  },
+  {
+    "mode": "blocking",
+    "concurrency": 4,
+    "qps": 8.218337603561729,
+    "recall": 0.9911132812500001,
+    "latency_ms": {
+      "count": 1024,
+      "mean": 485.71017611675416,
+      "p50": 448.11371015384793,
+      "p90": 777.479230472818,
+      "p95": 923.3776536770163,
+      "p99": 1294.8085933225225,
+      "max": 1743.4756541624665
+    },
+    "queries": 1024,
+    "audit": {
+      "failures": 0,
+      "incomplete_metrics": 0,
+      "node_revisits": 0,
+      "unapproved_dispatches": 0
+    },
+    "physical_read_bytes": 0
+  },
+  {
+    "mode": "blocking",
+    "concurrency": 8,
+    "qps": 8.739429218023211,
+    "recall": 0.9911132812500001,
+    "latency_ms": {
+      "count": 1024,
+      "mean": 911.3740034963485,
+      "p50": 910.7162705622613,
+      "p90": 1638.3260293398057,
+      "p95": 1851.1904773768038,
+      "p99": 2068.6482216976583,
+      "max": 2527.4256579577923
+    },
+    "queries": 1024,
+    "audit": {
+      "failures": 0,
+      "incomplete_metrics": 14,
+      "node_revisits": 0,
+      "unapproved_dispatches": 0
+    },
+    "physical_read_bytes": 0
+  }
+]

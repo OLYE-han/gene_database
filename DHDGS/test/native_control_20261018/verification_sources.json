@@ -1,0 +1,9 @@
+{
+  "tests/test_native_wire.py": "888cca1df62e87349ac6679ca3478f34e583797a3f7c96b3e47c04160ce0da3e",
+  "tests/test_native_search.py": "004eb169bed92e744d634817f4e3f107bbc9aa345a8718fd127c2ce9094e99ee",
+  "tests/test_native_control.py": "e626753f4207072b9ffac04d62d9d10589b31893042dec2c48990d9a71e635fd",
+  "python/dhdgs/.native_libs/liburing.so.2.5": "51594b92ac35f96595d3fcec9c3ec5d190637d9b426d5f8a8f4207875d2962f6",
+  "python/dhdgs/.native_libs/liburing.so.2": "51594b92ac35f96595d3fcec9c3ec5d190637d9b426d5f8a8f4207875d2962f6",
+  "test/native_control_20261018/regression_final.log": "b28bc8ee63c799a6a39fb712e38d0094334ce19e020fd66da4d8786d09473fbe",
+  "test/native_control_20261018/build_final.log": "d66c41e9e15df91061ec2b59ef09c5870d4cbf234c599d5d203b0dcdda3a224d"
+}

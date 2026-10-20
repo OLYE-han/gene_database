@@ -107,7 +107,9 @@ class PeerTests(unittest.TestCase):
     def test_expired_lease_fails_branch(self):
         shard=Shard(Path(self.c['paths']['output'])/'index/shard_0',0)
         self.c['peer']['lease_timeout_ms']=30
+        running=threading.Event()
         def check_lease(state,shard,directory,c,spawn,cancelled):
+            running.set()
             deadline=time.monotonic()+2
             while not cancelled() and time.monotonic()<deadline:time.sleep(.002)
             if cancelled():raise TimeoutError('head lease expired')
@@ -117,6 +119,7 @@ class PeerTests(unittest.TestCase):
                 runtime=PeerRuntime(self.c,shard)
                 try:
                     runtime.accept(self.runtime_state(shard))
+                    self.assertTrue(running.wait(2))
                     runtime.workers.shutdown(wait=True)
                     rec=runtime.records[('q','root')]
                     self.assertEqual(rec['status'],'failed')
@@ -210,7 +213,8 @@ class PeerTests(unittest.TestCase):
             self.assertLessEqual(s['expanded'],192)
             self.assertGreater(s['control_rpc_count'],0)
             self.assertEqual(s['control_rpc_count'],sum(v['rpc_count'] for v in s['control_by_kind'].values()))
-            self.assertEqual(s['control_by_kind']['cancel']['rpc_count'],len(s['keepalive_nodes']))
+            self.assertEqual(s['control_by_kind']['cancel']['rpc_count'],0)
+            self.assertEqual(s['control_by_kind']['lease']['rpc_count'],0)
             self.assertEqual(s['all_protocol_bytes'],s['wire_bytes']+s['control_wire_bytes'])
             self.assertEqual(s['peer_branch_rpc_count'],s['branch_count']-1)
             self.assertLessEqual(s['peer_branch_rpc_count'],2)

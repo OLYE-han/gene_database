@@ -1,0 +1,54 @@
+{
+  "deployed_release": "05b5f3cf0079fd9ca3dd",
+  "nodes": [
+    {
+      "node": 0,
+      "source_digest": "05b5f3cf0079fd9ca3dd",
+      "checked": 623,
+      "changed": [],
+      "root": "/sharenvme/usershome/xulihan"
+    },
+    {
+      "node": 1,
+      "source_digest": "05b5f3cf0079fd9ca3dd",
+      "checked": 623,
+      "changed": [],
+      "root": "/sharenvme/userhome/xulihan/dhdgs_deploy/managed_three_hosts_20261019/releases/05b5f3cf0079fd9ca3dd"
+    },
+    {
+      "node": 2,
+      "source_digest": "05b5f3cf0079fd9ca3dd",
+      "checked": 623,
+      "changed": [],
+      "root": "/sharenvme/xulihan_dhdgs/managed_three_hosts_20261019/releases/05b5f3cf0079fd9ca3dd"
+    }
+  ],
+  "ready": true,
+  "settings": {
+    "peer.child_budget_fraction": 0.5,
+    "peer.max_branches": 16,
+    "peer.worker_threads": 32,
+    "routing.ef_search": 64,
+    "routing.entry_candidates": 16,
+    "scheduler.bandwidth_bytes_per_ms": 100000.0,
+    "scheduler.ewma_weight": 0.2,
+    "scheduler.exploration": 0.02,
+    "scheduler.kappa": 1.0,
+    "scheduler.local_batch_ms": 0.15,
+    "scheduler.max_wait_ms": 1.0,
+    "scheduler.mode": "adaptive",
+    "scheduler.probability_temperature": 1.0,
+    "scheduler.remote_rtt_ms": 0.5,
+    "scheduler.remote_selection": "probabilistic",
+    "scheduler.remote_weight": 1.0,
+    "search.exclude_self": true,
+    "search.fallback_enabled": true,
+    "search.frontier_size": 64,
+    "search.local_beam": 4,
+    "search.max_expansions": 200,
+    "search.max_fallback_entries": 2,
+    "search.max_inflight": 3,
+    "search.stagnation_batches": 8,
+    "search.top_k": 10
+  }
+}

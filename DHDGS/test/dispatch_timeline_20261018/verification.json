@@ -1,0 +1,12 @@
+{
+  "requests_audited": 2000,
+  "all_successful": true,
+  "source_hashes_verified": true,
+  "frozen_query_rows_and_stored_truth_recall_verified": true,
+  "budget_single_visit_approved_dispatch_fixed_thread_verified": true,
+  "ready_wait_split_verified": true,
+  "all_test_services_and_clients_stopped": true,
+  "pending_at_end": 0,
+  "admission_rejections": 0,
+  "control_errors": 0
+}

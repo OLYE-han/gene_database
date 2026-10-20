@@ -1,0 +1,10 @@
+{
+  "physical_hosts": 2,
+  "logical_data_nodes": 3,
+  "temporary_local_data1": true,
+  "same_pid_and_fd": true,
+  "configuration_restored": true,
+  "baseline": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/managed_cluster_20261019/two_host_diagnostic/runs/20261019T005755_benchmark_840a2244",
+  "changed": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/managed_cluster_20261019/two_host_diagnostic/runs/20261019T005805_benchmark_9444c544",
+  "collected": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/managed_cluster_20261019/two_host_diagnostic/runs/20261019T005813_collect_2898ede9"
+}

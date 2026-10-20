@@ -1,0 +1,322 @@
+"""Persistent HNSW head, coordinated live configuration, and result collection."""
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
+from datetime import datetime
+from zoneinfo import ZoneInfo
+import gzip
+import hashlib
+import json
+import socket
+import threading
+import time
+import uuid
+from pathlib import Path
+
+import msgpack
+import numpy as np
+import queue
+
+from .managed_node import clean_config, hot_values, patched, revision, save_json
+from .transport import send, receive
+from .search import Engine
+from .metrics import distribution, export_query_csv, summarize_query_timings, summarize_per_query_timings, export_resource_csvs
+
+
+def admin_rpc(node,token,op,timeout=30.,limit=8388608,**fields):
+    rid=uuid.uuid4().hex
+    message=dict(version=1,op=op,request_id=rid,token=token,**fields)
+    # Identity and transaction fields are unchanged across a lost-ACK retry.
+    for attempt in range(2):
+        try:
+            with socket.create_connection((node['host'],node['port']),timeout) as sock:
+                sock.settimeout(timeout);send(sock,message,limit);reply,_=receive(sock,limit)
+            if reply.get('request_id')!=rid:raise ValueError('Management reply identity mismatch')
+            if not reply.get('ok'):raise RuntimeError(f"Node {node['id']}: {reply.get('error')}")
+            return reply['result']
+        except (OSError,ConnectionError):
+            if attempt:raise
+
+
+class ClusterHead:
+    def __init__(self,c,settings,token,truth=None):
+        self.settings=settings;self.token=token;self.truth=truth
+        self.root=Path(settings['results_directory']);self.root.mkdir(parents=True,exist_ok=True)
+        self.state_file=self.root/'head_state.json';self.c=clean_config(c)
+        if self.state_file.exists():self.c=patched(self.c,json.loads(self.state_file.read_text())['settings'])
+        self.c['_cluster_revision']=revision(self.c)
+        self.engine=Engine(self.c)
+        self.op_lock=threading.Lock();self.cv=threading.Condition();self.active=0
+        self.busy=None;self.ready=False;self.error=None
+
+    def rpc(self,node,op,**fields):
+        return admin_rpc(node,self.token,op,self.settings['command_timeout_seconds'],
+                         self.c['network']['max_message_bytes'],**fields)
+
+    def nodes(self):return self.c['cluster']['nodes']
+
+    def status(self):
+        nodes=[]
+        for n in self.nodes():
+            try:nodes.append(self.rpc(n,'admin_status'))
+            except Exception as exc:nodes.append(dict(node_id=n['id'],error=str(exc)))
+        hub=self.engine.head_hub
+        receivers=hub.status() if hasattr(hub,'status') else []
+        return dict(ready=self.ready,busy=self.busy,active_queries=self.active,revision=revision(self.c),
+                    head_receivers=receivers,
+                    head_pipeline=(self.engine.head_flow.ingress.status() if hasattr(self.engine.head_flow,'ingress') else None),
+                    error=self.error,settings=hot_values(self.c),nodes=nodes)
+
+    @contextmanager
+    def exclusive(self,operation,require_ready=True):
+        if not self.op_lock.acquire(blocking=False):raise RuntimeError('Another control operation is running')
+        try:
+            with self.cv:
+                if require_ready and not self.ready:raise RuntimeError('Cluster is not ready; run recover')
+                self.busy=operation
+                if not self.cv.wait_for(lambda:self.active==0,self.settings['drain_timeout_seconds']):
+                    raise RuntimeError('Timed out draining head queries')
+            yield
+        finally:
+            with self.cv:self.busy=None;self.cv.notify_all()
+            self.op_lock.release()
+
+    def quiescent(self):
+        deadline=time.monotonic()+self.settings['drain_timeout_seconds']
+        while True:
+            states=[self.rpc(n,'admin_status') for n in self.nodes()]
+            if all(s['quiescent'] for s in states):return states
+            if time.monotonic()>=deadline:raise RuntimeError('Data nodes did not drain; configuration not changed')
+            time.sleep(.02)
+
+    def configure(self,patch,recover=False):
+        with self.exclusive('recover' if recover else 'configure',require_ready=not recover):
+            candidate=patched(self.c,patch)
+            # Native Router fixes ef on its first search to permit lock-free
+            # concurrent reads. Replace only the head's HNSW object while idle.
+            router=self.engine.router
+            if candidate['routing']['ef_search']!=self.c['routing']['ef_search'] and not candidate['peer'].get('head_lanes',{}).get('enabled',False):
+                from .index import native
+                m=self.engine.manifest;r=candidate['routing']
+                router=native().Router(m['dimension'],m['route_samples'],r['hnsw_m'],r['ef_construction'],candidate['seed'])
+                router.load(str(Path(candidate['paths']['output'])/'index/router.hnsw'))
+            self.ready=False;tx=uuid.uuid4().hex;log=self.root/'transactions'/f'{tx}.json'
+            journal=dict(transaction=tx,phase='draining',target_revision=revision(candidate),patch=patch)
+            save_json(log,journal)
+            try:
+                states=self.quiescent()
+                for n,s in zip(self.nodes(),states):
+                    if s['epoch']!=self.engine.manifest['epoch']:raise ValueError('Data node index epoch mismatch')
+                    self.rpc(n,'admin_pause')
+                    if s.get('transaction'):
+                        if not recover:raise RuntimeError('Pending transaction requires recover')
+                        self.rpc(n,'admin_abort',transaction=s['transaction']['id'])
+                states=self.quiescent()
+                for n,s in zip(self.nodes(),states):
+                    self.rpc(n,'admin_prepare',transaction=tx,expected_revision=s['revision'],patch=hot_values(candidate))
+                journal['phase']='prepared';save_json(log,journal)
+                for n in self.nodes():self.rpc(n,'admin_commit',transaction=tx)
+                # Last fully chosen head configuration is the recovery target.
+                # Before this write: recover old. After this write: recover new.
+                save_json(self.state_file,dict(settings=hot_values(candidate),revision=revision(candidate)))
+                candidate['_cluster_revision']=revision(candidate)
+                self.c=candidate;self.engine.apply_configuration(candidate,router)
+                journal['phase']='committed';save_json(log,journal)
+                for n in self.nodes():self.rpc(n,'admin_finalize',transaction=tx)
+                for n in self.nodes():self.rpc(n,'admin_resume',revision=revision(candidate))
+                states=[self.rpc(n,'admin_status') for n in self.nodes()]
+                if not all(s['accepting'] and s['revision']==revision(candidate) for s in states):
+                    raise RuntimeError('Cluster configuration verification failed')
+                self.ready=True;self.error=None;journal.update(phase='complete',nodes=states)
+                save_json(log,journal);return dict(revision=revision(candidate),nodes=states,transaction=tx)
+            except Exception as exc:
+                self.error=str(exc);journal.update(phase='failed',error=self.error);save_json(log,journal)
+                # No new query may enter a partially updated cluster. Recovery
+                # resolves pending node transactions against head_state.json.
+                raise
+
+    def query(self,vector,query_id=None):
+        with self.cv:
+            if not self.ready or self.busy:raise RuntimeError('Head is paused or not ready')
+            self.active+=1
+        try:
+            result=self.engine.search(vector,query_id);result['config_revision']=revision(self.c);return result
+        finally:
+            with self.cv:self.active-=1;self.cv.notify_all()
+
+    def query_async(self,vector,query_id=None):
+        with self.cv:
+            if not self.ready or self.busy:raise RuntimeError('Head is paused or not ready')
+            self.active+=1
+        try:future=self.engine.search_async(vector,query_id)
+        except BaseException:
+            with self.cv:self.active-=1;self.cv.notify_all()
+            raise
+        def finished(f):
+            try:
+                if not f.cancelled() and f.exception() is None:f.result()['config_revision']=revision(self.c)
+            finally:
+                with self.cv:self.active-=1;self.cv.notify_all()
+        future.add_done_callback(finished)
+        return future
+
+    def pull(self):
+        def node_metrics(n):
+            meta=self.rpc(n,'admin_snapshot');pieces=[]
+            for offset in range(0,meta['bytes'],262144):
+                reply=self.rpc(n,'admin_chunk',snapshot_id=meta['snapshot_id'],offset=offset,count=262144)
+                pieces.append(reply['data'])
+            raw=b''.join(pieces)
+            if len(raw)!=meta['bytes'] or hashlib.sha256(raw).hexdigest()!=meta['sha256']:
+                raise ValueError('Incomplete metrics snapshot')
+            return n['id'],msgpack.unpackb(raw,raw=False,strict_map_key=False)
+        with ThreadPoolExecutor(max_workers=len(self.nodes())) as pool:return dict(pool.map(node_metrics,self.nodes()))
+
+    def new_run(self,kind):
+        name=datetime.now(ZoneInfo('Asia/Shanghai')).strftime('%Y%m%dT%H%M%S')+'_'+kind+'_'+uuid.uuid4().hex[:8]
+        path=self.root/'runs'/name;path.mkdir(parents=True)
+        save_json(path/'configuration.json',dict(config=clean_config(self.c),revision=revision(self.c)))
+        return path
+
+    def collect(self):
+        with self.exclusive('collect'):
+            self.quiescent();path=self.new_run('collect');data=self.pull()
+            with gzip.open(path/'nodes.json.gz','wt') as f:json.dump(data,f,allow_nan=False)
+            return dict(directory=str(path),nodes=list(data),revision=revision(self.c))
+
+    def stop_nodes(self):
+        with self.exclusive('stop_nodes',require_ready=False):
+            self.quiescent();self.ready=False
+            results=[]
+            for n in self.nodes():results.append(self.rpc(n,'admin_shutdown'))
+            return results
+
+    def benchmark(self,options):
+        allowed={'queries','concurrency','warmup'}
+        if not isinstance(options,dict) or set(options)-allowed:raise ValueError('Unknown benchmark options')
+        opts={**self.settings['benchmark'],**options}
+        count,concurrency,warmup=[opts[k] for k in ('queries','concurrency','warmup')]
+        if any(type(v)is not int for v in (count,concurrency,warmup)) or not 1<=count<=self.settings['max_queries'] or not 1<=concurrency<=self.settings['max_client_threads'] or not 0<=warmup<=self.settings['max_queries']:
+            raise ValueError('Invalid benchmark limits')
+        if self.truth is None:raise RuntimeError('No validated ground truth configured')
+        with self.exclusive('benchmark'):
+            path=self.new_run('benchmark');save_json(path/'benchmark_options.json',opts)
+            try:
+                selection=json.loads(Path(self.settings['query_selection']).read_text())['validation'][:count]
+                if len(selection)!=count:raise ValueError('Not enough validation queries')
+                vectors=np.load(self.c['query']['vectors'],mmap_mode='r');ids=np.load(self.c['query']['ids'],mmap_mode='r')
+                truth=[self.truth(int(row),self.c['search']['top_k']) for row in selection]
+                for i in range(warmup):
+                    row=selection[i%count];self.engine.search(vectors[row],int(ids[row]))
+                self.quiescent();before=self.pull();gate=threading.Event();results=[];result_lock=threading.Lock()
+                def worker(i):
+                    local=[];gate.wait()
+                    for job in range(i,count,concurrency):
+                        row=selection[job];start=time.monotonic_ns()
+                        try:found=self.engine.search(vectors[row],int(ids[row]))
+                        except Exception as exc:
+                            context=getattr(exc,'dhdgs_metrics',{})
+                            found=dict(status='error',ids=[],error=str(exc),request_id=context.get('request_id',uuid.uuid4().hex),stats=context.get('stats',{'metrics_complete':False}))
+                        end=time.monotonic_ns();expected=truth[job]
+                        found.update(job=job,query_id=int(ids[row]),query_row=int(row),client_start_ns=start,client_end_ns=end,
+                            client_wall_ms=(end-start)/1e6,offered_ns=offered,client_backlog_ms=(start-offered)/1e6,
+                            offered_to_complete_ms=(end-offered)/1e6,truth_ids=expected,
+                            recall=len(set(found['ids'])&set(expected))/len(expected),config_revision=revision(self.c))
+                        local.append(found)
+                    with result_lock:results.extend(local)
+                pipeline=any(self.c['peer'].get(k,{}).get('enabled',False) for k in ('head_pipeline','head_direct','head_lanes'))
+                threads=[] if pipeline else [threading.Thread(target=worker,args=(i,),name=f'head-query-{i}') for i in range(min(concurrency,count))]
+                for t in threads:t.start()
+                from .metrics import process_snapshot
+                hub=self.engine.head_hub
+                receiver_rows=hub.status() if hasattr(hub,'status') else []
+                receiver_pids=[w['pid'] for w in receiver_rows]
+                receiver_roles={w['pid']:w.get('role','report_receiver') for w in receiver_rows}
+                report_receiver_pids=set(receiver_pids)
+                if self.c['peer'].get('head_direct',{}).get('enabled',False):
+                    receiver_pids+=self.engine.head_flow.status()['result_processes']
+                head_before=[process_snapshot(pid) for pid in [None,*receiver_pids]]
+                offered=time.monotonic_ns();gate.set()
+                if pipeline:
+                    completed=queue.Queue();next_job=0;inflight=0
+                    def submit(job):
+                        row=selection[job];start=time.monotonic_ns()
+                        future=self.engine.search_async(vectors[row],int(ids[row]))
+                        future.add_done_callback(lambda f:completed.put((job,start,time.monotonic_ns(),f)))
+                    while next_job<count and inflight<concurrency:
+                        submit(next_job);next_job+=1;inflight+=1
+                    while inflight:
+                        job,start,end,future=completed.get();row=selection[job];expected=truth[job]
+                        try:found=future.result()
+                        except Exception as exc:
+                            context=getattr(exc,'dhdgs_metrics',{})
+                            found=dict(status='error',ids=[],error=str(exc),request_id=context.get('request_id',uuid.uuid4().hex),stats=context.get('stats',{'metrics_complete':False}))
+                        # Include benchmark consumer scheduling as API-return overhead;
+                        # do not stop the clock at the merge thread's completion.
+                        end=time.monotonic_ns()
+                        found.update(job=job,query_id=int(ids[row]),query_row=int(row),client_start_ns=start,client_end_ns=end,
+                            client_wall_ms=(end-start)/1e6,offered_ns=offered,client_backlog_ms=(start-offered)/1e6,
+                            offered_to_complete_ms=(end-offered)/1e6,truth_ids=expected,
+                            recall=len(set(found['ids'])&set(expected))/len(expected),config_revision=revision(self.c))
+                        results.append(found);inflight-=1
+                        if next_job<count:submit(next_job);next_job+=1;inflight+=1
+                for t in threads:t.join()
+                head_after=[process_snapshot(p['pid']) for p in head_before]
+                self.quiescent();after=self.pull();results.sort(key=lambda q:q['job'])
+                if len(results)!=count:raise RuntimeError('Missing benchmark results')
+                end=max(q['client_end_ns'] for q in results);ok=[q for q in results if q['status']=='ok']
+                events=sorted([(q['client_start_ns'],1) for q in results]+[(q['client_end_ns'],-1) for q in results]);active=peak=0
+                for _,delta in events:active+=delta;peak=max(peak,active)
+                summary=dict(query_count=count,successful_queries=len(ok),failed_queries=count-len(ok),
+                    qps=len(ok)/((end-offered)/1e9),measured_wall_seconds=(end-offered)/1e9,
+                    actual_peak_inflight=peak,configured_concurrency=concurrency,
+                    latency_ms=distribution([q['client_wall_ms'] for q in ok]),
+                    client_backlog_ms=distribution([q['client_backlog_ms'] for q in results]),
+                    offered_to_complete_ms=distribution([q['offered_to_complete_ms'] for q in results]),
+                    recall_at_k_all_requests=sum(q['recall'] for q in results)/count,
+                    config_revision=revision(self.c),clock_domain='per-host monotonic; never subtract across hosts',
+                    node_pids={str(k):v['process']['pid'] for k,v in after.items()})
+                # Host-local counter differences only. Snapshot windows include
+                # collection overhead, and are distinct from the QPS interval.
+                loads=[];totals={n['id']:{} for n in self.nodes()}
+                for sid,current in after.items():
+                    proc,old=current['process'],before[sid]['process']
+                    if proc['pid']!=old['pid']:raise RuntimeError('Data process restarted during benchmark')
+                    span=(proc['monotonic_ns']-old['monotonic_ns'])/1e9
+                    deltas={key:None if proc[key] is None or old[key] is None else proc[key]-old[key]
+                        for key in ('cpu_seconds','storage_read_bytes','storage_write_bytes')}
+                    loads.append(dict(shard_id=sid,worker=sid,process=proc,process_deltas=deltas,
+                        process_window_seconds=span,mean_cpu_cores=None if deltas['cpu_seconds'] is None else deltas['cpu_seconds']/span))
+                for q in results:
+                    for sid,values in q['stats'].get('per_shard',{}).items():
+                        for key,value in values.items():totals[int(sid)][key]=totals[int(sid)].get(key,0)+value
+                summary['node_process_load']=loads
+                summary['head_process_load']=[]
+                for i,(old,proc) in enumerate(zip(head_before,head_after)):
+                    span=(proc['monotonic_ns']-old['monotonic_ns'])/1e9
+                    cpu=None if proc['cpu_seconds'] is None or old['cpu_seconds'] is None else proc['cpu_seconds']-old['cpu_seconds']
+                    summary['head_process_load'].append(dict(role='hnsw_head' if i==0 else
+                        (receiver_roles[proc['pid']] if proc['pid'] in report_receiver_pids else 'result_process'),
+                        process=proc,process_window_seconds=span,cpu_seconds=cpu,
+                        mean_cpu_cores=None if cpu is None else cpu/span))
+                summary['query_metric_distributions']={key:distribution([q['stats'][key] for q in ok if isinstance(q['stats'].get(key),(int,float))])
+                    for key in ('query_ready_queue_ms','pread_ms','exact_distance_ms','rabitq_ms','expanded',
+                        'max_expanded_depth','max_cross_shard_depth','peer_branch_rpc_count','control_rpc_count',
+                        'all_protocol_rpc_count','all_protocol_bytes','file_read_bytes','server_thread_cpu_ms')}
+                summary['audit']=dict(metrics_complete=all(q['stats'].get('metrics_complete',False) for q in ok),
+                    no_node_revisit=all(q['stats'].get('node_revisit_count',0)==0 for q in ok),
+                    budget_respected=all(q['stats']['expanded']<=self.c['search']['max_expansions'] for q in ok),
+                    no_router_expansion=all(q['stats'].get('router_expand_rpc_count',0)==0 for q in ok))
+                for name,value in [('nodes_before',before),('nodes_after',after)]:
+                    with gzip.open(path/(name+'.json.gz'),'wt') as f:json.dump(value,f,allow_nan=False)
+                with gzip.open(path/'queries.jsonl.gz','wt') as f:
+                    for q in results:f.write(json.dumps(q,allow_nan=False)+'\n')
+                export_query_csv(path/'queries.csv',results)
+                export_resource_csvs(path,dict(per_node_query_totals=totals,node_process_load=loads,
+                    query_timing_summary=summarize_query_timings(results),per_query_timing_means=summarize_per_query_timings(results),
+                    build_profile=self.engine.manifest.get('build_profile')))
+                save_json(path/'summary.json',summary)
+                return dict(directory=str(path),**summary)
+            except BaseException as exc:
+                save_json(path/'failed.json',dict(error=str(exc),revision=revision(self.c)));raise
+
+    def close(self):self.engine.close()

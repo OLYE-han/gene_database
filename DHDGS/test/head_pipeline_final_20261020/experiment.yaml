@@ -1,0 +1,10 @@
+base_plan: gene_database/DHDGS/test/managed_continuation_three_20261019/cluster.yaml
+queries: 2000
+concurrency: 128
+warmup: 32
+head_port: 22280
+unique_ports: true
+order: [old, q1, i1, i1, q1, old, old, q1, i1]
+dispatch_workers: 4
+merge_workers: 1
+ack_modes: {q1: false, i1: true}

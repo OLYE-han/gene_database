@@ -1,0 +1,14 @@
+{
+  "project": "/sharenvme/userhome/xulihan/dhdgs_deploy/managed_receivers_three_20261019/releases/e95ae9a20cb21654c601/gene_database/DHDGS",
+  "plan": "/sharenvme/userhome/xulihan/dhdgs_deploy/managed_receivers_three_20261019/cluster.yaml",
+  "python": "/sharenvme/userhome/xulihan/dhdgs_deploy/seq2m_full_20261017/gene_database/DHDGS/.venv/bin/python",
+  "source_digest": "e95ae9a20cb21654c601",
+  "host": {
+    "id": 1,
+    "ssh": "intel-32",
+    "root": "/sharenvme/userhome/xulihan/dhdgs_deploy/managed_receivers_three_20261019",
+    "python": "/sharenvme/userhome/xulihan/dhdgs_deploy/seq2m_full_20261017/gene_database/DHDGS/.venv/bin/python",
+    "token_file": "/sharenvme/userhome/xulihan/dhdgs_deploy/managed_receivers_three_20261019/cluster.token",
+    "state_file": "/sharenvme/userhome/xulihan/dhdgs_deploy/managed_receivers_three_20261019/node_1_state.json"
+  }
+}

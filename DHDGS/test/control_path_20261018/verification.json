@@ -1,0 +1,11 @@
+{
+  "runs": 4,
+  "requests_verified": 8000,
+  "source_manifests_verified": true,
+  "query_identity_recall_and_raw_records_verified": true,
+  "budget_dispatch_no_revisit_and_native_thread_invariants_verified": true,
+  "independent_exact_distance_checks": 1280,
+  "all_test_processes_stopped": true,
+  "runtime_control_errors": 0,
+  "optimized_normal_lease_and_cancel_rpc": 0
+}

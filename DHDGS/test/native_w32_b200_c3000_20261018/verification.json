@@ -1,0 +1,35 @@
+{
+  "passed_record_audit": true,
+  "system_passed_load_test": false,
+  "requests": 6144,
+  "successful_requests": 1728,
+  "failed_requests": 4416,
+  "complete_metric_successes": 799,
+  "sources_verified": true,
+  "query_rows_verified": true,
+  "all_request_recall_verified": true,
+  "raw_records_equal": true,
+  "success_budget_and_native_thread_invariants_verified": true,
+  "exact_distance_checks": 320,
+  "all_services_and_clients_stopped": true,
+  "actual_peak_inflight": 3000,
+  "seconds_inflight_ge2500": 3.463622422,
+  "seconds_inflight_eq3000": 1.62191927,
+  "complete_metric_success_qps": 108.64389966088191,
+  "sampled_client_peak_threads": 6059,
+  "sampled_client_peak_rss_gib": 14.449657440185547,
+  "control_errors_on_successes": [
+    {
+      "kind": "lease",
+      "type": "TimeoutError",
+      "error": "timed out",
+      "count": 1034
+    },
+    {
+      "kind": "cancel",
+      "type": "TimeoutError",
+      "error": "timed out",
+      "count": 326
+    }
+  ]
+}

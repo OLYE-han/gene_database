@@ -1,0 +1,352 @@
+{
+  "all_protocol_bytes": {
+    "mean": 31659.200833333332,
+    "p99": 57408.18000000001,
+    "max": 82279.0
+  },
+  "all_protocol_rpc_count": {
+    "mean": 3.031833333333333,
+    "p99": 5.0,
+    "max": 8.0
+  },
+  "async_read_requests": {
+    "mean": 0.0,
+    "p99": 0.0,
+    "max": 0.0
+  },
+  "batches": {
+    "mean": 51.23433333333333,
+    "p99": 52.0,
+    "max": 53.0
+  },
+  "branch_count": {
+    "mean": 1.349,
+    "p99": 2.0,
+    "max": 3.0
+  },
+  "branch_unused_credit": {
+    "mean": 0.0,
+    "p99": 0.0,
+    "max": 0.0
+  },
+  "cache_hits": {
+    "mean": 0.0,
+    "p99": 0.0,
+    "max": 0.0
+  },
+  "control_errors": {
+    "mean": 0.0,
+    "p99": 0.0,
+    "max": 0.0
+  },
+  "control_request_bytes": {
+    "mean": 14424.598,
+    "p99": 17401.0,
+    "max": 55078.0
+  },
+  "control_response_bytes": {
+    "mean": 83.51116666666667,
+    "p99": 150.0,
+    "max": 255.0
+  },
+  "control_rpc_count": {
+    "mean": 1.6828333333333334,
+    "p99": 3.0,
+    "max": 5.0
+  },
+  "control_wire_bytes": {
+    "mean": 14508.109166666667,
+    "p99": 17551.0,
+    "max": 55228.0
+  },
+  "coordinator_thread_cpu_ms": {
+    "mean": 9.015101539833333,
+    "p99": 83.35910574000019,
+    "max": 161.21396
+  },
+  "duplicate_expansions": {
+    "mean": 3.284666666666667,
+    "p99": 38.01000000000022,
+    "max": 55.0
+  },
+  "exact_distance_evaluations": {
+    "mean": 200.0,
+    "p99": 200.0,
+    "max": 200.0
+  },
+  "exact_distance_ms": {
+    "mean": 2.4549581186666667,
+    "p99": 4.595421400000002,
+    "max": 5.957416999999999
+  },
+  "exact_reranked": {
+    "mean": 200.0,
+    "p99": 200.0,
+    "max": 200.0
+  },
+  "expanded": {
+    "mean": 200.0,
+    "p99": 200.0,
+    "max": 200.0
+  },
+  "fallback_entries": {
+    "mean": 0.10516666666666667,
+    "p99": 2.0,
+    "max": 2.0
+  },
+  "file_read_bytes": {
+    "mean": 2457600.0,
+    "p99": 2457600.0,
+    "max": 2457600.0
+  },
+  "frontier_dropped": {
+    "mean": 2514.492,
+    "p99": 4188.0,
+    "max": 4610.0
+  },
+  "improved_topk_batches": {
+    "mean": 9.8005,
+    "p99": 28.0,
+    "max": 37.0
+  },
+  "io_batch_wall_ms": {
+    "mean": 0.0,
+    "p99": 0.0,
+    "max": 0.0
+  },
+  "io_capacity_wait_ms": {
+    "mean": 0.0,
+    "p99": 0.0,
+    "max": 0.0
+  },
+  "io_queue_wait_ms": {
+    "mean": 0.0,
+    "p99": 0.0,
+    "max": 0.0
+  },
+  "io_read_residence_ms": {
+    "mean": 0.0,
+    "p99": 0.0,
+    "max": 0.0
+  },
+  "latency_ms": {
+    "mean": 323.3711799363761,
+    "p99": 2828.220128393732,
+    "max": 5966.803564224392
+  },
+  "max_cross_shard_depth": {
+    "mean": 0.3473333333333333,
+    "p99": 1.0,
+    "max": 2.0
+  },
+  "max_expanded_depth": {
+    "mean": 10.847166666666666,
+    "p99": 21.0,
+    "max": 30.0
+  },
+  "node_revisit_count": {
+    "mean": 0.0,
+    "p99": 0.0,
+    "max": 0.0
+  },
+  "peer_branch_rpc_count": {
+    "mean": 0.349,
+    "p99": 1.0,
+    "max": 2.0
+  },
+  "peer_connect_ms": {
+    "mean": 0.0010299305043493707,
+    "p99": 0.0,
+    "max": 3.3180750906467438
+  },
+  "peer_connections_created": {
+    "mean": 0.0013333333333333333,
+    "p99": 0.0,
+    "max": 1.0
+  },
+  "peer_connections_reused": {
+    "mean": 0.3476666666666667,
+    "p99": 1.0,
+    "max": 2.0
+  },
+  "peer_pool_wait_ms": {
+    "mean": 0.018973306364690263,
+    "p99": 0.26691193692386167,
+    "max": 2.077255048789084
+  },
+  "peer_request_bytes": {
+    "mean": 5526.219166666667,
+    "p99": 27680.870000000017,
+    "max": 38865.0
+  },
+  "peer_response_bytes": {
+    "mean": 13.262,
+    "p99": 38.0,
+    "max": 76.0
+  },
+  "peer_response_wait_ms": {
+    "mean": 0.39412555412855,
+    "p99": 3.3287820219993596,
+    "max": 38.32218982279301
+  },
+  "peer_send_ms": {
+    "mean": 0.12289842511139189,
+    "p99": 0.8975055848713966,
+    "max": 47.775946906767786
+  },
+  "peer_transfer_queue_ms": {
+    "mean": 0.07380826682007562,
+    "p99": 0.6545701343566189,
+    "max": 14.228463172912598
+  },
+  "peer_transfer_wall_ms": {
+    "mean": 0.5681965776408712,
+    "p99": 4.200671319849793,
+    "max": 48.654976999387145
+  },
+  "pending_at_stop": {
+    "mean": 86.2565,
+    "p99": 128.0,
+    "max": 192.0
+  },
+  "pread_calls": {
+    "mean": 200.0,
+    "p99": 200.0,
+    "max": 200.0
+  },
+  "pread_ms": {
+    "mean": 0.7735217533333333,
+    "p99": 1.36132429,
+    "max": 4.574382000000001
+  },
+  "query_admission_queue_ms": {
+    "mean": 0.3355158104483659,
+    "p99": 1.4329804154112944,
+    "max": 5.539046018384397
+  },
+  "query_branch_wall_ms": {
+    "mean": 13.639374794690715,
+    "p99": 25.19851064658725,
+    "max": 75.85487386677414
+  },
+  "query_compute_slice_wall_ms": {
+    "mean": 12.210666309666669,
+    "p99": 22.23890103,
+    "max": 69.955044
+  },
+  "query_executor_start_wait_ms": {
+    "mean": 0.19954015403830758,
+    "p99": 0.7970864430535602,
+    "max": 5.682685994543135
+  },
+  "query_io_wait_ms": {
+    "mean": 0.0,
+    "p99": 0.0,
+    "max": 0.0
+  },
+  "query_ready_queue_ms": {
+    "mean": 0.5350559644866735,
+    "p99": 1.9990482216235321,
+    "max": 6.167270126752555
+  },
+  "query_resume_count": {
+    "mean": 0.0,
+    "p99": 0.0,
+    "max": 0.0
+  },
+  "query_state_other_ms": {
+    "mean": 0.7358016193679823,
+    "p99": 2.300889603867553,
+    "max": 57.98796431553924
+  },
+  "query_transfer_finalize_wait_ms": {
+    "mean": 0.15785090116939196,
+    "p99": 1.7558542685583247,
+    "max": 45.6882769940421
+  },
+  "rabitq_evaluations": {
+    "mean": 6363.6106666666665,
+    "p99": 8360.060000000001,
+    "max": 9112.0
+  },
+  "rabitq_ms": {
+    "mean": 4.024043885,
+    "p99": 7.7907404000000025,
+    "max": 16.781388
+  },
+  "remote_candidates_dropped_after_forward": {
+    "mean": 69.87533333333333,
+    "p99": 658.0,
+    "max": 1004.0
+  },
+  "request_bytes": {
+    "mean": 17099.82966666667,
+    "p99": 39256.87000000002,
+    "max": 50439.0
+  },
+  "response_bytes": {
+    "mean": 51.262,
+    "p99": 76.0,
+    "max": 114.0
+  },
+  "router_expand_rpc_count": {
+    "mean": 0.0,
+    "p99": 0.0,
+    "max": 0.0
+  },
+  "router_submit_rpc_count": {
+    "mean": 1.0,
+    "p99": 1.0,
+    "max": 1.0
+  },
+  "rpc_count": {
+    "mean": 1.349,
+    "p99": 2.0,
+    "max": 3.0
+  },
+  "rpc_retries": {
+    "mean": 0.0,
+    "p99": 0.0,
+    "max": 0.0
+  },
+  "scanned_edges": {
+    "mean": 7003.056833333333,
+    "p99": 8849.0,
+    "max": 9613.0
+  },
+  "server_thread_cpu_ms": {
+    "mean": 12.086992182666666,
+    "p99": 22.052164019999978,
+    "max": 34.63025600000003
+  },
+  "server_to_server_branches": {
+    "mean": 0.349,
+    "p99": 1.0,
+    "max": 2.0
+  },
+  "server_to_server_migrations": {
+    "mean": 0.0,
+    "p99": 0.0,
+    "max": 0.0
+  },
+  "service_ms": {
+    "mean": 8.510772254666666,
+    "p99": 14.728803820000003,
+    "max": 24.274939999999994
+  },
+  "unique_expanded": {
+    "mean": 196.71533333333332,
+    "p99": 200.0,
+    "max": 200.0
+  },
+  "visited_node_candidates_dropped": {
+    "mean": 102.536,
+    "p99": 753.0200000000004,
+    "max": 1123.0
+  },
+  "wire_bytes": {
+    "mean": 17151.091666666667,
+    "p99": 39333.25000000003,
+    "max": 50553.0
+  }
+}

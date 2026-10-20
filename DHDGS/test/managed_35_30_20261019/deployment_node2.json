@@ -1,0 +1,14 @@
+{
+  "project": "/sharenvme/xulihan_dhdgs/managed_35_30_20261019/node2/releases/05b5f3cf0079fd9ca3dd/gene_database/DHDGS",
+  "plan": "/sharenvme/xulihan_dhdgs/managed_35_30_20261019/node2/cluster.yaml",
+  "python": "/sharenvme/xulihan_dhdgs/seq2m_full_20261017/gene_database/DHDGS/.venv/bin/python",
+  "source_digest": "05b5f3cf0079fd9ca3dd",
+  "host": {
+    "id": 2,
+    "ssh": "intel-30",
+    "root": "/sharenvme/xulihan_dhdgs/managed_35_30_20261019/node2",
+    "python": "/sharenvme/xulihan_dhdgs/seq2m_full_20261017/gene_database/DHDGS/.venv/bin/python",
+    "token_file": "/sharenvme/xulihan_dhdgs/managed_35_30_20261019/node2/cluster.token",
+    "state_file": "/sharenvme/xulihan_dhdgs/managed_35_30_20261019/node2/node_2_state.json"
+  }
+}

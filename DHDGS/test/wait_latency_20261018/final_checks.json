@@ -1,0 +1,16 @@
+{
+  "source_manifest": "fast_sources.json",
+  "source_files_verified": 44,
+  "regression_tests": 199,
+  "audited_runs": 34,
+  "audited_queries": 68000,
+  "failures": 0,
+  "waiting_target_ms": 100,
+  "waiting_target_achieved": false,
+  "recommended_group": "fastoff",
+  "display_run": "20261018T200500",
+  "figures": [
+    "analysis/fastoff/20261018T200500/query_timeline.png",
+    "analysis/fastoff/20261018T200500/query_search_detail.png"
+  ]
+}

@@ -1,0 +1,494 @@
+[
+  {
+    "topology": "remote",
+    "head_processes": 20,
+    "head_connections": 2,
+    "control_connections": 2,
+    "qps": 1143.6043889951413,
+    "p99_ms": 235.61722289,
+    "mean_ms": 97.47442921199999,
+    "recall": 0.97,
+    "failed": 0,
+    "source": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/qps_topology_20261019/legacy20/runs/20261019T095607_r0",
+    "stages_ms": {
+      "routing": {
+        "mean": 1.7107554989999998,
+        "p99": 4.039438269999999
+      },
+      "entry_pool": {
+        "mean": 0.7648893371224403,
+        "p99": 29.707261621952046
+      },
+      "entry_socket": {
+        "mean": 5.2611502453219146,
+        "p99": 50.304247126914554
+      },
+      "report_after_entry_ack": {
+        "mean": 88.93076222,
+        "p99": 227.31807856999998
+      },
+      "head_merge_return": {
+        "mean": 0.33999932899999996,
+        "p99": 1.2954356499999997
+      },
+      "head_other": {
+        "mean": 0.466872581555645,
+        "p99": 1.4232214471580429
+      },
+      "query_ready_queue_ms": {
+        "mean": 71.20532540185377,
+        "p99": 182.2251066705212
+      },
+      "query_admission_queue_ms": {
+        "mean": 70.3566057132557,
+        "p99": 181.86164613813162
+      },
+      "query_compute_slice_wall_ms": {
+        "mean": 11.708615472,
+        "p99": 27.321847799999997
+      },
+      "coordinator_thread_cpu_ms": {
+        "mean": 1.984128114,
+        "p99": 3.2591097299999996
+      }
+    },
+    "per_node": {
+      "0": {
+        "branches": 1037,
+        "compute_ms_per_100_expansions": 4.948164605090363,
+        "admission_mean_ms": 17.791178930647806
+      },
+      "1": {
+        "branches": 983,
+        "compute_ms_per_100_expansions": 7.5802973955529795,
+        "admission_mean_ms": 117.38430762460735
+      },
+      "2": {
+        "branches": 680,
+        "compute_ms_per_100_expansions": 5.379868983201734,
+        "admission_mean_ms": 10.110271294765612
+      }
+    },
+    "physical_read_bytes": [
+      0,
+      0,
+      0
+    ],
+    "audit": {
+      "metrics_complete": true,
+      "budget": true,
+      "no_revisit": true,
+      "no_head_expansion": true
+    }
+  },
+  {
+    "topology": "remote",
+    "head_processes": 20,
+    "head_connections": 2,
+    "control_connections": 2,
+    "qps": 1099.7280587507546,
+    "p99_ms": 247.39010131,
+    "mean_ms": 100.82884663600001,
+    "recall": 0.97005,
+    "failed": 0,
+    "source": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/qps_topology_20261019/legacy20/runs/20261019T095624_r1",
+    "stages_ms": {
+      "routing": {
+        "mean": 1.692795815,
+        "p99": 3.7829390499999995
+      },
+      "entry_pool": {
+        "mean": 0.5136676372494549,
+        "p99": 20.478514824062575
+      },
+      "entry_socket": {
+        "mean": 4.581387331010774,
+        "p99": 28.694085516035557
+      },
+      "report_after_entry_ack": {
+        "mean": 93.23357761950001,
+        "p99": 235.14826277
+      },
+      "head_merge_return": {
+        "mean": 0.3358412125,
+        "p99": 1.1904394199999997
+      },
+      "head_other": {
+        "mean": 0.471577020739771,
+        "p99": 1.3580304885740007
+      },
+      "query_ready_queue_ms": {
+        "mean": 76.3390560427215,
+        "p99": 204.04131178278476
+      },
+      "query_admission_queue_ms": {
+        "mean": 75.2296790999826,
+        "p99": 203.348626694642
+      },
+      "query_compute_slice_wall_ms": {
+        "mean": 11.784915069499998,
+        "p99": 26.3114891
+      },
+      "coordinator_thread_cpu_ms": {
+        "mean": 1.9714214495000002,
+        "p99": 3.2254375600000005
+      }
+    },
+    "per_node": {
+      "0": {
+        "branches": 1037,
+        "compute_ms_per_100_expansions": 5.059074942863316,
+        "admission_mean_ms": 13.698737248832229
+      },
+      "1": {
+        "branches": 983,
+        "compute_ms_per_100_expansions": 7.596090230922033,
+        "admission_mean_ms": 134.61794200924624
+      },
+      "2": {
+        "branches": 681,
+        "compute_ms_per_100_expansions": 5.318847319094552,
+        "admission_mean_ms": 5.762600114298287
+      }
+    },
+    "physical_read_bytes": [
+      0,
+      0,
+      0
+    ],
+    "audit": {
+      "metrics_complete": true,
+      "budget": true,
+      "no_revisit": true,
+      "no_head_expansion": true
+    }
+  },
+  {
+    "topology": "remote",
+    "head_processes": 20,
+    "head_connections": 2,
+    "control_connections": 2,
+    "qps": 1096.8704174964837,
+    "p99_ms": 244.91498291,
+    "mean_ms": 101.77962617600001,
+    "recall": 0.97005,
+    "failed": 0,
+    "source": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/qps_topology_20261019/legacy20/runs/20261019T095642_r2",
+    "stages_ms": {
+      "routing": {
+        "mean": 1.6708632155,
+        "p99": 3.72317955
+      },
+      "entry_pool": {
+        "mean": 0.45739168929867446,
+        "p99": 17.702644267119464
+      },
+      "entry_socket": {
+        "mean": 4.484555237926543,
+        "p99": 36.60719587467611
+      },
+      "report_after_entry_ack": {
+        "mean": 94.35448415,
+        "p99": 238.2840721
+      },
+      "head_merge_return": {
+        "mean": 0.3378639055,
+        "p99": 1.25552934
+      },
+      "head_other": {
+        "mean": 0.4744679777747829,
+        "p99": 1.6385352244175984
+      },
+      "query_ready_queue_ms": {
+        "mean": 77.32622454990633,
+        "p99": 204.7281939536333
+      },
+      "query_admission_queue_ms": {
+        "mean": 76.35936756175943,
+        "p99": 203.3545957552269
+      },
+      "query_compute_slice_wall_ms": {
+        "mean": 11.715958104000002,
+        "p99": 24.82410835
+      },
+      "coordinator_thread_cpu_ms": {
+        "mean": 1.9553206055,
+        "p99": 3.186385330000001
+      }
+    },
+    "per_node": {
+      "0": {
+        "branches": 1038,
+        "compute_ms_per_100_expansions": 5.08920364303901,
+        "admission_mean_ms": 13.975403573532699
+      },
+      "1": {
+        "branches": 982,
+        "compute_ms_per_100_expansions": 7.444226274756471,
+        "admission_mean_ms": 136.09457631688375
+      },
+      "2": {
+        "branches": 681,
+        "compute_ms_per_100_expansions": 5.311637489464354,
+        "admission_mean_ms": 6.70689026580333
+      }
+    },
+    "physical_read_bytes": [
+      0,
+      0,
+      0
+    ],
+    "audit": {
+      "metrics_complete": true,
+      "budget": true,
+      "no_revisit": true,
+      "no_head_expansion": true
+    }
+  },
+  {
+    "topology": "local",
+    "head_processes": 20,
+    "head_connections": 2,
+    "control_connections": 2,
+    "qps": 1440.3812512869492,
+    "p99_ms": 185.26743758,
+    "mean_ms": 76.6455912355,
+    "recall": 0.9702000000000001,
+    "failed": 0,
+    "source": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/qps_topology_20261019/legacy20local/runs/20261019T105340_r0",
+    "stages_ms": {
+      "routing": {
+        "mean": 1.682254994,
+        "p99": 3.78148576
+      },
+      "entry_pool": {
+        "mean": 0.5537157801445574,
+        "p99": 17.690240410156534
+      },
+      "entry_socket": {
+        "mean": 5.440599899273366,
+        "p99": 29.704420012421906
+      },
+      "report_after_entry_ack": {
+        "mean": 68.13358056999999,
+        "p99": 175.34178175999998
+      },
+      "head_merge_return": {
+        "mean": 0.3446177545,
+        "p99": 1.1851661899999997
+      },
+      "head_other": {
+        "mean": 0.49082223758207716,
+        "p99": 1.5768529384267136
+      },
+      "query_ready_queue_ms": {
+        "mean": 52.231699329800904,
+        "p99": 142.8563227597624
+      },
+      "query_admission_queue_ms": {
+        "mean": 51.04011112288572,
+        "p99": 142.03308397438377
+      },
+      "query_compute_slice_wall_ms": {
+        "mean": 10.771048066999999,
+        "p99": 25.663188520000002
+      },
+      "coordinator_thread_cpu_ms": {
+        "mean": 1.9865619755000004,
+        "p99": 3.180236579999999
+      }
+    },
+    "per_node": {
+      "0": {
+        "branches": 1036,
+        "compute_ms_per_100_expansions": 5.832553036631018,
+        "admission_mean_ms": 76.92430768446083
+      },
+      "1": {
+        "branches": 979,
+        "compute_ms_per_100_expansions": 5.654127425971877,
+        "admission_mean_ms": 20.24331996864254
+      },
+      "2": {
+        "branches": 681,
+        "compute_ms_per_100_expansions": 4.314690392207968,
+        "admission_mean_ms": 3.7715554117018604
+      }
+    },
+    "physical_read_bytes": [
+      0,
+      0,
+      0
+    ],
+    "audit": {
+      "metrics_complete": true,
+      "budget": true,
+      "no_revisit": true,
+      "no_head_expansion": true
+    }
+  },
+  {
+    "topology": "local",
+    "head_processes": 20,
+    "head_connections": 2,
+    "control_connections": 2,
+    "qps": 1422.7241410883291,
+    "p99_ms": 180.09693738,
+    "mean_ms": 78.4056853425,
+    "recall": 0.97015,
+    "failed": 0,
+    "source": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/qps_topology_20261019/legacy20local/runs/20261019T105356_r1",
+    "stages_ms": {
+      "routing": {
+        "mean": 1.6700061974999998,
+        "p99": 3.8056552499999996
+      },
+      "entry_pool": {
+        "mean": 0.5529437430668622,
+        "p99": 21.79266043938696
+      },
+      "entry_socket": {
+        "mean": 5.263766971649602,
+        "p99": 30.036215703003105
+      },
+      "report_after_entry_ack": {
+        "mean": 70.09954275599999,
+        "p99": 173.03526365
+      },
+      "head_merge_return": {
+        "mean": 0.334695068,
+        "p99": 1.2311065799999998
+      },
+      "head_other": {
+        "mean": 0.48473060628353576,
+        "p99": 1.5712717749426275
+      },
+      "query_ready_queue_ms": {
+        "mean": 53.90269514895044,
+        "p99": 136.41718693077564
+      },
+      "query_admission_queue_ms": {
+        "mean": 52.70984390866943,
+        "p99": 135.16545612365007
+      },
+      "query_compute_slice_wall_ms": {
+        "mean": 11.016360959500002,
+        "p99": 29.60976568
+      },
+      "coordinator_thread_cpu_ms": {
+        "mean": 1.960073543,
+        "p99": 3.12680342
+      }
+    },
+    "per_node": {
+      "0": {
+        "branches": 1036,
+        "compute_ms_per_100_expansions": 5.846558451454789,
+        "admission_mean_ms": 84.79845077905114
+      },
+      "1": {
+        "branches": 981,
+        "compute_ms_per_100_expansions": 6.084354344862908,
+        "admission_mean_ms": 16.56727323206056
+      },
+      "2": {
+        "branches": 681,
+        "compute_ms_per_100_expansions": 4.260605455388719,
+        "admission_mean_ms": 1.932449000867059
+      }
+    },
+    "physical_read_bytes": [
+      0,
+      0,
+      0
+    ],
+    "audit": {
+      "metrics_complete": true,
+      "budget": true,
+      "no_revisit": true,
+      "no_head_expansion": true
+    }
+  },
+  {
+    "topology": "local",
+    "head_processes": 20,
+    "head_connections": 2,
+    "control_connections": 2,
+    "qps": 1344.9384575999643,
+    "p99_ms": 212.90546196,
+    "mean_ms": 82.294434224,
+    "recall": 0.9703999999999999,
+    "failed": 0,
+    "source": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/qps_topology_20261019/legacy20local/runs/20261019T105413_r2",
+    "stages_ms": {
+      "routing": {
+        "mean": 1.671382238,
+        "p99": 3.8627987099999994
+      },
+      "entry_pool": {
+        "mean": 1.9450768120586872,
+        "p99": 83.78225796855985
+      },
+      "entry_socket": {
+        "mean": 6.293860860634595,
+        "p99": 73.71857433579862
+      },
+      "report_after_entry_ack": {
+        "mean": 71.563386944,
+        "p99": 173.13135332000002
+      },
+      "head_merge_return": {
+        "mean": 0.337162756,
+        "p99": 1.1412424499999998
+      },
+      "head_other": {
+        "mean": 0.4835646133067179,
+        "p99": 1.4026222940969748
+      },
+      "query_ready_queue_ms": {
+        "mean": 55.5013653091155,
+        "p99": 135.34910096321255
+      },
+      "query_admission_queue_ms": {
+        "mean": 53.8765994918067,
+        "p99": 135.03567985258996
+      },
+      "query_compute_slice_wall_ms": {
+        "mean": 10.963320993999998,
+        "p99": 28.24071934
+      },
+      "coordinator_thread_cpu_ms": {
+        "mean": 1.967453427,
+        "p99": 3.27145968
+      }
+    },
+    "per_node": {
+      "0": {
+        "branches": 1035,
+        "compute_ms_per_100_expansions": 5.957447744836548,
+        "admission_mean_ms": 90.05805525685783
+      },
+      "1": {
+        "branches": 980,
+        "compute_ms_per_100_expansions": 5.82108945052764,
+        "admission_mean_ms": 12.450997945757544
+      },
+      "2": {
+        "branches": 681,
+        "compute_ms_per_100_expansions": 4.27990480312681,
+        "admission_mean_ms": 3.4377882612674946
+      }
+    },
+    "physical_read_bytes": [
+      0,
+      0,
+      0
+    ],
+    "audit": {
+      "metrics_complete": true,
+      "budget": true,
+      "no_revisit": true,
+      "no_head_expansion": true
+    }
+  }
+]

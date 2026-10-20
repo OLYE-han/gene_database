@@ -1,0 +1,10 @@
+{
+  "topology": "Intel-35: head + data0; Intel-30: data1 + data2",
+  "worker_threads_per_node": 32,
+  "client_concurrency": 128,
+  "same_pid_and_fd": true,
+  "restored": true,
+  "services_left_running": true,
+  "baseline": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/managed_35_30_20261019/runs/20261019T011553_benchmark_6a62cd51",
+  "changed": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/managed_35_30_20261019/runs/20261019T011605_benchmark_c50e8ff6"
+}

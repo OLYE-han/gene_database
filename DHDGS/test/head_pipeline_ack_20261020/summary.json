@@ -1,0 +1,29 @@
+{
+  "old": {
+    "rounds": 3,
+    "queries": 6000,
+    "median_qps": 636.2142564372962,
+    "median_p99_ms": 272.92758161,
+    "median_mean_ms": 190.7683494535,
+    "recall_mean": 0.9703666666666666,
+    "api_over100": 5943
+  },
+  "p1": {
+    "rounds": 3,
+    "queries": 6000,
+    "median_qps": 524.7066296759267,
+    "median_p99_ms": 419.67213214000003,
+    "median_mean_ms": 235.3625889075,
+    "recall_mean": 0.97015,
+    "api_over100": 5947
+  },
+  "p2": {
+    "rounds": 3,
+    "queries": 6000,
+    "median_qps": 283.09846111028423,
+    "median_p99_ms": 1169.71705791,
+    "median_mean_ms": 434.976790395,
+    "recall_mean": 0.97035,
+    "api_over100": 5799
+  }
+}

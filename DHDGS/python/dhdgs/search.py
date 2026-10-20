@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import time
+import threading
 import uuid
 
 import numpy as np
@@ -10,15 +11,75 @@ from .reference_search import Engine as ReferenceEngine
 from .partition import prepare
 from .peer import HeadSession, BranchRegistry, exchange, execution_signature
 from .peer_search import run_branch, COUNTERS
+from .tracing import trace_lifecycle
 
 
 class Engine(ReferenceEngine):
+    def __new__(cls,c):
+        if c['peer'].get('head_lanes',{}).get('enabled',False):
+            from .head_lanes import LaneEngine
+            return LaneEngine(c)
+        return super().__new__(cls)
+
+    def apply_configuration(self,c,router=None):
+        self.c=c
+        if router is not None:self.router=router
+
+    def __init__(self,c):
+        from .runtime import apply_process_runtime
+        self.runtime_settings=apply_process_runtime(c)
+        super().__init__(c)
+        self.head_hub=None
+        self.head_flow=None
+        if c['search']['execution']=='peer' and c['network']['transport']=='tcp' and c['peer']['communication']['mode']=='optimized':
+            from .head_hub import acquire_hub
+            self.head_hub=acquire_hub(c)
+            if c['peer'].get('head_direct',{}).get('enabled',False):
+                from .head_direct import DirectFlow
+                self.head_flow=DirectFlow(c)
+            elif c['peer'].get('head_pipeline',{}).get('enabled',False):
+                from .head_pipeline import PipelineFlow
+                self.head_flow=PipelineFlow(c)
+            elif c['peer'].get('head_query_workers',0):
+                from .head_flow import QueryFlow
+                self.head_flow=QueryFlow(c['peer']['head_query_workers'],c['peer']['max_active_queries'])
+
+    def close(self):
+        if self.head_flow is not None:self.head_flow.close();self.head_flow=None
+        if self.head_hub is not None:
+            from .head_hub import release_hub
+            release_hub(self.head_hub);self.head_hub=None
+        super().close()
+
     def search(self,vector,query_id=None):
+        if self.head_flow is not None:
+            return self.search_async(vector,query_id).result()
+        steps=self._search_steps(vector,query_id)
+        try:next(steps)
+        except StopIteration as done:return done.value
+        raise RuntimeError('Synchronous search unexpectedly suspended')
+
+    def search_async(self,vector,query_id=None):
+        if self.head_flow is None:raise RuntimeError('Async head flow is not enabled')
+        offered=time.monotonic_ns()
+        if any(self.c['peer'].get(k,{}).get('enabled',False) for k in ('head_pipeline','head_direct')):
+            timing={}
+            return self.head_flow.submit(self._search_steps(vector,query_id,offered,timing),timing)
+        return self.head_flow.submit(self._search_steps(vector,query_id,offered))
+
+    def _search_steps(self,vector,query_id=None,offered_ns=None,pipeline_timing=None):
         if self.c['search']['execution']=='reference':
             return super().search(vector,query_id)
-        started=time.perf_counter();cpu=time.thread_time()
+        stage_enter=time.monotonic_ns()
+        started=time.perf_counter() if offered_ns is None else offered_ns/1e9
+        cpu=time.thread_time();prior_cpu_ms=0.
+        head_trace={'search_enter_ns':time.monotonic_ns()} if trace_lifecycle(self.c, query_id) else None
+        if head_trace is not None and offered_ns is not None:
+            head_trace.update(search_enter_ns=offered_ns,head_stage_start_ns=stage_enter)
         request_id=str(uuid.uuid4())
         session=None
+        direct=self.c['peer'].get('head_direct',{}).get('enabled',False)
+        dispatch_guard=threading.Lock();dispatch_closed=False
         try:
             c,cfg=self.c,self.c['search']
             if query_id is not None and (type(query_id) is not int or not 0<=query_id<2**64):
@@ -28,9 +89,8 @@ class Engine(ReferenceEngine):
             query=prepare(raw[None,:],c['data']['metric'])[0].astype(np.float32)
             if cfg['top_k']>self.manifest['rows']-int(cfg['exclude_self'] and query_id in self.owners):
                 raise ValueError('top_k exceeds eligible rows')
-            with self.router_lock:
-                entries=list(map(int,self.router.search(query,min(c['routing']['entry_candidates'],
-                    self.manifest['route_samples']),c['routing']['ef_search'])))
+            entries=list(map(int,self.router.search(query,min(c['routing']['entry_candidates'],
+                self.manifest['route_samples']),c['routing']['ef_search'])))
             positions=np.array([self.route_positions[gid] for gid in entries],dtype=np.int64)
             b=self.route_bank
             ds,us=self.quantizer.score(query,b['codes'][positions],b['extra'][positions],b['factors'][positions],b['center_ids'][positions])
@@ -39,6 +99,7 @@ class Engine(ReferenceEngine):
             seeds=[[gid,float(d),float(u),list(self.owners[gid]),None,0,0,gid,0.]
                    for gid,d,u in zip(entries,ds,us)]
             routing_ms=(time.perf_counter()-started)*1000
+            if head_trace is not None:head_trace['routing_done_ns']=time.monotonic_ns()
             root_id,token=str(uuid.uuid4()),str(uuid.uuid4())
             state={'query_request_id':request_id,'branch_id':root_id,'parent_branch_id':None,
                    'token':token,'entry_node':home,'target_node':home,'epoch':self.manifest['epoch'],
@@ -50,78 +111,106 @@ class Engine(ReferenceEngine):
                    'scale':max(float(np.median(np.abs(ds))),float(np.finfo(np.float32).eps)),
                    'ancestry':[],'decision_seed':c['seed']}
             deadline=time.monotonic()+c['peer']['query_timeout_seconds']
+            if '_cluster_revision' in c:
+                state['cluster_revision']=c['_cluster_revision']
             transfer={'rpc_count':0,'request_bytes':0,'response_bytes':0}
             execution_started=time.perf_counter()
             if c['network']['transport']=='tcp':
-                session=HeadSession(c,request_id,token,root_id,home)
-                state['head_endpoint']=session.endpoint
                 node=c['cluster']['nodes'][home]
-                _,transfer=exchange([node['host'],node['port']],{'version':1,'op':'peer_submit','state':state},
-                                    c['network']['max_message_bytes'],c['peer']['handoff_timeout_seconds'])
-                reports=session.wait(deadline)
+                if direct:
+                    session=HeadSession(c,request_id,token,root_id,home,self.head_hub)
+                    state['head_endpoint']=session.endpoint
+                    operation=self.head_hub.submit_query(session,state,[node['host'],node['port']],deadline)
+                    pipeline_timing['distribution_send_done_ns']=session.receiver_metrics['entry_send_done_ns']
+                elif pipeline_timing is not None:
+                    pipeline_timing['dispatch_enqueued_ns']=time.monotonic_ns()
+                    def dispatch():
+                        nonlocal session
+                        with dispatch_guard:
+                            if dispatch_closed:raise RuntimeError('Query cancelled before dispatch')
+                            pipeline_timing['dispatch_started_ns']=time.monotonic_ns()
+                            session=HeadSession(c,request_id,token,root_id,home,self.head_hub)
+                            state['head_endpoint']=session.endpoint
+                        return self.head_hub.submit_query(session,state,[node['host'],node['port']],deadline)
+                    operation=self.head_hub.enqueue(dispatch)
+                else:
+                    session=HeadSession(c,request_id,token,root_id,home,self.head_hub,
+                                        deferred=self.head_flow is not None)
+                    state['head_endpoint']=session.endpoint
+                    if self.head_flow is not None:
+                        operation=self.head_hub.submit_query(session,state,[node['host'],node['port']],deadline)
+                if self.head_flow is not None:
+                    prior_cpu_ms=(time.thread_time()-cpu)*1000
+                    response=yield operation
+                    cpu=time.thread_time()
+                    session.receiver_metrics['head_stage_resume_ns']=time.monotonic_ns()
+                    transfer=response['counts']
+                    if head_trace is not None:
+                        head_trace.update(entry_submit_enter_ns=response['enter_ns'],
+                            entry_submit_return_ns=response['return_ns'])
+                    reports=list(session.registry.reports.values())
+                else:
+                    if head_trace is not None:head_trace['entry_submit_enter_ns']=time.monotonic_ns()
+                    _,transfer=session.exchange([node['host'],node['port']],{'version':1,'op':'peer_submit','state':state},
+                                        c['network']['max_message_bytes'],c['peer']['handoff_timeout_seconds'])
+                    if head_trace is not None:head_trace['entry_submit_return_ns']=time.monotonic_ns()
+                    reports=session.wait(deadline)
+                if head_trace is not None:head_trace['all_reports_received_ns']=time.monotonic_ns()
                 involved=sorted(session.registry.nodes)
             else:
                 reports=self._local_branches(state,deadline)
                 involved=sorted({r['node_id'] for r in reports})
             execution_ms=(time.perf_counter()-execution_started)*1000
-            merged={}
-            for report in reports:
-                for gid,d in zip(report['ids'],report['squared_distances']):
-                    if not np.isfinite(d) or d<0: raise ValueError('Invalid branch result distance')
-                    if gid in merged and not np.isclose(merged[gid],d,rtol=1e-6,atol=1e-8):
-                        raise ValueError('Replica exact distance mismatch')
-                    merged[gid]=min(d,merged.get(gid,float('inf')))
-            ranked=sorted(merged.items(),key=lambda p:(p[1],p[0]))[:cfg['top_k']]
-            stats={key:sum(r['stats'][key] for r in reports) for key in COUNTERS}
-            for key in ('expanded','batches','fallback_entries','frontier_dropped','improved_topk_batches','server_thread_cpu_ms',
-                        'visited_node_candidates_dropped','remote_candidates_dropped_after_forward'):
-                stats[key]=sum(r['stats'][key] for r in reports)
-            ids=[gid for r in reports for gid in r['expanded_ids']]
-            per_shard={sid:{} for sid in range(len(c['cluster']['nodes']))}
-            for r in reports:
-                for key in (*COUNTERS,'expanded','batches','server_thread_cpu_ms'):
-                    per_shard[r['node_id']][key]=per_shard[r['node_id']].get(key,0)+r['stats'][key]
-            peer_rpc=sum(r.get('peer_transfer',{}).get('peer_rpc_count',0) for r in reports)
-            peer_tx=sum(r.get('peer_transfer',{}).get('peer_request_bytes',0) for r in reports)
-            peer_rx=sum(r.get('peer_transfer',{}).get('peer_response_bytes',0) for r in reports)
-            stats.update(peer_execution_model=c['peer']['execution_model'],
-                io_backends=sorted({r.get('execution',{}).get('io_backend','sync_pread') for r in reports}),
-                per_shard=per_shard,unique_expanded=len(set(ids)),duplicate_expansions=len(ids)-len(set(ids)),
-                branch_count=len(reports),branch_unused_credit=sum(r['work_unused'] for r in reports),
-                visited_nodes=max((r['visited_nodes'] for r in reports),key=len),
-                node_revisit_count=len(reports)-len({r['node_id'] for r in reports}),
-                router_submit_rpc_count=transfer['rpc_count'],peer_branch_rpc_count=peer_rpc,
-                router_expand_rpc_count=0,
-                rpc_count=transfer['rpc_count']+peer_rpc,
-                request_bytes=transfer['request_bytes']+peer_tx,response_bytes=transfer['response_bytes']+peer_rx,
-                wire_bytes=transfer['request_bytes']+peer_tx+transfer['response_bytes']+peer_rx,
-                peer_request_bytes=peer_tx,peer_response_bytes=peer_rx,
-                rpc_retries=sum(max(0,r.get('peer_transfer',{}).get('peer_rpc_count',0)-len(r['children'])) for r in reports),
-                shards_visited=sorted({r['node_id'] for r in reports}),keepalive_nodes=involved,
-                expansions_by_shard={sid:v.get('expanded',0) for sid,v in per_shard.items()},
-                max_expanded_depth=max(r['stats']['max_expanded_depth'] for r in reports),
-                max_discovery_depth=None,max_cross_shard_depth=max(r['stats']['max_cross_shard_depth'] for r in reports),
-                graph_rounds=None,server_to_server_migrations=0,server_to_server_branches=len(reports)-1,
-                exact_reranked=stats['exact_distance_evaluations'],transport=c['network']['transport'],
-                execution='peer_single_visit_parallel_local',stop_reason='all_branch_manifests_complete',
-                branch_stop_reasons=[r['stats']['stop_reason'] for r in reports],
-                pending_at_stop=sum(r['stats']['pending_at_stop'] for r in reports),
-                coordinator_thread_cpu_ms=(time.thread_time()-cpu)*1000,
-                pure_network_latency_fraction=None,physical_ssd_latency_fraction=None,
-                result_paths=[p for r in reports for p in r['result_paths'] if p['id'] in dict(ranked)])
+            if direct:
+                session.close(success=True)
+                pipeline_timing['result_enqueued_ns']=time.monotonic_ns()
+                packet=dict(config=c,epoch=self.manifest['epoch'],reports=reports,transfer=transfer,
+                    involved=involved,request_id=request_id,query_id=query_id,trace=head_trace,
+                    control=dict(session.control),control_by_kind=session.control_by_kind,
+                    control_error_details=list(session.control_error_details),receiver=dict(session.receiver_metrics),
+                    timing=dict(pipeline_timing),route_cpu_ms=prior_cpu_ms)
+                session=None
+                result=yield self.head_flow.merge(packet)
+                stamp=time.monotonic_ns();result['stats']['head_direct']['result_received_ns']=stamp
+                result['stats']['result_return_ipc_ms']=(stamp-result['stats']['head_direct']['result_finished_ns'])/1e6
+                result['stats']['latency_ms']=(stamp-pipeline_timing['submitted_ns'])/1e6
+                parts=result['stats']['latency_breakdown_ms'];parts['result_return_ipc_ms']=result['stats']['result_return_ipc_ms']
+                result['stats']['latency_breakdown_fraction']={k:v/result['stats']['latency_ms'] for k,v in parts.items()}
+                if 'head_timestamps' in result['stats']:result['stats']['head_timestamps']['search_return_ns']=stamp
+                return result
+            from .head_merge import aggregate_reports
+            ranked,stats=aggregate_reports(c,reports,transfer,involved)
+            stats['coordinator_thread_cpu_ms']=prior_cpu_ms+(time.thread_time()-cpu)*1000
+            if self.head_flow is not None:
+                stats['head_stage_queue_ms']=(stage_enter-offered_ns)/1e6
+                stats['head_stage_resume_queue_ms']=(session.receiver_metrics['head_stage_resume_ns']-
+                                                    session.receiver_metrics['query_ready_ns'])/1e6
+            if pipeline_timing is not None:
+                pipeline_timing['merge_finished_ns']=time.monotonic_ns()
+                stats['head_pipeline']=dict(pipeline_timing)
+                for label,a,b in (('receive_queue','receive_enqueued','receive_started'),
+                                  ('route_queue','route_enqueued','route_started'),
+                                  ('dispatch_queue','dispatch_enqueued','dispatch_started'),
+                                  ('merge_queue','merge_enqueued','merge_started')):
+                    stats['head_'+label+'_ms']=(pipeline_timing[b+'_ns']-pipeline_timing[a+'_ns'])/1e6
+            stats['entry_rpc']=dict(transfer)
             if stats['expanded']>cfg['max_expansions']:raise ValueError('Global budget exceeded')
             # Cleanup is part of API latency; keep it separate from search and merge.
             if session is not None:
-                session.close()
+                session.close(success=True)
                 control=dict(session.control)
                 control_by_kind=session.control_by_kind
+                control_error_details=list(session.control_error_details)
+                stats['head_receiver']=dict(getattr(session,'receiver_metrics',{}))
                 session=None
             else:
                 control={'rpc_count':0,'request_bytes':0,'response_bytes':0,'errors':0}
                 control_by_kind={}
+                control_error_details=[]
             stats.update(control_rpc_count=control['rpc_count'],control_request_bytes=control['request_bytes'],
                          control_response_bytes=control['response_bytes'],control_errors=control['errors'],
                          control_by_kind=control_by_kind,
+                         control_error_details=control_error_details,
                          control_wire_bytes=control['request_bytes']+control['response_bytes'],
                          all_protocol_bytes=stats['wire_bytes']+control['request_bytes']+control['response_bytes'],
                          all_protocol_rpc_count=stats['rpc_count']+control['rpc_count'])
@@ -131,6 +220,9 @@ class Engine(ReferenceEngine):
             stats.update(latency_ms=latency,latency_breakdown_ms=parts,
                          latency_breakdown_fraction={k:v/latency for k,v in parts.items()},
                          metrics_complete=stats['rpc_retries']==0 and control['errors']==0)
+            if head_trace is not None:
+                head_trace['search_return_ns']=time.monotonic_ns()
+                stats['head_timestamps']=head_trace
             return {'status':'ok','request_id':request_id,'ids':[gid for gid,_ in ranked],
                 'squared_distances':[d for _,d in ranked],'epoch':self.manifest['epoch'],
                 'metric':self.manifest['metric'],'stats':stats,'branch_reports':reports}
@@ -139,6 +231,7 @@ class Engine(ReferenceEngine):
                                  'metrics_complete':False}}
             raise
         finally:
+            with dispatch_guard:dispatch_closed=True
             if session is not None:session.close()
 
     def _local_branches(self,state,deadline):
@@ -149,8 +242,15 @@ class Engine(ReferenceEngine):
         while pending:
             item=pending.pop(0);sid=item['target_node']
             def spawn(child,descriptor): pending.append(child)
-            report=run_branch(item,self.transport.shards[sid],self.owners,self.c,spawn,
-                              lambda:time.monotonic()>=deadline)
+            if self.c['peer']['execution_model']=='native':
+                from .native_search import run_native
+                from .index import native
+                report=run_native(item,self.transport.shards[sid],self.owners,self.c,spawn,
+                                  lambda:time.monotonic()>=deadline,
+                                  control=native().SearchControl(deadline,deadline))
+            else:
+                report=run_branch(item,self.transport.shards[sid],self.owners,self.c,spawn,
+                                  lambda:time.monotonic()>=deadline)
             reports.append(report)
             registry.update({'query_request_id':state['query_request_id'],'token':state['token'],
                 'node_id':sid,'involved_nodes':[sid], 'reports':[report]})

@@ -1,0 +1,5 @@
+# Retain the original 60-second replay protection; enlarge capacity, not shorten safety windows.
+max_tombstones: 131072
+# Full diagnostic snapshots include retained branch traces; allow a bounded larger admin frame.
+max_message_bytes: 134217728
+data_port_base: 28251
