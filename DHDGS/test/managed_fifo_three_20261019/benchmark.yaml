@@ -1,3 +1,0 @@
-concurrency: 128
-queries: 2000
-warmup: 32

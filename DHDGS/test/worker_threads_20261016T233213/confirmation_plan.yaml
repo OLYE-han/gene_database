@@ -1,9 +1,0 @@
-trials: 2
-repetitions: 4
-seed: 20261017
-candidate_rule: Use the frozen calibration selection and baseline=4 at each concurrency;
-  never select using validation results. Same 256 validation queries; repeated requests
-  increase timing observations, not independent quality sample size.
-purpose: Longer finite load window for p99; 2048 requests per distinct configuration
-  over two fresh service starts.
-prespecified_before_validation: true

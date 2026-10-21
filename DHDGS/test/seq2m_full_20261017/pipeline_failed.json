@@ -1,5 +1,0 @@
-{
-  "type": "CalledProcessError",
-  "error": "Command '['/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python', '/sharenvme/usershome/xulihan/gene_database/DHDGS/tools/audit_full_run.py', '--plan', '/sharenvme/usershome/xulihan/gene_database/DHDGS/test/seq2m_full_20261017/deployment.selected.yaml']' returned non-zero exit status 1.",
-  "time": 1792243175.9990578
-}

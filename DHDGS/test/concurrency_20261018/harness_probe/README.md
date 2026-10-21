@@ -1,1 +1,0 @@
-Invalid high-concurrency benchmark: cross-process job-counter semaphore dominated at c2000 (actual peak197, claim p99 1796ms). These nine runs are retained for diagnosis only, excluded from final comparisons. Production code is unchanged. Final driver preassigns disjoint worker-strided jobs without any job-claim lock.

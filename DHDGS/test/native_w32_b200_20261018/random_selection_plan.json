@@ -1,6 +1,0 @@
-{
-  "seed": 2026101832200,
-  "method": "random.Random(seed).randrange(1024), applied to measured queries sorted by query_row",
-  "population": 1024,
-  "selected_position": 942
-}

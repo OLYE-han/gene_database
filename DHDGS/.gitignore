@@ -37,3 +37,16 @@ artifacts/
 /test/**/*.log
 !/test/**/unit_tests*.log
 !/test/**/regression*.log
+
+# Captured query payloads and node state are runtime artifacts, not source.
+/test/**/queries.part-*.json*
+/test/**/report_context.json*
+/test/**/nodes_before.json*
+/test/**/nodes_after.json*
+/test/thread_layout_20261021/source
+/test/thread_layout_20261021/cases/**/runs/
+
+# Compatibility links for retained runtime assets after pre-Oct20 cleanup.
+/test/seq2m_full_20261017
+/test/concurrency_20261018
+/test/managed_continuation_three_20261019

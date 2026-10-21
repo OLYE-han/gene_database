@@ -1,7 +1,0 @@
-baseline_plan: /sharenvme/usershome/xulihan/gene_database/DHDGS/test/seq2m_full_20261017/backlog128/deployment.selected.yaml
-measurement_timeout_seconds: 600
-native_thread_stack_bytes: 1048576
-processes: 20
-resource_sample_interval_seconds: 0.1
-startup_timeout_seconds: 600
-threads_per_process: 100

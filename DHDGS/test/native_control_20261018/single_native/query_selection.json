@@ -1,8 +1,0 @@
-{
-  "validation": [
-    73656
-  ],
-  "query_id": 734744,
-  "calibration_excluded": [],
-  "selection": "Same fixed query 734744 as previous 2000-query timeline; zero warmup queries"
-}

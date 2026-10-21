@@ -1,6 +1,0 @@
-{
-  "diagnostic_head_source_archive": "payloads/f87276af82d67622e315.tar.gz",
-  "diagnostic_remote_data_source_archive": "payloads/3ae7f4e74bb9c8a63fde.tar.gz",
-  "note": "Head aggregation matches the former archive; data runtime matches both. Later ef_search hot-update fix was verified separately by unit_tests_final.log.",
-  "driver_sha256": "c60b162eb363f98afe71007cd484aac223a304aa780db4be6dd78994b9cee370"
-}

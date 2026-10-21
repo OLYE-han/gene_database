@@ -1,4 +1,0 @@
-shard_id,worker,mean_cpu_cores,window_seconds,pid,host,monotonic_ns,cpu_seconds,rss_bytes,peak_rss_bytes,storage_read_bytes,storage_write_bytes,threads,delta_cpu_seconds,delta_storage_read_bytes,delta_storage_write_bytes
-0,,0.34705129945723956,0.950868072,2024978,sugon-intel-four-numa,2377776183471177,0.45,35651584,35651584,0,0,6,0.33,0,0
-1,,0.9252992848992714,0.95104364,2024981,sugon-intel-four-numa,2377776185353905,1.05,39845888,39845888,0,0,6,0.88,0,0
-2,,0.6307551280549599,0.95124078,2024984,sugon-intel-four-numa,2377776187340730,0.88,39845888,39845888,0,0,6,0.6,0,0

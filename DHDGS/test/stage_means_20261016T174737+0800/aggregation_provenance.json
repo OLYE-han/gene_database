@@ -1,9 +1,0 @@
-{
-  "source_experiment": "recall_targets_20261016T171501+0800",
-  "aggregation_source_sha256": {
-    "python/dhdgs/metrics.py": "b087ef093dae8aee8a6212744e0723d452502a654fb854eec9c66642279cd5ff",
-    "python/dhdgs/benchmark.py": "b235ae147457ed402624cf472b2d242ebdd72a8422444388b9edb2e4e7d54998",
-    "tests/test_metrics.py": "5d2f247f23c08db1cff76e3a2c5ca6b1f6446b62019a41068aa723da9ca9b8ce"
-  },
-  "validation": "10 metric tests passed; archived phase means conserved total latency for six configurations"
-}

@@ -1,7 +1,0 @@
-{
-  "rule": "Among successful single-branch queries with recall=1, select latency nearest overall successful median at 32 workers/client concurrency 32",
-  "overall_median_ms": 10928.705842699856,
-  "source": "gene_database/DHDGS/test/seq2m_threads_20261017/threadscan_20261017_w32/c32/run/queries.jsonl.gz",
-  "query_id": 264815,
-  "query_row": 26468
-}

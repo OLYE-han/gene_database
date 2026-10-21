@@ -1,6 +1,0 @@
-{
-  "phase": "complete_after_backlog_retest",
-  "time": 1792244730.9205406,
-  "final_verification": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/seq2m_full_20261017/backlog128/verification.json",
-  "initial_audit_failure_preserved": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/seq2m_full_20261017/pipeline_failed.json"
-}
