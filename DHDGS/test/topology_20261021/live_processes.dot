@@ -1,0 +1,28 @@
+digraph G {
+graph [fontname="DejaVu Sans", rankdir=LR, bgcolor="white", pad=0.2, nodesep=0.35, ranksep=0.65];
+node [fontname="DejaVu Sans", shape=box, style="rounded,filled", fillcolor="#eaf2ff", color="#57759c", fontsize=11];
+edge [fontname="DejaVu Sans", fontsize=9, color="#49586b"];
+
+subgraph cluster_host35 {label="Intel-35 / current persistent services"; color="#b9c8db";
+ subgraph cluster_head {label="Head: 2 business processes + 1 resource tracker";
+  hp [label="Head parent PID 1593215\n7 observed threads\nHTTP, HNSW, query continuation, merge"];
+  hr [label="Receiver child PID 1593395\n6 idle threads + connection handlers\n4 entry senders, report validation, ACK"];
+  hp -> hr [label="IPC: register / entry task / unregister"];
+  hr -> hp [label="control IPC: entry ACK / involved nodes"];
+  hr -> hp [label="separate terminal IPC: final reports",color="#149174",penwidth=2];
+ }
+ d0 [label="Data 0 PID 1593211\n53 idle threads + connection handlers\n192.168.33.35:22051",fillcolor="#e7f5ed"];
+}
+d1 [label="Intel-32 / Data 1\n192.168.33.32:22052\nSame configured topology\nSSH snapshot unavailable",fillcolor="#e7f5ed"];
+d2 [label="Intel-30 / Data 2\nPID 1296405; 53 observed threads\n192.168.33.30:22053",fillcolor="#e7f5ed"];
+client [label="Client\nHTTP :22091",fillcolor="#fff3da"];
+client -> hp [label="query"]; hp -> client [label="merged top-k"];
+hr -> d0 [label="TCP: initial branch / heartbeat ACK"]; hr -> d1 [label="TCP: initial branch / heartbeat ACK"]; hr -> d2 [label="TCP: initial branch"];
+d0 -> hr [label="TCP: heartbeat / final top-k"];
+d1 -> hr [label="TCP: heartbeat / final top-k"];
+d2 -> hr [label="TCP: heartbeat / final top-k"];
+d0 -> d1 [dir=both,label="TCP: approved child branch + ACK",color="#c56e21"];
+d1 -> d2 [dir=both,label="TCP: approved child branch + ACK",color="#c56e21"];
+d0 -> d2 [dir=both,label="TCP: approved child branch + ACK",color="#c56e21"];
+
+}

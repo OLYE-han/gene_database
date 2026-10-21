@@ -1,0 +1,129 @@
+case,stage,mean_ms
+short/10_baseline,Admission,0.03326698299999999
+short/10_baseline,Input queue + IPC,2.3542749617000025
+short/10_baseline,Worker preparation,0.042809064700000066
+short/10_baseline,Receive queue,0.31745692240000156
+short/10_baseline,Receive handoff,0.004353414400000001
+short/10_baseline,Route queue,19.434456360899993
+short/10_baseline,HNSW + route preparation,1.9935022089000045
+short/10_baseline,Dispatch queue,4.168586722200001
+short/10_baseline,Register + request preparation,0.1656518930999996
+short/10_baseline,Entry RPC incl. ACK,5.842562136899999
+short/10_baseline,Wait for complete reports,89.5565630286004
+short/10_baseline,Merge queue,30.22129475359987
+short/10_baseline,Merge + metrics,0.36547058759999945
+short/10_baseline,Cleanup + persistence,1.4313461025999967
+short/10_baseline,Output IPC,10.1383802722
+short/10_baseline,Client consumer,33.4055439393
+short/11_gil,Admission,0.01755018720000008
+short/11_gil,Input queue + IPC,2.745008105399993
+short/11_gil,Worker preparation,0.057307044099999725
+short/11_gil,Receive queue,0.31594805659999886
+short/11_gil,Receive handoff,0.004649263700000002
+short/11_gil,Route queue,22.403673761399997
+short/11_gil,HNSW + route preparation,1.9683716955999964
+short/11_gil,Dispatch queue,4.864117756599988
+short/11_gil,Register + request preparation,0.14196661509999972
+short/11_gil,Entry RPC incl. ACK,5.3298501041999895
+short/11_gil,Wait for complete reports,69.69013117670004
+short/11_gil,Merge queue,31.091892707900126
+short/11_gil,Merge + metrics,0.3440465385999999
+short/11_gil,Cleanup + persistence,1.4144071562999898
+short/11_gil,Output IPC,11.065807122799969
+short/11_gil,Client consumer,43.6630921515001
+short/12_split,Admission,0.02084308559999996
+short/12_split,Input queue + IPC,2.0827409231
+short/12_split,Worker preparation,0.03806085570000003
+short/12_split,Receive queue,0.26107198649999974
+short/12_split,Receive handoff,0.0033966080000000076
+short/12_split,Route queue,10.323480059100032
+short/12_split,HNSW + route preparation,1.7870635481999972
+short/12_split,Dispatch queue,9.747960785699972
+short/12_split,Register + request preparation,0.13332952099999992
+short/12_split,Entry RPC incl. ACK,6.789978027999965
+short/12_split,Wait for complete reports,154.69947590180047
+short/12_split,Merge queue,13.65585601549992
+short/12_split,Merge + metrics,0.32080572779999933
+short/12_split,Cleanup + persistence,1.2950686849000037
+short/12_split,Output IPC,8.751997106399996
+short/12_split,Client consumer,21.135167510100022
+short/13_split,Admission,0.02219518620000001
+short/13_split,Input queue + IPC,2.484514422500008
+short/13_split,Worker preparation,0.04348829490000006
+short/13_split,Receive queue,0.2895972244999997
+short/13_split,Receive handoff,0.003580985299999994
+short/13_split,Route queue,16.20204834180001
+short/13_split,HNSW + route preparation,1.8450038303999994
+short/13_split,Dispatch queue,16.079757204500105
+short/13_split,Register + request preparation,0.16374204870000003
+short/13_split,Entry RPC incl. ACK,7.259974254200025
+short/13_split,Wait for complete reports,81.12237026760019
+short/13_split,Merge queue,24.0465244114
+short/13_split,Merge + metrics,0.3212257772000005
+short/13_split,Cleanup + persistence,1.335891556200001
+short/13_split,Output IPC,10.859411396999976
+short/13_split,Client consumer,36.192484513200135
+short/14_gil,Admission,0.01901585550000007
+short/14_gil,Input queue + IPC,3.1374978582999944
+short/14_gil,Worker preparation,0.038571570199999884
+short/14_gil,Receive queue,0.3031397174000014
+short/14_gil,Receive handoff,0.003580347599999994
+short/14_gil,Route queue,20.09353385290004
+short/14_gil,HNSW + route preparation,1.9669618280000032
+short/14_gil,Dispatch queue,5.4521091627000065
+short/14_gil,Register + request preparation,0.13693345919999925
+short/14_gil,Entry RPC incl. ACK,5.33471788269999
+short/14_gil,Wait for complete reports,66.77165064809982
+short/14_gil,Merge queue,31.57863646829995
+short/14_gil,Merge + metrics,0.3461705315000005
+short/14_gil,Cleanup + persistence,1.4134312695000049
+short/14_gil,Output IPC,11.80046181740002
+short/14_gil,Client consumer,46.95881075860007
+short/15_baseline,Admission,0.03297653140000004
+short/15_baseline,Input queue + IPC,2.4571004638999865
+short/15_baseline,Worker preparation,0.04638528240000015
+short/15_baseline,Receive queue,0.32002205900000125
+short/15_baseline,Receive handoff,0.003985536200000031
+short/15_baseline,Route queue,22.46968058819992
+short/15_baseline,HNSW + route preparation,1.994112837600006
+short/15_baseline,Dispatch queue,7.09431026350001
+short/15_baseline,Register + request preparation,0.15101578090000017
+short/15_baseline,Entry RPC incl. ACK,5.979188788499991
+short/15_baseline,Wait for complete reports,75.0674605768001
+short/15_baseline,Merge queue,34.18790135880011
+short/15_baseline,Merge + metrics,0.3531809399999979
+short/15_baseline,Cleanup + persistence,1.4480353385999978
+short/15_baseline,Output IPC,9.887898994900034
+short/15_baseline,Client consumer,33.82181072459984
+sustained/00_baseline,Admission,0.023162193459999963
+sustained/00_baseline,Input queue + IPC,1.9701576586599843
+sustained/00_baseline,Worker preparation,0.05377408175000014
+sustained/00_baseline,Receive queue,0.2778372160199976
+sustained/00_baseline,Receive handoff,0.0036042348899999977
+sustained/00_baseline,Route queue,6.92189374502999
+sustained/00_baseline,HNSW + route preparation,1.86506413821001
+sustained/00_baseline,Dispatch queue,14.554324689430043
+sustained/00_baseline,Register + request preparation,0.13112300767999885
+sustained/00_baseline,Entry RPC incl. ACK,7.001583592990031
+sustained/00_baseline,Wait for complete reports,174.8244481376321
+sustained/00_baseline,Merge queue,38.13919363784038
+sustained/00_baseline,Merge + metrics,0.37224026853000136
+sustained/00_baseline,Cleanup + persistence,1.4184210726800208
+sustained/00_baseline,Output IPC,9.234743665689965
+sustained/00_baseline,Client consumer,10.8260640593399
+sustained/01_split,Admission,0.015208887919999867
+sustained/01_split,Input queue + IPC,1.9306489516700205
+sustained/01_split,Worker preparation,0.055103183940000175
+sustained/01_split,Receive queue,0.28511472439000274
+sustained/01_split,Receive handoff,0.0037794757199999234
+sustained/01_split,Route queue,6.9334861539500405
+sustained/01_split,HNSW + route preparation,1.8809796884899967
+sustained/01_split,Dispatch queue,21.216531936059962
+sustained/01_split,Register + request preparation,0.1680760564099987
+sustained/01_split,Entry RPC incl. ACK,8.904345756339943
+sustained/01_split,Wait for complete reports,159.9728179061311
+sustained/01_split,Merge queue,41.73291284738078
+sustained/01_split,Merge + metrics,0.37462565272000264
+sustained/01_split,Cleanup + persistence,1.4335174741599963
+sustained/01_split,Output IPC,9.716992983170053
+sustained/01_split,Client consumer,11.248181255499874

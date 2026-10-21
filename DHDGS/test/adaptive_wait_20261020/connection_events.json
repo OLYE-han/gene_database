@@ -1,0 +1,3152 @@
+[
+  {
+    "case": "13_owned_connections",
+    "node": "0",
+    "min_connections": 2,
+    "max_connections": 8,
+    "endpoints": [
+      {
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "limit": 2,
+        "peak_limit": 2,
+        "borrowed": 0,
+        "idle": 1,
+        "waiting": 0
+      },
+      {
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "limit": 6,
+        "peak_limit": 8,
+        "borrowed": 0,
+        "idle": 6,
+        "waiting": 0
+      }
+    ],
+    "events": [
+      {
+        "monotonic_ns": 2696046309250764,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 2,
+        "target": 3,
+        "reason": "connection_wait",
+        "queued": 5,
+        "oldest_wait_ms": 20.025104749947786,
+        "borrowed": 2
+      },
+      {
+        "monotonic_ns": 2696046409764956,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 3,
+        "target": 4,
+        "reason": "connection_wait",
+        "queued": 10,
+        "oldest_wait_ms": 58.41189017519355,
+        "borrowed": 3
+      },
+      {
+        "monotonic_ns": 2696046510930263,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 4,
+        "target": 5,
+        "reason": "connection_wait",
+        "queued": 12,
+        "oldest_wait_ms": 71.34795282036066,
+        "borrowed": 4
+      },
+      {
+        "monotonic_ns": 2696046611422986,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 5,
+        "target": 6,
+        "reason": "connection_wait",
+        "queued": 11,
+        "oldest_wait_ms": 66.2563880905509,
+        "borrowed": 5
+      },
+      {
+        "monotonic_ns": 2696046712269311,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 6,
+        "target": 7,
+        "reason": "connection_wait",
+        "queued": 7,
+        "oldest_wait_ms": 23.597992956638336,
+        "borrowed": 6
+      },
+      {
+        "monotonic_ns": 2696046813032487,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 7,
+        "target": 8,
+        "reason": "connection_wait",
+        "queued": 4,
+        "oldest_wait_ms": 18.123185727745295,
+        "borrowed": 7
+      },
+      {
+        "monotonic_ns": 2696055165516795,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 8,
+        "target": 7,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 2696055307965652,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 7,
+        "target": 6,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      }
+    ],
+    "closed": false
+  },
+  {
+    "case": "13_owned_connections",
+    "node": "1",
+    "min_connections": 2,
+    "max_connections": 8,
+    "endpoints": [
+      {
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "limit": 2,
+        "peak_limit": 6,
+        "borrowed": 0,
+        "idle": 2,
+        "waiting": 0
+      },
+      {
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "limit": 2,
+        "peak_limit": 3,
+        "borrowed": 0,
+        "idle": 2,
+        "waiting": 0
+      }
+    ],
+    "events": [
+      {
+        "monotonic_ns": 712831488433318,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 2,
+        "target": 3,
+        "reason": "connection_wait",
+        "queued": 1,
+        "oldest_wait_ms": 6.535794003866613,
+        "borrowed": 2
+      },
+      {
+        "monotonic_ns": 712835674620638,
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "old": 2,
+        "target": 3,
+        "reason": "connection_wait",
+        "queued": 2,
+        "oldest_wait_ms": 8.639715029858053,
+        "borrowed": 2
+      },
+      {
+        "monotonic_ns": 712836436763783,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 3,
+        "target": 4,
+        "reason": "connection_wait",
+        "queued": 1,
+        "oldest_wait_ms": 3.4741800045594573,
+        "borrowed": 3
+      },
+      {
+        "monotonic_ns": 712836638149579,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 4,
+        "target": 5,
+        "reason": "connection_wait",
+        "queued": 4,
+        "oldest_wait_ms": 31.988856964744627,
+        "borrowed": 4
+      },
+      {
+        "monotonic_ns": 712838092210619,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 5,
+        "target": 6,
+        "reason": "connection_wait",
+        "queued": 1,
+        "oldest_wait_ms": 14.74906806834042,
+        "borrowed": 5
+      },
+      {
+        "monotonic_ns": 712840177102171,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 6,
+        "target": 5,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 712840277632590,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 5,
+        "target": 4,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 712840377881598,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 4,
+        "target": 3,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 712840478081713,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 3,
+        "target": 2,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 712840578286164,
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "old": 3,
+        "target": 2,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      }
+    ],
+    "closed": false
+  },
+  {
+    "case": "13_owned_connections",
+    "node": "2",
+    "min_connections": 2,
+    "max_connections": 8,
+    "endpoints": [
+      {
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "limit": 2,
+        "peak_limit": 2,
+        "borrowed": 0,
+        "idle": 1,
+        "waiting": 0
+      },
+      {
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "limit": 6,
+        "peak_limit": 8,
+        "borrowed": 0,
+        "idle": 6,
+        "waiting": 0
+      }
+    ],
+    "events": [
+      {
+        "monotonic_ns": 24683579273633011,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 2,
+        "target": 3,
+        "reason": "connection_wait",
+        "queued": 2,
+        "oldest_wait_ms": 7.433883845806122,
+        "borrowed": 2
+      },
+      {
+        "monotonic_ns": 24683579374265283,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 3,
+        "target": 4,
+        "reason": "connection_wait",
+        "queued": 8,
+        "oldest_wait_ms": 24.98776838183403,
+        "borrowed": 3
+      },
+      {
+        "monotonic_ns": 24683579474565299,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 4,
+        "target": 5,
+        "reason": "connection_wait",
+        "queued": 6,
+        "oldest_wait_ms": 30.046232044696808,
+        "borrowed": 4
+      },
+      {
+        "monotonic_ns": 24683579574941469,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 5,
+        "target": 6,
+        "reason": "connection_wait",
+        "queued": 2,
+        "oldest_wait_ms": 6.7918263375759125,
+        "borrowed": 5
+      },
+      {
+        "monotonic_ns": 24683580329877280,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 6,
+        "target": 7,
+        "reason": "connection_wait",
+        "queued": 2,
+        "oldest_wait_ms": 17.495743930339813,
+        "borrowed": 6
+      },
+      {
+        "monotonic_ns": 24683580935786673,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 7,
+        "target": 8,
+        "reason": "connection_wait",
+        "queued": 4,
+        "oldest_wait_ms": 10.540097951889038,
+        "borrowed": 7
+      },
+      {
+        "monotonic_ns": 24683588151205129,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 8,
+        "target": 7,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 24683588285217240,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 7,
+        "target": 6,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      }
+    ],
+    "closed": false
+  },
+  {
+    "case": "14_owned_connections",
+    "node": "0",
+    "min_connections": 2,
+    "max_connections": 8,
+    "endpoints": [
+      {
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "limit": 2,
+        "peak_limit": 2,
+        "borrowed": 0,
+        "idle": 1,
+        "waiting": 0
+      },
+      {
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "limit": 6,
+        "peak_limit": 8,
+        "borrowed": 0,
+        "idle": 6,
+        "waiting": 0
+      }
+    ],
+    "events": [
+      {
+        "monotonic_ns": 2696202157344343,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 2,
+        "target": 3,
+        "reason": "connection_wait",
+        "queued": 5,
+        "oldest_wait_ms": 11.108859907835722,
+        "borrowed": 2
+      },
+      {
+        "monotonic_ns": 2696202257636880,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 3,
+        "target": 4,
+        "reason": "connection_wait",
+        "queued": 10,
+        "oldest_wait_ms": 78.12763005495071,
+        "borrowed": 3
+      },
+      {
+        "monotonic_ns": 2696202408274456,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 4,
+        "target": 5,
+        "reason": "connection_wait",
+        "queued": 1,
+        "oldest_wait_ms": 3.9927358739078045,
+        "borrowed": 4
+      },
+      {
+        "monotonic_ns": 2696202508543462,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 5,
+        "target": 6,
+        "reason": "connection_wait",
+        "queued": 9,
+        "oldest_wait_ms": 51.62011319771409,
+        "borrowed": 5
+      },
+      {
+        "monotonic_ns": 2696202608825285,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 6,
+        "target": 7,
+        "reason": "connection_wait",
+        "queued": 1,
+        "oldest_wait_ms": 9.505970869213343,
+        "borrowed": 6
+      },
+      {
+        "monotonic_ns": 2696202859694727,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 7,
+        "target": 8,
+        "reason": "connection_wait",
+        "queued": 4,
+        "oldest_wait_ms": 18.302478827536106,
+        "borrowed": 7
+      },
+      {
+        "monotonic_ns": 2696212750926559,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 8,
+        "target": 7,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 2696212906018942,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 7,
+        "target": 6,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      }
+    ],
+    "closed": false
+  },
+  {
+    "case": "14_owned_connections",
+    "node": "1",
+    "min_connections": 2,
+    "max_connections": 8,
+    "endpoints": [
+      {
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "limit": 2,
+        "peak_limit": 5,
+        "borrowed": 0,
+        "idle": 2,
+        "waiting": 0
+      },
+      {
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "limit": 2,
+        "peak_limit": 5,
+        "borrowed": 0,
+        "idle": 2,
+        "waiting": 0
+      }
+    ],
+    "events": [
+      {
+        "monotonic_ns": 712987401326824,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 2,
+        "target": 3,
+        "reason": "connection_wait",
+        "queued": 6,
+        "oldest_wait_ms": 4.318698076531291,
+        "borrowed": 2
+      },
+      {
+        "monotonic_ns": 712990553043046,
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "old": 2,
+        "target": 3,
+        "reason": "connection_wait",
+        "queued": 2,
+        "oldest_wait_ms": 13.12610402237624,
+        "borrowed": 2
+      },
+      {
+        "monotonic_ns": 712990653958267,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 3,
+        "target": 4,
+        "reason": "connection_wait",
+        "queued": 3,
+        "oldest_wait_ms": 10.092495009303093,
+        "borrowed": 3
+      },
+      {
+        "monotonic_ns": 712991309650380,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 4,
+        "target": 5,
+        "reason": "connection_wait",
+        "queued": 1,
+        "oldest_wait_ms": 2.552579971961677,
+        "borrowed": 4
+      },
+      {
+        "monotonic_ns": 712996362587929,
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "old": 3,
+        "target": 4,
+        "reason": "connection_wait",
+        "queued": 2,
+        "oldest_wait_ms": 18.967859912663698,
+        "borrowed": 3
+      },
+      {
+        "monotonic_ns": 712996463854909,
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "old": 4,
+        "target": 5,
+        "reason": "connection_wait",
+        "queued": 3,
+        "oldest_wait_ms": 31.546468031592667,
+        "borrowed": 4
+      },
+      {
+        "monotonic_ns": 712998028247652,
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "old": 5,
+        "target": 4,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 712998028277822,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 5,
+        "target": 4,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 712998128625947,
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "old": 4,
+        "target": 3,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 712998128652783,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 4,
+        "target": 3,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 712998228911825,
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "old": 3,
+        "target": 2,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 712998228924276,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 3,
+        "target": 2,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      }
+    ],
+    "closed": false
+  },
+  {
+    "case": "14_owned_connections",
+    "node": "2",
+    "min_connections": 2,
+    "max_connections": 8,
+    "endpoints": [
+      {
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "limit": 2,
+        "peak_limit": 2,
+        "borrowed": 0,
+        "idle": 1,
+        "waiting": 0
+      },
+      {
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "limit": 6,
+        "peak_limit": 8,
+        "borrowed": 0,
+        "idle": 6,
+        "waiting": 0
+      }
+    ],
+    "events": [
+      {
+        "monotonic_ns": 24683735186981785,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 2,
+        "target": 3,
+        "reason": "connection_wait",
+        "queued": 14,
+        "oldest_wait_ms": 32.7179990708828,
+        "borrowed": 2
+      },
+      {
+        "monotonic_ns": 24683735287609789,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 3,
+        "target": 4,
+        "reason": "connection_wait",
+        "queued": 13,
+        "oldest_wait_ms": 110.93749105930328,
+        "borrowed": 3
+      },
+      {
+        "monotonic_ns": 24683735388106299,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 4,
+        "target": 5,
+        "reason": "connection_wait",
+        "queued": 11,
+        "oldest_wait_ms": 93.73622760176659,
+        "borrowed": 4
+      },
+      {
+        "monotonic_ns": 24683735488558835,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 5,
+        "target": 6,
+        "reason": "connection_wait",
+        "queued": 9,
+        "oldest_wait_ms": 72.6030245423317,
+        "borrowed": 5
+      },
+      {
+        "monotonic_ns": 24683735589955201,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 6,
+        "target": 7,
+        "reason": "connection_wait",
+        "queued": 5,
+        "oldest_wait_ms": 8.81585106253624,
+        "borrowed": 6
+      },
+      {
+        "monotonic_ns": 24683737250150246,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 7,
+        "target": 8,
+        "reason": "connection_wait",
+        "queued": 3,
+        "oldest_wait_ms": 10.401066392660141,
+        "borrowed": 7
+      },
+      {
+        "monotonic_ns": 24683745739434988,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 8,
+        "target": 7,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 24683745896911892,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 7,
+        "target": 6,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      }
+    ],
+    "closed": false
+  },
+  {
+    "case": "16_connections_nolog",
+    "node": "0",
+    "min_connections": 2,
+    "max_connections": 8,
+    "endpoints": [
+      {
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "limit": 2,
+        "peak_limit": 2,
+        "borrowed": 0,
+        "idle": 1,
+        "waiting": 0
+      },
+      {
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "limit": 6,
+        "peak_limit": 8,
+        "borrowed": 0,
+        "idle": 6,
+        "waiting": 0
+      }
+    ],
+    "events": [
+      {
+        "monotonic_ns": 2696484097256539,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 2,
+        "target": 3,
+        "reason": "connection_wait",
+        "queued": 3,
+        "oldest_wait_ms": 15.627874061465263,
+        "borrowed": 2
+      },
+      {
+        "monotonic_ns": 2696484198335074,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 3,
+        "target": 4,
+        "reason": "connection_wait",
+        "queued": 4,
+        "oldest_wait_ms": 16.914225183427334,
+        "borrowed": 3
+      },
+      {
+        "monotonic_ns": 2696484298871437,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 4,
+        "target": 5,
+        "reason": "connection_wait",
+        "queued": 9,
+        "oldest_wait_ms": 33.709217328578234,
+        "borrowed": 4
+      },
+      {
+        "monotonic_ns": 2696484399412414,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 5,
+        "target": 6,
+        "reason": "connection_wait",
+        "queued": 5,
+        "oldest_wait_ms": 18.87159887701273,
+        "borrowed": 5
+      },
+      {
+        "monotonic_ns": 2696484600114084,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 6,
+        "target": 7,
+        "reason": "connection_wait",
+        "queued": 2,
+        "oldest_wait_ms": 31.376380007714033,
+        "borrowed": 6
+      },
+      {
+        "monotonic_ns": 2696484956643922,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 7,
+        "target": 8,
+        "reason": "connection_wait",
+        "queued": 2,
+        "oldest_wait_ms": 14.83991276472807,
+        "borrowed": 7
+      },
+      {
+        "monotonic_ns": 2696493897790491,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 8,
+        "target": 7,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 2696494059567565,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 7,
+        "target": 6,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      }
+    ],
+    "closed": false
+  },
+  {
+    "case": "16_connections_nolog",
+    "node": "1",
+    "min_connections": 2,
+    "max_connections": 8,
+    "endpoints": [
+      {
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "limit": 2,
+        "peak_limit": 5,
+        "borrowed": 0,
+        "idle": 2,
+        "waiting": 0
+      },
+      {
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "limit": 3,
+        "peak_limit": 6,
+        "borrowed": 0,
+        "idle": 3,
+        "waiting": 0
+      }
+    ],
+    "events": [
+      {
+        "monotonic_ns": 713269095186681,
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "old": 2,
+        "target": 3,
+        "reason": "connection_wait",
+        "queued": 1,
+        "oldest_wait_ms": 2.3355239536613226,
+        "borrowed": 2
+      },
+      {
+        "monotonic_ns": 713269448142832,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 2,
+        "target": 3,
+        "reason": "connection_wait",
+        "queued": 3,
+        "oldest_wait_ms": 16.51535590644926,
+        "borrowed": 2
+      },
+      {
+        "monotonic_ns": 713271697385671,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 3,
+        "target": 2,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 713274370902000,
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "old": 3,
+        "target": 4,
+        "reason": "connection_wait",
+        "queued": 5,
+        "oldest_wait_ms": 14.187874039635062,
+        "borrowed": 3
+      },
+      {
+        "monotonic_ns": 713274421436945,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 2,
+        "target": 3,
+        "reason": "connection_wait",
+        "queued": 4,
+        "oldest_wait_ms": 16.939382068812847,
+        "borrowed": 2
+      },
+      {
+        "monotonic_ns": 713275489488965,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 3,
+        "target": 4,
+        "reason": "connection_wait",
+        "queued": 6,
+        "oldest_wait_ms": 37.54797193687409,
+        "borrowed": 3
+      },
+      {
+        "monotonic_ns": 713276048210430,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 4,
+        "target": 5,
+        "reason": "connection_wait",
+        "queued": 1,
+        "oldest_wait_ms": 4.925845074467361,
+        "borrowed": 4
+      },
+      {
+        "monotonic_ns": 713276822458024,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 5,
+        "target": 6,
+        "reason": "connection_wait",
+        "queued": 3,
+        "oldest_wait_ms": 10.031015030108392,
+        "borrowed": 5
+      },
+      {
+        "monotonic_ns": 713277631174436,
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "old": 4,
+        "target": 5,
+        "reason": "connection_wait",
+        "queued": 7,
+        "oldest_wait_ms": 17.66341889742762,
+        "borrowed": 4
+      },
+      {
+        "monotonic_ns": 713279253324348,
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "old": 5,
+        "target": 4,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 713279353591218,
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "old": 4,
+        "target": 3,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 713279353605345,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 6,
+        "target": 5,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 713279473026700,
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "old": 3,
+        "target": 2,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 713279473040027,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 5,
+        "target": 4,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 713279588489714,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 4,
+        "target": 3,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      }
+    ],
+    "closed": false
+  },
+  {
+    "case": "16_connections_nolog",
+    "node": "2",
+    "min_connections": 2,
+    "max_connections": 8,
+    "endpoints": [
+      {
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "limit": 2,
+        "peak_limit": 2,
+        "borrowed": 0,
+        "idle": 2,
+        "waiting": 0
+      },
+      {
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "limit": 7,
+        "peak_limit": 8,
+        "borrowed": 0,
+        "idle": 7,
+        "waiting": 0
+      }
+    ],
+    "events": [
+      {
+        "monotonic_ns": 24684017133619903,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 2,
+        "target": 3,
+        "reason": "connection_wait",
+        "queued": 8,
+        "oldest_wait_ms": 8.76433402299881,
+        "borrowed": 2
+      },
+      {
+        "monotonic_ns": 24684017234985316,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 3,
+        "target": 4,
+        "reason": "connection_wait",
+        "queued": 12,
+        "oldest_wait_ms": 75.6128653883934,
+        "borrowed": 3
+      },
+      {
+        "monotonic_ns": 24684017335599380,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 4,
+        "target": 5,
+        "reason": "connection_wait",
+        "queued": 12,
+        "oldest_wait_ms": 75.37833228707314,
+        "borrowed": 4
+      },
+      {
+        "monotonic_ns": 24684017436061238,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 5,
+        "target": 6,
+        "reason": "connection_wait",
+        "queued": 4,
+        "oldest_wait_ms": 51.00241303443909,
+        "borrowed": 5
+      },
+      {
+        "monotonic_ns": 24684018191279506,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 6,
+        "target": 7,
+        "reason": "connection_wait",
+        "queued": 2,
+        "oldest_wait_ms": 2.5943927466869354,
+        "borrowed": 6
+      },
+      {
+        "monotonic_ns": 24684024634759514,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 7,
+        "target": 8,
+        "reason": "connection_wait",
+        "queued": 3,
+        "oldest_wait_ms": 10.503418743610382,
+        "borrowed": 7
+      },
+      {
+        "monotonic_ns": 24684027012901131,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 8,
+        "target": 7,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      }
+    ],
+    "closed": false
+  },
+  {
+    "case": "18_branch_owner_auto",
+    "node": "0",
+    "min_connections": 2,
+    "max_connections": 8,
+    "endpoints": [
+      {
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "limit": 2,
+        "peak_limit": 2,
+        "borrowed": 0,
+        "idle": 1,
+        "waiting": 0
+      },
+      {
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "limit": 6,
+        "peak_limit": 8,
+        "borrowed": 0,
+        "idle": 6,
+        "waiting": 0
+      }
+    ],
+    "events": [
+      {
+        "monotonic_ns": 2696938750602655,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 2,
+        "target": 3,
+        "reason": "connection_wait",
+        "queued": 6,
+        "oldest_wait_ms": 35.401470959186554,
+        "borrowed": 2
+      },
+      {
+        "monotonic_ns": 2696938850813771,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 3,
+        "target": 4,
+        "reason": "connection_wait",
+        "queued": 10,
+        "oldest_wait_ms": 75.40421932935715,
+        "borrowed": 3
+      },
+      {
+        "monotonic_ns": 2696938951114398,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 4,
+        "target": 5,
+        "reason": "connection_wait",
+        "queued": 10,
+        "oldest_wait_ms": 83.7441529147327,
+        "borrowed": 4
+      },
+      {
+        "monotonic_ns": 2696939051361823,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 5,
+        "target": 6,
+        "reason": "connection_wait",
+        "queued": 10,
+        "oldest_wait_ms": 44.43311598151922,
+        "borrowed": 5
+      },
+      {
+        "monotonic_ns": 2696939151685712,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 6,
+        "target": 7,
+        "reason": "connection_wait",
+        "queued": 4,
+        "oldest_wait_ms": 37.65734517946839,
+        "borrowed": 6
+      },
+      {
+        "monotonic_ns": 2696939504681349,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 7,
+        "target": 8,
+        "reason": "connection_wait",
+        "queued": 2,
+        "oldest_wait_ms": 14.994772616773844,
+        "borrowed": 7
+      },
+      {
+        "monotonic_ns": 2696948767539736,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 8,
+        "target": 7,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 2696948878644656,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 7,
+        "target": 6,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      }
+    ],
+    "closed": false
+  },
+  {
+    "case": "18_branch_owner_auto",
+    "node": "1",
+    "min_connections": 2,
+    "max_connections": 8,
+    "endpoints": [
+      {
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "limit": 2,
+        "peak_limit": 4,
+        "borrowed": 0,
+        "idle": 2,
+        "waiting": 0
+      },
+      {
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "limit": 2,
+        "peak_limit": 5,
+        "borrowed": 0,
+        "idle": 2,
+        "waiting": 0
+      }
+    ],
+    "events": [
+      {
+        "monotonic_ns": 713724035417137,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 2,
+        "target": 3,
+        "reason": "connection_wait",
+        "queued": 1,
+        "oldest_wait_ms": 13.194269966334105,
+        "borrowed": 2
+      },
+      {
+        "monotonic_ns": 713726846669808,
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "old": 2,
+        "target": 3,
+        "reason": "connection_wait",
+        "queued": 1,
+        "oldest_wait_ms": 4.99802699778229,
+        "borrowed": 2
+      },
+      {
+        "monotonic_ns": 713729237891870,
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "old": 3,
+        "target": 4,
+        "reason": "connection_wait",
+        "queued": 1,
+        "oldest_wait_ms": 9.718906949274242,
+        "borrowed": 3
+      },
+      {
+        "monotonic_ns": 713729237913207,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 3,
+        "target": 4,
+        "reason": "connection_wait",
+        "queued": 2,
+        "oldest_wait_ms": 5.639471928589046,
+        "borrowed": 3
+      },
+      {
+        "monotonic_ns": 713729946417469,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 4,
+        "target": 5,
+        "reason": "connection_wait",
+        "queued": 4,
+        "oldest_wait_ms": 3.9653669809922576,
+        "borrowed": 4
+      },
+      {
+        "monotonic_ns": 713733601889503,
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "old": 4,
+        "target": 3,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 713733702472360,
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "old": 3,
+        "target": 2,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 713734104849074,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 5,
+        "target": 4,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 713734205139767,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 4,
+        "target": 3,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 713734332291875,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 3,
+        "target": 2,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      }
+    ],
+    "closed": false
+  },
+  {
+    "case": "18_branch_owner_auto",
+    "node": "2",
+    "min_connections": 2,
+    "max_connections": 8,
+    "endpoints": [
+      {
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "limit": 2,
+        "peak_limit": 2,
+        "borrowed": 0,
+        "idle": 2,
+        "waiting": 0
+      },
+      {
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "limit": 6,
+        "peak_limit": 8,
+        "borrowed": 0,
+        "idle": 6,
+        "waiting": 0
+      }
+    ],
+    "events": [
+      {
+        "monotonic_ns": 24684471392908421,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 2,
+        "target": 3,
+        "reason": "connection_wait",
+        "queued": 1,
+        "oldest_wait_ms": 3.355909138917923,
+        "borrowed": 2
+      },
+      {
+        "monotonic_ns": 24684471746916341,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 3,
+        "target": 4,
+        "reason": "connection_wait",
+        "queued": 10,
+        "oldest_wait_ms": 23.894816637039185,
+        "borrowed": 3
+      },
+      {
+        "monotonic_ns": 24684471847582998,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 4,
+        "target": 5,
+        "reason": "connection_wait",
+        "queued": 10,
+        "oldest_wait_ms": 88.56309205293655,
+        "borrowed": 4
+      },
+      {
+        "monotonic_ns": 24684471948509102,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 5,
+        "target": 6,
+        "reason": "connection_wait",
+        "queued": 4,
+        "oldest_wait_ms": 37.29570657014847,
+        "borrowed": 5
+      },
+      {
+        "monotonic_ns": 24684472500979898,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 6,
+        "target": 7,
+        "reason": "connection_wait",
+        "queued": 2,
+        "oldest_wait_ms": 14.660406857728958,
+        "borrowed": 6
+      },
+      {
+        "monotonic_ns": 24684478836788353,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 7,
+        "target": 8,
+        "reason": "connection_wait",
+        "queued": 4,
+        "oldest_wait_ms": 15.812896192073822,
+        "borrowed": 7
+      },
+      {
+        "monotonic_ns": 24684481756503751,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 8,
+        "target": 7,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 24684481886420107,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 7,
+        "target": 6,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      }
+    ],
+    "closed": false
+  },
+  {
+    "case": "26_network_auto",
+    "node": "0",
+    "min_connections": 2,
+    "max_connections": 8,
+    "endpoints": [
+      {
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "limit": 2,
+        "peak_limit": 2,
+        "borrowed": 0,
+        "idle": 1,
+        "waiting": 0
+      },
+      {
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "limit": 4,
+        "peak_limit": 7,
+        "borrowed": 0,
+        "idle": 4,
+        "waiting": 0
+      }
+    ],
+    "events": [
+      {
+        "monotonic_ns": 2698016700380298,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 2,
+        "target": 3,
+        "reason": "connection_wait",
+        "queued": 1,
+        "oldest_wait_ms": 5.639899056404829,
+        "borrowed": 2
+      },
+      {
+        "monotonic_ns": 2698017815782238,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 3,
+        "target": 4,
+        "reason": "connection_wait",
+        "queued": 2,
+        "oldest_wait_ms": 10.156507138162851,
+        "borrowed": 3
+      },
+      {
+        "monotonic_ns": 2698020038104405,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 4,
+        "target": 5,
+        "reason": "connection_wait",
+        "queued": 3,
+        "oldest_wait_ms": 7.383627817034721,
+        "borrowed": 4
+      },
+      {
+        "monotonic_ns": 2698020800867079,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 5,
+        "target": 6,
+        "reason": "connection_wait",
+        "queued": 6,
+        "oldest_wait_ms": 5.032517947256565,
+        "borrowed": 5
+      },
+      {
+        "monotonic_ns": 2698023070923901,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 6,
+        "target": 7,
+        "reason": "connection_wait",
+        "queued": 9,
+        "oldest_wait_ms": 30.79633926972747,
+        "borrowed": 6
+      },
+      {
+        "monotonic_ns": 2698025775796627,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 7,
+        "target": 6,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 2698025876082516,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 6,
+        "target": 5,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 2698026023483349,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 5,
+        "target": 4,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      }
+    ],
+    "closed": false
+  },
+  {
+    "case": "26_network_auto",
+    "node": "1",
+    "min_connections": 2,
+    "max_connections": 8,
+    "endpoints": [
+      {
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "limit": 2,
+        "peak_limit": 4,
+        "borrowed": 0,
+        "idle": 2,
+        "waiting": 0
+      },
+      {
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "limit": 2,
+        "peak_limit": 5,
+        "borrowed": 0,
+        "idle": 2,
+        "waiting": 0
+      }
+    ],
+    "events": [
+      {
+        "monotonic_ns": 714803773571900,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 2,
+        "target": 3,
+        "reason": "connection_wait",
+        "queued": 2,
+        "oldest_wait_ms": 7.0911209331825376,
+        "borrowed": 2
+      },
+      {
+        "monotonic_ns": 714804024877955,
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "old": 2,
+        "target": 3,
+        "reason": "connection_wait",
+        "queued": 3,
+        "oldest_wait_ms": 11.178511078469455,
+        "borrowed": 2
+      },
+      {
+        "monotonic_ns": 714804681910614,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 3,
+        "target": 4,
+        "reason": "connection_wait",
+        "queued": 1,
+        "oldest_wait_ms": 2.3921940010041,
+        "borrowed": 3
+      },
+      {
+        "monotonic_ns": 714806983718498,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 4,
+        "target": 5,
+        "reason": "connection_wait",
+        "queued": 2,
+        "oldest_wait_ms": 10.308354976586998,
+        "borrowed": 4
+      },
+      {
+        "monotonic_ns": 714809471885365,
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "old": 3,
+        "target": 4,
+        "reason": "connection_wait",
+        "queued": 2,
+        "oldest_wait_ms": 19.277131999842823,
+        "borrowed": 3
+      },
+      {
+        "monotonic_ns": 714811262999912,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 5,
+        "target": 4,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 714811313198528,
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "old": 4,
+        "target": 3,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 714811363345602,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 4,
+        "target": 3,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 714811482179507,
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "old": 3,
+        "target": 2,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 714811482197757,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 3,
+        "target": 2,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      }
+    ],
+    "closed": false
+  },
+  {
+    "case": "26_network_auto",
+    "node": "2",
+    "min_connections": 2,
+    "max_connections": 8,
+    "endpoints": [
+      {
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "limit": 5,
+        "peak_limit": 8,
+        "borrowed": 0,
+        "idle": 5,
+        "waiting": 0
+      },
+      {
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "limit": 2,
+        "peak_limit": 2,
+        "borrowed": 0,
+        "idle": 1,
+        "waiting": 0
+      }
+    ],
+    "events": [
+      {
+        "monotonic_ns": 24685550002566147,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 2,
+        "target": 3,
+        "reason": "connection_wait",
+        "queued": 1,
+        "oldest_wait_ms": 2.1576061844825745,
+        "borrowed": 2
+      },
+      {
+        "monotonic_ns": 24685550104298919,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 3,
+        "target": 4,
+        "reason": "connection_wait",
+        "queued": 4,
+        "oldest_wait_ms": 10.036509484052658,
+        "borrowed": 3
+      },
+      {
+        "monotonic_ns": 24685550760291607,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 4,
+        "target": 5,
+        "reason": "connection_wait",
+        "queued": 1,
+        "oldest_wait_ms": 15.445224940776825,
+        "borrowed": 4
+      },
+      {
+        "monotonic_ns": 24685553082649785,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 5,
+        "target": 6,
+        "reason": "connection_wait",
+        "queued": 11,
+        "oldest_wait_ms": 47.81205952167511,
+        "borrowed": 5
+      },
+      {
+        "monotonic_ns": 24685553739325184,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 6,
+        "target": 7,
+        "reason": "connection_wait",
+        "queued": 5,
+        "oldest_wait_ms": 20.956799387931824,
+        "borrowed": 6
+      },
+      {
+        "monotonic_ns": 24685555358769282,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 7,
+        "target": 8,
+        "reason": "connection_wait",
+        "queued": 3,
+        "oldest_wait_ms": 2.5199241936206818,
+        "borrowed": 7
+      },
+      {
+        "monotonic_ns": 24685558782211065,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 8,
+        "target": 7,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 24685558882857653,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 7,
+        "target": 6,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 24685558995186725,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 6,
+        "target": 5,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      }
+    ],
+    "closed": false
+  },
+  {
+    "case": "27_network_auto",
+    "node": "0",
+    "min_connections": 2,
+    "max_connections": 8,
+    "endpoints": [
+      {
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "limit": 2,
+        "peak_limit": 2,
+        "borrowed": 0,
+        "idle": 1,
+        "waiting": 0
+      },
+      {
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "limit": 4,
+        "peak_limit": 7,
+        "borrowed": 0,
+        "idle": 4,
+        "waiting": 0
+      }
+    ],
+    "events": [
+      {
+        "monotonic_ns": 2698173549866553,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 2,
+        "target": 3,
+        "reason": "connection_wait",
+        "queued": 1,
+        "oldest_wait_ms": 2.979773096740246,
+        "borrowed": 2
+      },
+      {
+        "monotonic_ns": 2698174206142019,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 3,
+        "target": 4,
+        "reason": "connection_wait",
+        "queued": 2,
+        "oldest_wait_ms": 3.8897492922842503,
+        "borrowed": 3
+      },
+      {
+        "monotonic_ns": 2698174721270014,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 4,
+        "target": 5,
+        "reason": "connection_wait",
+        "queued": 1,
+        "oldest_wait_ms": 3.490850795060396,
+        "borrowed": 4
+      },
+      {
+        "monotonic_ns": 2698176740512162,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 5,
+        "target": 6,
+        "reason": "connection_wait",
+        "queued": 1,
+        "oldest_wait_ms": 2.054736949503422,
+        "borrowed": 5
+      },
+      {
+        "monotonic_ns": 2698179783031959,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 6,
+        "target": 7,
+        "reason": "connection_wait",
+        "queued": 9,
+        "oldest_wait_ms": 46.782858204096556,
+        "borrowed": 6
+      },
+      {
+        "monotonic_ns": 2698182292617997,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 7,
+        "target": 6,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 2698182392787886,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 6,
+        "target": 5,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 2698182556305368,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 5,
+        "target": 4,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      }
+    ],
+    "closed": false
+  },
+  {
+    "case": "27_network_auto",
+    "node": "1",
+    "min_connections": 2,
+    "max_connections": 8,
+    "endpoints": [
+      {
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "limit": 2,
+        "peak_limit": 3,
+        "borrowed": 0,
+        "idle": 2,
+        "waiting": 0
+      },
+      {
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "limit": 2,
+        "peak_limit": 3,
+        "borrowed": 0,
+        "idle": 2,
+        "waiting": 0
+      }
+    ],
+    "events": [
+      {
+        "monotonic_ns": 714961110852430,
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "old": 2,
+        "target": 3,
+        "reason": "connection_wait",
+        "queued": 1,
+        "oldest_wait_ms": 6.288405042141676,
+        "borrowed": 2
+      },
+      {
+        "monotonic_ns": 714962021239152,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 2,
+        "target": 3,
+        "reason": "connection_wait",
+        "queued": 3,
+        "oldest_wait_ms": 6.185448030009866,
+        "borrowed": 2
+      },
+      {
+        "monotonic_ns": 714967484816247,
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "old": 3,
+        "target": 2,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 714967885923930,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 3,
+        "target": 2,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      }
+    ],
+    "closed": false
+  },
+  {
+    "case": "27_network_auto",
+    "node": "2",
+    "min_connections": 2,
+    "max_connections": 8,
+    "endpoints": [
+      {
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "limit": 5,
+        "peak_limit": 8,
+        "borrowed": 0,
+        "idle": 5,
+        "waiting": 0
+      },
+      {
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "limit": 2,
+        "peak_limit": 2,
+        "borrowed": 0,
+        "idle": 2,
+        "waiting": 0
+      }
+    ],
+    "events": [
+      {
+        "monotonic_ns": 24685706786221978,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 2,
+        "target": 3,
+        "reason": "connection_wait",
+        "queued": 9,
+        "oldest_wait_ms": 31.496278941631317,
+        "borrowed": 2
+      },
+      {
+        "monotonic_ns": 24685706886919910,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 3,
+        "target": 4,
+        "reason": "connection_wait",
+        "queued": 1,
+        "oldest_wait_ms": 3.2765567302703857,
+        "borrowed": 3
+      },
+      {
+        "monotonic_ns": 24685707443485280,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 4,
+        "target": 5,
+        "reason": "connection_wait",
+        "queued": 2,
+        "oldest_wait_ms": 5.567561835050583,
+        "borrowed": 4
+      },
+      {
+        "monotonic_ns": 24685709759535889,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 5,
+        "target": 6,
+        "reason": "connection_wait",
+        "queued": 1,
+        "oldest_wait_ms": 8.988361805677414,
+        "borrowed": 5
+      },
+      {
+        "monotonic_ns": 24685712236650722,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 6,
+        "target": 7,
+        "reason": "connection_wait",
+        "queued": 3,
+        "oldest_wait_ms": 11.324495077133179,
+        "borrowed": 6
+      },
+      {
+        "monotonic_ns": 24685712740445055,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 7,
+        "target": 8,
+        "reason": "connection_wait",
+        "queued": 1,
+        "oldest_wait_ms": 8.211404085159302,
+        "borrowed": 7
+      },
+      {
+        "monotonic_ns": 24685715308431572,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 8,
+        "target": 7,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 24685715409166252,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 7,
+        "target": 6,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 24685715533648179,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 6,
+        "target": 5,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      }
+    ],
+    "closed": false
+  },
+  {
+    "case": "29_head8_network_auto",
+    "node": "0",
+    "min_connections": 2,
+    "max_connections": 8,
+    "endpoints": [
+      {
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "limit": 2,
+        "peak_limit": 2,
+        "borrowed": 0,
+        "idle": 1,
+        "waiting": 0
+      },
+      {
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "limit": 2,
+        "peak_limit": 8,
+        "borrowed": 0,
+        "idle": 2,
+        "waiting": 0
+      }
+    ],
+    "events": [
+      {
+        "monotonic_ns": 2698486861665003,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 2,
+        "target": 3,
+        "reason": "connection_wait",
+        "queued": 7,
+        "oldest_wait_ms": 8.462477941066027,
+        "borrowed": 2
+      },
+      {
+        "monotonic_ns": 2698487264757859,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 3,
+        "target": 4,
+        "reason": "connection_wait",
+        "queued": 4,
+        "oldest_wait_ms": 18.46554409712553,
+        "borrowed": 3
+      },
+      {
+        "monotonic_ns": 2698490892706459,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 4,
+        "target": 5,
+        "reason": "connection_wait",
+        "queued": 1,
+        "oldest_wait_ms": 13.654591049998999,
+        "borrowed": 4
+      },
+      {
+        "monotonic_ns": 2698491394668835,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 5,
+        "target": 6,
+        "reason": "connection_wait",
+        "queued": 3,
+        "oldest_wait_ms": 7.291879039257765,
+        "borrowed": 5
+      },
+      {
+        "monotonic_ns": 2698493414434285,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 6,
+        "target": 7,
+        "reason": "connection_wait",
+        "queued": 1,
+        "oldest_wait_ms": 7.438756991177797,
+        "borrowed": 6
+      },
+      {
+        "monotonic_ns": 2698493515487224,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 7,
+        "target": 8,
+        "reason": "connection_wait",
+        "queued": 3,
+        "oldest_wait_ms": 5.022667348384857,
+        "borrowed": 7
+      },
+      {
+        "monotonic_ns": 2698497633492587,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 8,
+        "target": 7,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 2698497733767995,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 7,
+        "target": 6,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 2698497834026748,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 6,
+        "target": 5,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 2698497934266064,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 5,
+        "target": 4,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 2698498034486970,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 4,
+        "target": 3,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 2698498145924359,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 3,
+        "target": 2,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      }
+    ],
+    "closed": false
+  },
+  {
+    "case": "29_head8_network_auto",
+    "node": "1",
+    "min_connections": 2,
+    "max_connections": 8,
+    "endpoints": [
+      {
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "limit": 2,
+        "peak_limit": 4,
+        "borrowed": 0,
+        "idle": 2,
+        "waiting": 0
+      },
+      {
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "limit": 2,
+        "peak_limit": 4,
+        "borrowed": 0,
+        "idle": 2,
+        "waiting": 0
+      }
+    ],
+    "events": [
+      {
+        "monotonic_ns": 715272017621545,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 2,
+        "target": 3,
+        "reason": "connection_wait",
+        "queued": 3,
+        "oldest_wait_ms": 18.36487906984985,
+        "borrowed": 2
+      },
+      {
+        "monotonic_ns": 715277931228303,
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "old": 2,
+        "target": 3,
+        "reason": "connection_wait",
+        "queued": 1,
+        "oldest_wait_ms": 2.7436589589342475,
+        "borrowed": 2
+      },
+      {
+        "monotonic_ns": 715278491638119,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 3,
+        "target": 4,
+        "reason": "connection_wait",
+        "queued": 4,
+        "oldest_wait_ms": 31.202731071971357,
+        "borrowed": 3
+      },
+      {
+        "monotonic_ns": 715281173108598,
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "old": 3,
+        "target": 4,
+        "reason": "connection_wait",
+        "queued": 3,
+        "oldest_wait_ms": 4.481823067180812,
+        "borrowed": 3
+      },
+      {
+        "monotonic_ns": 715283267183315,
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "old": 4,
+        "target": 3,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 715283267211980,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 4,
+        "target": 3,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 715283367591504,
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "old": 3,
+        "target": 2,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 715283367609993,
+        "endpoint": [
+          "192.168.33.30",
+          28753
+        ],
+        "old": 3,
+        "target": 2,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      }
+    ],
+    "closed": false
+  },
+  {
+    "case": "29_head8_network_auto",
+    "node": "2",
+    "min_connections": 2,
+    "max_connections": 8,
+    "endpoints": [
+      {
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "limit": 3,
+        "peak_limit": 8,
+        "borrowed": 0,
+        "idle": 3,
+        "waiting": 0
+      },
+      {
+        "endpoint": [
+          "192.168.33.35",
+          28751
+        ],
+        "limit": 2,
+        "peak_limit": 2,
+        "borrowed": 0,
+        "idle": 2,
+        "waiting": 0
+      }
+    ],
+    "events": [
+      {
+        "monotonic_ns": 24686019852747300,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 2,
+        "target": 3,
+        "reason": "connection_wait",
+        "queued": 1,
+        "oldest_wait_ms": 2.1766014397144318,
+        "borrowed": 2
+      },
+      {
+        "monotonic_ns": 24686020104947921,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 3,
+        "target": 4,
+        "reason": "connection_wait",
+        "queued": 9,
+        "oldest_wait_ms": 24.548429995775223,
+        "borrowed": 3
+      },
+      {
+        "monotonic_ns": 24686020657259496,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 4,
+        "target": 5,
+        "reason": "connection_wait",
+        "queued": 1,
+        "oldest_wait_ms": 10.319575667381287,
+        "borrowed": 4
+      },
+      {
+        "monotonic_ns": 24686023270940660,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 5,
+        "target": 6,
+        "reason": "connection_wait",
+        "queued": 4,
+        "oldest_wait_ms": 13.736583292484283,
+        "borrowed": 5
+      },
+      {
+        "monotonic_ns": 24686024834454832,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 6,
+        "target": 7,
+        "reason": "connection_wait",
+        "queued": 2,
+        "oldest_wait_ms": 4.909183830022812,
+        "borrowed": 6
+      },
+      {
+        "monotonic_ns": 24686025588985004,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 7,
+        "target": 8,
+        "reason": "connection_wait",
+        "queued": 1,
+        "oldest_wait_ms": 5.001164972782135,
+        "borrowed": 7
+      },
+      {
+        "monotonic_ns": 24686030652766736,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 8,
+        "target": 7,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 24686030753356897,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 7,
+        "target": 6,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 24686030866633723,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 6,
+        "target": 5,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 24686030967543227,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 5,
+        "target": 4,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      },
+      {
+        "monotonic_ns": 24686031123381187,
+        "endpoint": [
+          "192.168.33.32",
+          28752
+        ],
+        "old": 4,
+        "target": 3,
+        "reason": "idle",
+        "queued": 0,
+        "oldest_wait_ms": 0.0,
+        "borrowed": 0
+      }
+    ],
+    "closed": false
+  }
+]

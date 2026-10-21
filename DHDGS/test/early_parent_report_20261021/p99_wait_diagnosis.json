@@ -1,0 +1,235 @@
+{
+  "query_id": 1261403,
+  "job": 7240,
+  "node_id": 1,
+  "request_id": "e94d7449-52f3-4ec5-aecd-09af19a19153",
+  "receive_to_accept_ms": 51.167621,
+  "own_admission_mutex_wait_ms": 0.46465,
+  "receive_workers": 4,
+  "peak_receive_queue": 199,
+  "older_requests_received_but_not_yet_accepted": 136,
+  "admissions_fully_inside_wait_window": 137,
+  "admission_lock_hold_sum_ms": 46.532441,
+  "nested_control_state_wait_sum_ms": 42.67731,
+  "nested_control_state_hold_sum_ms": 1.187161,
+  "search_wall_ms": 72.316076,
+  "search_cpu_ms": 37.19954599999994,
+  "search_wall_minus_cpu_ms": 35.116530000000054,
+  "pread_wall_ms": 2.2950899999999996,
+  "rabitq_wall_ms": 28.093877,
+  "exact_distance_wall_ms": 1.5836819999999998,
+  "comparisons": [
+    {
+      "case": "00_wait_ack",
+      "mean_wall_ms": 8.926847677917852,
+      "median_wall_ms": 8.462696000000001,
+      "mean_cpu_ms": 8.818232424156161,
+      "repeated_query": [
+        {
+          "job": 1240,
+          "expanded": 121,
+          "estimates": 3647.0,
+          "wall_ms": 6.42533,
+          "cpu_ms": 6.418219999999991,
+          "pread_ms": 0.392458,
+          "rabitq_ms": 1.994849
+        },
+        {
+          "job": 3240,
+          "expanded": 121,
+          "estimates": 3647.0,
+          "wall_ms": 8.329921,
+          "cpu_ms": 8.30776499999999,
+          "pread_ms": 0.429785,
+          "rabitq_ms": 2.3947
+        },
+        {
+          "job": 5240,
+          "expanded": 121,
+          "estimates": 3647.0,
+          "wall_ms": 7.934693,
+          "cpu_ms": 7.922842000000003,
+          "pread_ms": 0.42729199999999984,
+          "rabitq_ms": 2.342358
+        },
+        {
+          "job": 7240,
+          "expanded": 121,
+          "estimates": 3647.0,
+          "wall_ms": 7.615372,
+          "cpu_ms": 7.6140120000000024,
+          "pread_ms": 0.44263099999999994,
+          "rabitq_ms": 2.033645
+        },
+        {
+          "job": 9240,
+          "expanded": 121,
+          "estimates": 3647.0,
+          "wall_ms": 6.136802,
+          "cpu_ms": 6.107053999999948,
+          "pread_ms": 0.42788300000000007,
+          "rabitq_ms": 1.656757
+        }
+      ]
+    },
+    {
+      "case": "01_early",
+      "mean_wall_ms": 10.131066005289929,
+      "median_wall_ms": 9.469092,
+      "mean_cpu_ms": 9.858508301119024,
+      "repeated_query": [
+        {
+          "job": 1240,
+          "expanded": 121,
+          "estimates": 3647.0,
+          "wall_ms": 7.939555,
+          "cpu_ms": 7.924090000000007,
+          "pread_ms": 0.4297369999999999,
+          "rabitq_ms": 2.463588
+        },
+        {
+          "job": 3240,
+          "expanded": 121,
+          "estimates": 3647.0,
+          "wall_ms": 7.399956,
+          "cpu_ms": 7.398888999999997,
+          "pread_ms": 0.4276539999999999,
+          "rabitq_ms": 2.0477629999999998
+        },
+        {
+          "job": 5240,
+          "expanded": 119,
+          "estimates": 3583.0,
+          "wall_ms": 12.592259,
+          "cpu_ms": 12.572788000000003,
+          "pread_ms": 0.8620240000000002,
+          "rabitq_ms": 3.2654369999999995
+        },
+        {
+          "job": 7240,
+          "expanded": 121,
+          "estimates": 3647.0,
+          "wall_ms": 8.061494,
+          "cpu_ms": 8.036938999999961,
+          "pread_ms": 0.8585330000000001,
+          "rabitq_ms": 2.462402
+        },
+        {
+          "job": 9240,
+          "expanded": 119,
+          "estimates": 3583.0,
+          "wall_ms": 8.391162,
+          "cpu_ms": 8.376925000000028,
+          "pread_ms": 1.4741079999999998,
+          "rabitq_ms": 2.5574930000000005
+        }
+      ]
+    },
+    {
+      "case": "02_early",
+      "mean_wall_ms": 10.589173435772357,
+      "median_wall_ms": 9.676722999999999,
+      "mean_cpu_ms": 10.124866624593496,
+      "repeated_query": [
+        {
+          "job": 1240,
+          "expanded": 119,
+          "estimates": 3583.0,
+          "wall_ms": 12.839574,
+          "cpu_ms": 12.836945999999998,
+          "pread_ms": 0.6771010000000001,
+          "rabitq_ms": 3.2605949999999995
+        },
+        {
+          "job": 3240,
+          "expanded": 121,
+          "estimates": 3647.0,
+          "wall_ms": 9.643772,
+          "cpu_ms": 9.642631999999992,
+          "pread_ms": 0.540757,
+          "rabitq_ms": 2.4456020000000005
+        },
+        {
+          "job": 5240,
+          "expanded": 121,
+          "estimates": 3647.0,
+          "wall_ms": 10.999433,
+          "cpu_ms": 10.98530599999998,
+          "pread_ms": 0.8152520000000003,
+          "rabitq_ms": 3.0282500000000008
+        },
+        {
+          "job": 7240,
+          "expanded": 121,
+          "estimates": 3647.0,
+          "wall_ms": 72.316076,
+          "cpu_ms": 37.19954599999994,
+          "pread_ms": 2.2950899999999996,
+          "rabitq_ms": 28.093877
+        },
+        {
+          "job": 9240,
+          "expanded": 121,
+          "estimates": 3647.0,
+          "wall_ms": 7.816458,
+          "cpu_ms": 7.796055000000024,
+          "pread_ms": 1.1546289999999997,
+          "rabitq_ms": 2.1413379999999997
+        }
+      ]
+    },
+    {
+      "case": "03_wait_ack",
+      "mean_wall_ms": 9.955023026636844,
+      "median_wall_ms": 9.3052685,
+      "mean_cpu_ms": 9.652095225904839,
+      "repeated_query": [
+        {
+          "job": 1240,
+          "expanded": 121,
+          "estimates": 3647.0,
+          "wall_ms": 7.909718,
+          "cpu_ms": 7.89676200000001,
+          "pread_ms": 0.39931,
+          "rabitq_ms": 2.153053
+        },
+        {
+          "job": 3240,
+          "expanded": 119,
+          "estimates": 3583.0,
+          "wall_ms": 6.687233,
+          "cpu_ms": 6.671729999999997,
+          "pread_ms": 0.39860100000000004,
+          "rabitq_ms": 1.8230560000000002
+        },
+        {
+          "job": 5240,
+          "expanded": 119,
+          "estimates": 3583.0,
+          "wall_ms": 11.110434,
+          "cpu_ms": 11.102790999999968,
+          "pread_ms": 0.5911150000000001,
+          "rabitq_ms": 3.3143080000000005
+        },
+        {
+          "job": 7240,
+          "expanded": 121,
+          "estimates": 3647.0,
+          "wall_ms": 8.314365,
+          "cpu_ms": 8.303372999999965,
+          "pread_ms": 0.6057469999999999,
+          "rabitq_ms": 2.517513
+        },
+        {
+          "job": 9240,
+          "expanded": 121,
+          "estimates": 3647.0,
+          "wall_ms": 7.532745,
+          "cpu_ms": 7.520538999999985,
+          "pread_ms": 1.1423699999999999,
+          "rabitq_ms": 2.3681249999999996
+        }
+      ]
+    }
+  ]
+}

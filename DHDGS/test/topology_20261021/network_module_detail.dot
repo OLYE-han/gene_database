@@ -1,0 +1,33 @@
+digraph G {
+graph [fontname="DejaVu Sans",rankdir=TB,bgcolor="white",pad=0.25,nodesep=0.45,ranksep=0.65];
+node [fontname="DejaVu Sans",shape=box,style="rounded,filled",fillcolor="#eaf2ff",color="#57759c",fontsize=11];
+edge [fontname="DejaVu Sans",fontsize=9,color="#49586b"];
+
+subgraph cluster_tx {label="dhnet::Client - one logical outbound channel";color="#7aa3cc";
+ app [label="Application submit()\nCaller thread; no new dispatcher thread"];
+ select [label="Short admission / least-pending selection\nGlobal pending limit for this channel",shape=ellipse,fillcolor="#f1f1f1"];
+ lane [label="T send lanes (1..4)\nEach: queue + endpoint connection pools\n+ ONE nonblocking dhwire::Client reactor"];
+ mon [label="ONE send monitor thread\npending pressure / cooldown / idle"];
+ app -> select -> lane;
+ mon -> lane [label="grow / retire idle lane",style=dashed];
+}
+subgraph cluster_rx {label="dhnet::Server - one logical listening port";color="#7aa3cc";
+ listen [label="R listening sockets (1..4)\nSAME port with SO_REUSEPORT\nShared total connection budget",fillcolor="#e7f5ed"];
+ react [label="R receive reactor threads\nEach owns its accepted connections"];
+ workers [label="R bounded handler queues\nR x H handler threads (H=4)"];
+ response [label="Per-lane completion queue\nOwning reactor writes ACK",fillcolor="#e7f5ed"];
+ admin [label="Data server only:\nR admin queues + R admin threads"];
+ rmon [label="ONE receive monitor thread\nHandler queue pressure / idle / drain"];
+ listen -> react [label="accept new connections"];
+ react -> workers [label="complete frames"];
+ workers -> response [label="decoded / validated replies"];
+ workers -> admin [label="admin / metrics",style=dashed];
+ admin -> response [style=dashed,label="reply"];
+ rmon -> listen [label="grow / stop accepting",style=dashed];
+ rmon -> workers [label="sample queue depth",style=dashed];
+}
+appdone [label="Application callback\nRuns on chosen send reactor\nMust be short / nonblocking",fillcolor="#fff3da"];
+lane -> listen [label="TCP RPC",color="#c56e21",penwidth=2];
+response -> appdone [label="TCP ACK -> original send lane",color="#149174",penwidth=2];
+
+}

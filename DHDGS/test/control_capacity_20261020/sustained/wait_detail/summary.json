@@ -1,0 +1,18 @@
+{
+  "query_id": 458421,
+  "job": 88444,
+  "request_id": "07eef006-c5ba-4fa1-b11a-08405b0e6751",
+  "recall": 1.0,
+  "client_wall_ms": 6238.208359,
+  "head_dispatch_queue_ms": 819.215817,
+  "head_report_wait_ms": 5321.986545000001,
+  "data_admission_wait_ms": 5285.987738,
+  "data_native_search_ms": 16.546127,
+  "worker_available_after_dequeue_ms": 35.813837,
+  "report_rpc_after_dequeue_ms": 36.234095,
+  "completion_to_client_ms": 3.3775329999998576,
+  "query_cpu_ms": 16.53471200000058,
+  "client_backlog_before_submission_ms": 136657.966072,
+  "queue_depth_at_enqueue": 228,
+  "queue_depth_after_dequeue": 250
+}

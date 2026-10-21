@@ -1,0 +1,326 @@
+{
+  "directory": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/control_capacity_20261020/throughput_capacity/02_c256/runs/20261020T132106_benchmark_1df21d92",
+  "query_count": 10000,
+  "successful_queries": 10000,
+  "failed_queries": 0,
+  "qps": 1102.9896816583719,
+  "measured_wall_seconds": 9.06626795,
+  "actual_peak_inflight": 256,
+  "configured_concurrency": 256,
+  "latency_ms": {
+    "count": 10000,
+    "mean": 228.67451022300003,
+    "p50": 201.61157350000002,
+    "p90": 417.56829139999996,
+    "p95": 462.40303444999955,
+    "p99": 572.3790539099999,
+    "max": 730.533503
+  },
+  "client_backlog_ms": {
+    "count": 10000,
+    "mean": 4285.191654884,
+    "p50": 4164.619366000001,
+    "p90": 7817.5660465,
+    "p95": 8516.07462985,
+    "p99": 8740.476980730002,
+    "max": 8841.945612
+  },
+  "offered_to_complete_ms": {
+    "count": 10000,
+    "mean": 4513.866165107,
+    "p50": 4406.2072675,
+    "p90": 8081.456374300001,
+    "p95": 8590.29537355,
+    "p99": 8976.7082368,
+    "max": 9066.26795
+  },
+  "recall_at_k_all_requests": 0.9702299999999999,
+  "config_revision": "081682dd4ff62f46a4d239c6ae94899f370f6f86b09c8b54157a5270a581e910",
+  "clock_domain": "per-host monotonic; never subtract across hosts",
+  "node_pids": {
+    "0": 2436917,
+    "1": 3316334,
+    "2": 2904896
+  },
+  "node_process_load": [
+    {
+      "shard_id": 0,
+      "worker": 0,
+      "process": {
+        "pid": 2436917,
+        "host": "sugon-intel-four-numa",
+        "monotonic_ns": 2686407980094614,
+        "cpu_seconds": 173.07,
+        "rss_bytes": 2145599488,
+        "peak_rss_bytes": 2242469888,
+        "storage_read_bytes": 0,
+        "storage_write_bytes": 4096,
+        "threads": 66
+      },
+      "process_deltas": {
+        "cpu_seconds": 59.06999999999999,
+        "storage_read_bytes": 0,
+        "storage_write_bytes": 0
+      },
+      "process_window_seconds": 11.749705382,
+      "mean_cpu_cores": 5.027360097938496
+    },
+    {
+      "shard_id": 1,
+      "worker": 1,
+      "process": {
+        "pid": 3316334,
+        "host": "cxl-four-numa",
+        "monotonic_ns": 703193197559818,
+        "cpu_seconds": 198.63,
+        "rss_bytes": 2246107136,
+        "peak_rss_bytes": 2362056704,
+        "storage_read_bytes": 0,
+        "storage_write_bytes": 4096,
+        "threads": 66
+      },
+      "process_deltas": {
+        "cpu_seconds": 58.75,
+        "storage_read_bytes": 0,
+        "storage_write_bytes": 0
+      },
+      "process_window_seconds": 11.749880406,
+      "mean_cpu_cores": 5.0000508915818145
+    },
+    {
+      "shard_id": 2,
+      "worker": 2,
+      "process": {
+        "pid": 2904896,
+        "host": "intel-bigmem-nvm-stratix",
+        "monotonic_ns": 24673940972099770,
+        "cpu_seconds": 107.63,
+        "rss_bytes": 1582747648,
+        "peak_rss_bytes": 1650597888,
+        "storage_read_bytes": 0,
+        "storage_write_bytes": 4096,
+        "threads": 65
+      },
+      "process_deltas": {
+        "cpu_seconds": 34.86,
+        "storage_read_bytes": 0,
+        "storage_write_bytes": 0
+      },
+      "process_window_seconds": 11.750214619,
+      "mean_cpu_cores": 2.966754321545044
+    }
+  ],
+  "head_process_load": [
+    {
+      "role": "hnsw_head",
+      "process": {
+        "pid": 2442231,
+        "host": "sugon-intel-four-numa",
+        "monotonic_ns": 2686406353084196,
+        "cpu_seconds": 9.92,
+        "rss_bytes": 1013817344,
+        "peak_rss_bytes": 1013817344,
+        "storage_read_bytes": 0,
+        "storage_write_bytes": 118784,
+        "threads": 11
+      },
+      "process_window_seconds": 9.067862633,
+      "cpu_seconds": 8.94,
+      "mean_cpu_cores": 0.9858993637006939
+    },
+    {
+      "role": "head_lane",
+      "process": {
+        "pid": 2442233,
+        "host": "sugon-intel-four-numa",
+        "monotonic_ns": 2686406353566725,
+        "cpu_seconds": 17.82,
+        "rss_bytes": 521183232,
+        "peak_rss_bytes": 535556096,
+        "storage_read_bytes": 0,
+        "storage_write_bytes": 67530752,
+        "threads": 10
+      },
+      "process_window_seconds": 9.067829548,
+      "cpu_seconds": 9.32,
+      "mean_cpu_cores": 1.0278093507013062
+    },
+    {
+      "role": "head_lane",
+      "process": {
+        "pid": 2442236,
+        "host": "sugon-intel-four-numa",
+        "monotonic_ns": 2686406353776509,
+        "cpu_seconds": 17.68,
+        "rss_bytes": 520527872,
+        "peak_rss_bytes": 536920064,
+        "storage_read_bytes": 0,
+        "storage_write_bytes": 67272704,
+        "threads": 10
+      },
+      "process_window_seconds": 9.067740712,
+      "cpu_seconds": 9.209999999999999,
+      "mean_cpu_cores": 1.0156885041730115
+    },
+    {
+      "role": "head_lane",
+      "process": {
+        "pid": 2442239,
+        "host": "sugon-intel-four-numa",
+        "monotonic_ns": 2686406353943129,
+        "cpu_seconds": 17.86,
+        "rss_bytes": 524820480,
+        "peak_rss_bytes": 536924160,
+        "storage_read_bytes": 0,
+        "storage_write_bytes": 68243456,
+        "threads": 10
+      },
+      "process_window_seconds": 9.067670383,
+      "cpu_seconds": 9.399999999999999,
+      "mean_cpu_cores": 1.0366499445792656
+    },
+    {
+      "role": "head_lane",
+      "process": {
+        "pid": 2442242,
+        "host": "sugon-intel-four-numa",
+        "monotonic_ns": 2686406354115929,
+        "cpu_seconds": 18.08,
+        "rss_bytes": 521949184,
+        "peak_rss_bytes": 534822912,
+        "storage_read_bytes": 0,
+        "storage_write_bytes": 67182592,
+        "threads": 10
+      },
+      "process_window_seconds": 9.067612288,
+      "cpu_seconds": 9.319999999999999,
+      "mean_cpu_cores": 1.027833977014435
+    }
+  ],
+  "query_metric_distributions": {
+    "query_ready_queue_ms": {
+      "count": 10000,
+      "mean": 118.09525226254482,
+      "p50": 98.53568312246352,
+      "p90": 273.3599877450615,
+      "p95": 320.3987488581332,
+      "p99": 380.4505933902692,
+      "max": 499.2221259744838
+    },
+    "pread_ms": {
+      "count": 10000,
+      "mean": 0.7048319081,
+      "p50": 0.708202,
+      "p90": 0.8231703999999997,
+      "p95": 0.8623215499999999,
+      "p99": 0.9279145100000002,
+      "max": 1.162697
+    },
+    "exact_distance_ms": {
+      "count": 10000,
+      "mean": 2.4015432987,
+      "p50": 2.2355035,
+      "p90": 3.5394851000000016,
+      "p95": 3.8232252999999994,
+      "p99": 4.295633860000001,
+      "max": 5.023369
+    },
+    "rabitq_ms": {
+      "count": 10000,
+      "mean": 3.5823873942000004,
+      "p50": 3.6081655,
+      "p90": 5.056215700000001,
+      "p95": 5.4868128999999985,
+      "p99": 6.24589032,
+      "max": 7.660340999999999
+    },
+    "expanded": {
+      "count": 10000,
+      "mean": 200.0,
+      "p50": 200.0,
+      "p90": 200.0,
+      "p95": 200.0,
+      "p99": 200.0,
+      "max": 200.0
+    },
+    "max_expanded_depth": {
+      "count": 10000,
+      "mean": 10.864,
+      "p50": 10.0,
+      "p90": 15.0,
+      "p95": 17.0,
+      "p99": 21.0,
+      "max": 28.0
+    },
+    "max_cross_shard_depth": {
+      "count": 10000,
+      "mean": 0.3484,
+      "p50": 0.0,
+      "p90": 1.0,
+      "p95": 1.0,
+      "p99": 1.0,
+      "max": 2.0
+    },
+    "peer_branch_rpc_count": {
+      "count": 10000,
+      "mean": 0.3497,
+      "p50": 0.0,
+      "p90": 1.0,
+      "p95": 1.0,
+      "p99": 1.0,
+      "max": 2.0
+    },
+    "control_rpc_count": {
+      "count": 10000,
+      "mean": 1.6994,
+      "p50": 1.0,
+      "p90": 3.0,
+      "p95": 3.0,
+      "p99": 3.0,
+      "max": 5.0
+    },
+    "all_protocol_rpc_count": {
+      "count": 10000,
+      "mean": 3.0491,
+      "p50": 2.0,
+      "p90": 5.0,
+      "p95": 5.0,
+      "p99": 5.0,
+      "max": 8.0
+    },
+    "all_protocol_bytes": {
+      "count": 10000,
+      "mean": 31706.8641,
+      "p50": 24621.0,
+      "p90": 45023.2,
+      "p95": 47032.0,
+      "p99": 58386.0,
+      "max": 82279.0
+    },
+    "file_read_bytes": {
+      "count": 10000,
+      "mean": 2457600.0,
+      "p50": 2457600.0,
+      "p90": 2457600.0,
+      "p95": 2457600.0,
+      "p99": 2457600.0,
+      "max": 2457600.0
+    },
+    "server_thread_cpu_ms": {
+      "count": 10000,
+      "mean": 11.445024520600002,
+      "p50": 10.630339999999933,
+      "p90": 16.165098099999522,
+      "p95": 17.41934784999994,
+      "p99": 19.711697630000344,
+      "max": 22.5336240000006
+    }
+  },
+  "audit": {
+    "metrics_complete": true,
+    "no_node_revisit": true,
+    "budget_respected": true,
+    "no_router_expansion": true
+  },
+  "mode": "c256"
+}

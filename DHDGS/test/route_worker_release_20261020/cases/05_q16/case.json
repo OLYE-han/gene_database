@@ -1,0 +1,7 @@
+{
+  "index": 5,
+  "mode": "q16",
+  "queries": 2000,
+  "concurrency": 128,
+  "warmup": 32
+}

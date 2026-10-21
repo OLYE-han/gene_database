@@ -1,0 +1,10 @@
+test_unique_work_and_release_without_waiting_for_other_queries (test_adaptive_admission.AdaptiveAdmissionTests.test_unique_work_and_release_without_waiting_for_other_queries) ... ok
+test_downstream_pressure_and_cancellation_bound (test_adaptive_service.AdaptiveServiceTests.test_downstream_pressure_and_cancellation_bound) ... ok
+test_failure_and_callback_do_not_kill_worker (test_adaptive_service.AdaptiveServiceTests.test_failure_and_callback_do_not_kill_worker) ... ok
+test_growth_retirement_unique_work_and_fixed_bound (test_adaptive_service.AdaptiveServiceTests.test_growth_retirement_unique_work_and_fixed_bound) ... ok
+test_expiry_overtakes_ack_without_double_credit (test_adaptive_service.UpdateOrderTests.test_expiry_overtakes_ack_without_double_credit) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.218s
+
+OK

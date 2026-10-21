@@ -1,0 +1,9 @@
+{
+  "phase": "sustained",
+  "variant": "split",
+  "source": "source",
+  "threads": 32,
+  "queries": 100000,
+  "concurrency": 256,
+  "warmup": 32
+}

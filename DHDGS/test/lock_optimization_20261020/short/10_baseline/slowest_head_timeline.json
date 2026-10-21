@@ -1,0 +1,114 @@
+[
+  {
+    "stage": "Admission",
+    "start_ms": 0.0,
+    "end_ms": 0.009385,
+    "duration_ms": 0.009385,
+    "fraction": 1.4560496215753408e-05
+  },
+  {
+    "stage": "Input queue + IPC",
+    "start_ms": 0.009385,
+    "end_ms": 2.413234,
+    "duration_ms": 2.403849,
+    "fraction": 0.003729486869232032
+  },
+  {
+    "stage": "Worker preparation",
+    "start_ms": 2.413234,
+    "end_ms": 2.436326,
+    "duration_ms": 0.023092,
+    "fraction": 3.582642286778666e-05
+  },
+  {
+    "stage": "Receive queue",
+    "start_ms": 2.436326,
+    "end_ms": 2.845394,
+    "duration_ms": 0.409068,
+    "fraction": 0.00063465456217217
+  },
+  {
+    "stage": "Receive handoff",
+    "start_ms": 2.845394,
+    "end_ms": 2.847577,
+    "duration_ms": 0.002183,
+    "fraction": 3.3868474415545757e-06
+  },
+  {
+    "stage": "Route queue",
+    "start_ms": 2.847577,
+    "end_ms": 63.726242,
+    "duration_ms": 60.878665,
+    "fraction": 0.09445109977119015
+  },
+  {
+    "stage": "HNSW + route preparation",
+    "start_ms": 63.726242,
+    "end_ms": 67.349169,
+    "duration_ms": 3.622927,
+    "fraction": 0.005620843353590927
+  },
+  {
+    "stage": "Dispatch queue",
+    "start_ms": 67.349169,
+    "end_ms": 86.719537,
+    "duration_ms": 19.370368,
+    "fraction": 0.030052442190916455
+  },
+  {
+    "stage": "Register + request preparation",
+    "start_ms": 86.719537,
+    "end_ms": 86.758323,
+    "duration_ms": 0.038786,
+    "fraction": 6.017510988004387e-05
+  },
+  {
+    "stage": "Entry RPC incl. ACK",
+    "start_ms": 86.758323,
+    "end_ms": 99.949195,
+    "duration_ms": 13.190872,
+    "fraction": 0.020465172279007737
+  },
+  {
+    "stage": "Wait for complete reports",
+    "start_ms": 99.949195,
+    "end_ms": 375.823956,
+    "duration_ms": 275.874761,
+    "fraction": 0.4280099534962574
+  },
+  {
+    "stage": "Merge queue",
+    "start_ms": 375.823956,
+    "end_ms": 514.363025,
+    "duration_ms": 138.539069,
+    "fraction": 0.2149384752166756
+  },
+  {
+    "stage": "Merge + metrics",
+    "start_ms": 514.363025,
+    "end_ms": 515.014317,
+    "duration_ms": 0.651292,
+    "fraction": 0.0010104565478263685
+  },
+  {
+    "stage": "Cleanup + persistence",
+    "start_ms": 515.014317,
+    "end_ms": 515.959037,
+    "duration_ms": 0.94472,
+    "fraction": 0.0014656997320134854
+  },
+  {
+    "stage": "Output IPC",
+    "start_ms": 515.959037,
+    "end_ms": 533.520718,
+    "duration_ms": 17.561681,
+    "fraction": 0.027246328155862393
+  },
+  {
+    "stage": "Client consumer",
+    "start_ms": 533.520718,
+    "end_ms": 644.552209,
+    "duration_ms": 111.031491,
+    "fraction": 0.17226143894885015
+  }
+]

@@ -1,0 +1,29 @@
+{
+  "0": {
+    "id": 0,
+    "ssh": null,
+    "root": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/compute_w32_w64_20261020/data",
+    "python": "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+    "token_file": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/managed_continuation_three_20261019/cluster.token",
+    "state_file": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/control_capacity_20261020/capacity_data/node_0_state.json",
+    "project": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/cpp_runtime_20261020/source"
+  },
+  "1": {
+    "id": 1,
+    "ssh": "intel-32",
+    "root": "/sharenvme/userhome/xulihan/dhdgs_deploy/compute_w32_w64_20261020",
+    "python": "/sharenvme/userhome/xulihan/dhdgs_deploy/seq2m_full_20261017/gene_database/DHDGS/.venv/bin/python",
+    "token_file": "/sharenvme/userhome/xulihan/dhdgs_deploy/managed_continuation_three_20261019/cluster.token",
+    "state_file": "/sharenvme/userhome/xulihan/dhdgs_deploy/control_capacity_20261020/capacity_data/node_1_state.json",
+    "project": "/sharenvme/userhome/xulihan/dhdgs_deploy/cpp_runtime_20261020/source"
+  },
+  "2": {
+    "id": 2,
+    "ssh": "intel-30",
+    "root": "/sharenvme/xulihan_dhdgs/compute_w32_w64_20261020",
+    "python": "/sharenvme/xulihan_dhdgs/seq2m_full_20261017/gene_database/DHDGS/.venv/bin/python",
+    "token_file": "/sharenvme/xulihan_dhdgs/managed_continuation_three_20261019/cluster.token",
+    "state_file": "/sharenvme/xulihan_dhdgs/control_capacity_20261020/capacity_data/node_2_state.json",
+    "project": "/sharenvme/xulihan_dhdgs/cpp_runtime_20261020/source"
+  }
+}

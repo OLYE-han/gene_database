@@ -1,0 +1,441 @@
+{
+  "successful_http_queries": 32,
+  "client_concurrency": 16,
+  "elapsed_seconds": 1.192900865804404,
+  "benchmark_queries": 32,
+  "receiver_subprocesses": 0,
+  "children": "",
+  "head_pid": 1810363,
+  "status": {
+    "ready": true,
+    "busy": null,
+    "active_queries": 0,
+    "revision": "081682dd4ff62f46a4d239c6ae94899f370f6f86b09c8b54157a5270a581e910",
+    "head_receivers": [],
+    "head_pipeline": {
+      "workers": 1,
+      "queued": 0,
+      "peak_workers": 2,
+      "peak_queue": 8
+    },
+    "error": null,
+    "settings": {
+      "peer.child_budget_fraction": 0.5,
+      "peer.max_branches": 16,
+      "peer.worker_threads": 32,
+      "routing.ef_search": 64,
+      "routing.entry_candidates": 16,
+      "scheduler.bandwidth_bytes_per_ms": 100000.0,
+      "scheduler.ewma_weight": 0.2,
+      "scheduler.exploration": 0.02,
+      "scheduler.kappa": 1.0,
+      "scheduler.local_batch_ms": 0.15,
+      "scheduler.max_wait_ms": 1.0,
+      "scheduler.mode": "adaptive",
+      "scheduler.probability_temperature": 1.0,
+      "scheduler.remote_rtt_ms": 0.5,
+      "scheduler.remote_selection": "probabilistic",
+      "scheduler.remote_weight": 1.0,
+      "search.exclude_self": true,
+      "search.fallback_enabled": true,
+      "search.frontier_size": 64,
+      "search.local_beam": 4,
+      "search.max_expansions": 200,
+      "search.max_fallback_entries": 2,
+      "search.max_inflight": 3,
+      "search.stagnation_batches": 8,
+      "search.top_k": 10
+    },
+    "nodes": [
+      {
+        "node_id": 0,
+        "pid": 1593211,
+        "hostname": "sugon-intel-four-numa",
+        "epoch": "b133c73b-75e9-49a6-af66-0a725cb302c8",
+        "revision": "081682dd4ff62f46a4d239c6ae94899f370f6f86b09c8b54157a5270a581e910",
+        "settings": {
+          "peer.child_budget_fraction": 0.5,
+          "peer.max_branches": 16,
+          "peer.worker_threads": 32,
+          "routing.ef_search": 64,
+          "routing.entry_candidates": 16,
+          "scheduler.bandwidth_bytes_per_ms": 100000.0,
+          "scheduler.ewma_weight": 0.2,
+          "scheduler.exploration": 0.02,
+          "scheduler.kappa": 1.0,
+          "scheduler.local_batch_ms": 0.15,
+          "scheduler.max_wait_ms": 1.0,
+          "scheduler.mode": "adaptive",
+          "scheduler.probability_temperature": 1.0,
+          "scheduler.remote_rtt_ms": 0.5,
+          "scheduler.remote_selection": "probabilistic",
+          "scheduler.remote_weight": 1.0,
+          "search.exclude_self": true,
+          "search.fallback_enabled": true,
+          "search.frontier_size": 64,
+          "search.local_beam": 4,
+          "search.max_expansions": 200,
+          "search.max_fallback_entries": 2,
+          "search.max_inflight": 3,
+          "search.stagnation_batches": 8,
+          "search.top_k": 10
+        },
+        "accepting": true,
+        "quiescent": true,
+        "transaction": null,
+        "last_transaction": {
+          "id": "a58bb00755aa4f188b0e048a7eb32dde",
+          "outcome": "committed"
+        },
+        "index_fd": 3,
+        "index_directory": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/seq2m_full_20261017/build/index/shard_0",
+        "worker_threads": 32
+      },
+      {
+        "node_id": 1,
+        "pid": 3141370,
+        "hostname": "cxl-four-numa",
+        "epoch": "b133c73b-75e9-49a6-af66-0a725cb302c8",
+        "revision": "081682dd4ff62f46a4d239c6ae94899f370f6f86b09c8b54157a5270a581e910",
+        "settings": {
+          "peer.child_budget_fraction": 0.5,
+          "peer.max_branches": 16,
+          "peer.worker_threads": 32,
+          "routing.ef_search": 64,
+          "routing.entry_candidates": 16,
+          "scheduler.bandwidth_bytes_per_ms": 100000.0,
+          "scheduler.ewma_weight": 0.2,
+          "scheduler.exploration": 0.02,
+          "scheduler.kappa": 1.0,
+          "scheduler.local_batch_ms": 0.15,
+          "scheduler.max_wait_ms": 1.0,
+          "scheduler.mode": "adaptive",
+          "scheduler.probability_temperature": 1.0,
+          "scheduler.remote_rtt_ms": 0.5,
+          "scheduler.remote_selection": "probabilistic",
+          "scheduler.remote_weight": 1.0,
+          "search.exclude_self": true,
+          "search.fallback_enabled": true,
+          "search.frontier_size": 64,
+          "search.local_beam": 4,
+          "search.max_expansions": 200,
+          "search.max_fallback_entries": 2,
+          "search.max_inflight": 3,
+          "search.stagnation_batches": 8,
+          "search.top_k": 10
+        },
+        "accepting": true,
+        "quiescent": true,
+        "transaction": null,
+        "last_transaction": {
+          "id": "a58bb00755aa4f188b0e048a7eb32dde",
+          "outcome": "committed"
+        },
+        "index_fd": 3,
+        "index_directory": "/sharenvme/userhome/xulihan/dhdgs_deploy/seq2m_full_20261017/index/shard_1",
+        "worker_threads": 32
+      },
+      {
+        "node_id": 2,
+        "pid": 1296405,
+        "hostname": "intel-bigmem-nvm-stratix",
+        "epoch": "b133c73b-75e9-49a6-af66-0a725cb302c8",
+        "revision": "081682dd4ff62f46a4d239c6ae94899f370f6f86b09c8b54157a5270a581e910",
+        "settings": {
+          "peer.child_budget_fraction": 0.5,
+          "peer.max_branches": 16,
+          "peer.worker_threads": 32,
+          "routing.ef_search": 64,
+          "routing.entry_candidates": 16,
+          "scheduler.bandwidth_bytes_per_ms": 100000.0,
+          "scheduler.ewma_weight": 0.2,
+          "scheduler.exploration": 0.02,
+          "scheduler.kappa": 1.0,
+          "scheduler.local_batch_ms": 0.15,
+          "scheduler.max_wait_ms": 1.0,
+          "scheduler.mode": "adaptive",
+          "scheduler.probability_temperature": 1.0,
+          "scheduler.remote_rtt_ms": 0.5,
+          "scheduler.remote_selection": "probabilistic",
+          "scheduler.remote_weight": 1.0,
+          "search.exclude_self": true,
+          "search.fallback_enabled": true,
+          "search.frontier_size": 64,
+          "search.local_beam": 4,
+          "search.max_expansions": 200,
+          "search.max_fallback_entries": 2,
+          "search.max_inflight": 3,
+          "search.stagnation_batches": 8,
+          "search.top_k": 10
+        },
+        "accepting": true,
+        "quiescent": true,
+        "transaction": null,
+        "last_transaction": {
+          "id": "a58bb00755aa4f188b0e048a7eb32dde",
+          "outcome": "committed"
+        },
+        "index_fd": 3,
+        "index_directory": "/sharenvme/xulihan_dhdgs/seq2m_full_20261017/index/shard_2",
+        "worker_threads": 32
+      }
+    ]
+  },
+  "benchmark": {
+    "directory": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/head_pipeline_final_20261020/http/runs/20261020T013205_benchmark_1ccf0863",
+    "query_count": 32,
+    "successful_queries": 32,
+    "failed_queries": 0,
+    "qps": 465.2240108857766,
+    "measured_wall_seconds": 0.068784068,
+    "actual_peak_inflight": 16,
+    "configured_concurrency": 16,
+    "latency_ms": {
+      "count": 32,
+      "mean": 26.9919939375,
+      "p50": 25.841670999999998,
+      "p90": 34.79301910000001,
+      "p95": 37.02121095,
+      "p99": 41.547993330000004,
+      "max": 43.306269
+    },
+    "client_backlog_ms": {
+      "count": 32,
+      "mean": 14.34639984375,
+      "p50": 7.4898454999999995,
+      "p90": 34.3557186,
+      "p95": 37.1473192,
+      "p99": 40.068135330000004,
+      "max": 41.011855
+    },
+    "offered_to_complete_ms": {
+      "count": 32,
+      "mean": 41.33839378125,
+      "p50": 41.215533,
+      "p90": 59.4933314,
+      "p95": 61.1787542,
+      "p99": 66.93246745,
+      "max": 68.784068
+    },
+    "recall_at_k_all_requests": 0.990625,
+    "config_revision": "081682dd4ff62f46a4d239c6ae94899f370f6f86b09c8b54157a5270a581e910",
+    "clock_domain": "per-host monotonic; never subtract across hosts",
+    "node_pids": {
+      "0": 1593211,
+      "1": 3141370,
+      "2": 1296405
+    },
+    "node_process_load": [
+      {
+        "shard_id": 0,
+        "worker": 0,
+        "process": {
+          "pid": 1593211,
+          "host": "sugon-intel-four-numa",
+          "monotonic_ns": 2643853688685660,
+          "cpu_seconds": 445.83,
+          "rss_bytes": 1339326464,
+          "peak_rss_bytes": 1481617408,
+          "storage_read_bytes": 0,
+          "storage_write_bytes": 12288,
+          "threads": 56
+        },
+        "process_deltas": {
+          "cpu_seconds": 0.2699999999999818,
+          "storage_read_bytes": 0,
+          "storage_write_bytes": 0
+        },
+        "process_window_seconds": 0.105824491,
+        "mean_cpu_cores": 2.5513942703488346
+      },
+      {
+        "shard_id": 1,
+        "worker": 1,
+        "process": {
+          "pid": 3141370,
+          "host": "cxl-four-numa",
+          "monotonic_ns": 660638130178370,
+          "cpu_seconds": 481.41,
+          "rss_bytes": 1403596800,
+          "peak_rss_bytes": 1491013632,
+          "storage_read_bytes": 0,
+          "storage_write_bytes": 299008,
+          "threads": 57
+        },
+        "process_deltas": {
+          "cpu_seconds": 0.17000000000001592,
+          "storage_read_bytes": 0,
+          "storage_write_bytes": 0
+        },
+        "process_window_seconds": 0.106060084,
+        "mean_cpu_cores": 1.602865032616945
+      },
+      {
+        "shard_id": 2,
+        "worker": 2,
+        "process": {
+          "pid": 1296405,
+          "host": "intel-bigmem-nvm-stratix",
+          "monotonic_ns": 24631386573342533,
+          "cpu_seconds": 307.61,
+          "rss_bytes": 1139777536,
+          "peak_rss_bytes": 1149808640,
+          "storage_read_bytes": 0,
+          "storage_write_bytes": 299008,
+          "threads": 55
+        },
+        "process_deltas": {
+          "cpu_seconds": 0.040000000000020464,
+          "storage_read_bytes": 0,
+          "storage_write_bytes": 0
+        },
+        "process_window_seconds": 0.105824829,
+        "mean_cpu_cores": 0.3779831290823108
+      }
+    ],
+    "head_process_load": [
+      {
+        "role": "hnsw_head",
+        "process": {
+          "pid": 1810363,
+          "host": "sugon-intel-four-numa",
+          "monotonic_ns": 2643853676686026,
+          "cpu_seconds": 9.28,
+          "rss_bytes": 803164160,
+          "peak_rss_bytes": 820170752,
+          "storage_read_bytes": 0,
+          "storage_write_bytes": 40960,
+          "threads": 13
+        },
+        "process_window_seconds": 0.069432905,
+        "cpu_seconds": 0.08000000000000007,
+        "mean_cpu_cores": 1.152191457350086
+      }
+    ],
+    "query_metric_distributions": {
+      "query_ready_queue_ms": {
+        "count": 32,
+        "mean": 0.37291851913323626,
+        "p50": 0.24888594634830952,
+        "p90": 0.7769841235131025,
+        "p95": 0.816511397715658,
+        "p99": 1.0647444962523882,
+        "max": 1.158054918050766
+      },
+      "pread_ms": {
+        "count": 32,
+        "mean": 0.612494875,
+        "p50": 0.6076305,
+        "p90": 0.7657522000000002,
+        "p95": 0.7968462500000001,
+        "p99": 0.8115789299999999,
+        "max": 0.8119499999999998
+      },
+      "exact_distance_ms": {
+        "count": 32,
+        "mean": 2.55573309375,
+        "p50": 1.970366,
+        "p90": 4.5856988,
+        "p95": 4.7183336,
+        "p99": 5.064777740000001,
+        "max": 5.21229
+      },
+      "rabitq_ms": {
+        "count": 32,
+        "mean": 3.40924125,
+        "p50": 3.3400305,
+        "p90": 4.6071963,
+        "p95": 4.7529417,
+        "p99": 5.439465800000002,
+        "max": 5.680528000000001
+      },
+      "expanded": {
+        "count": 32,
+        "mean": 200.0,
+        "p50": 200.0,
+        "p90": 200.0,
+        "p95": 200.0,
+        "p99": 200.0,
+        "max": 200.0
+      },
+      "max_expanded_depth": {
+        "count": 32,
+        "mean": 10.21875,
+        "p50": 10.0,
+        "p90": 13.900000000000002,
+        "p95": 14.45,
+        "p99": 15.690000000000001,
+        "max": 16.0
+      },
+      "max_cross_shard_depth": {
+        "count": 32,
+        "mean": 0.1875,
+        "p50": 0.0,
+        "p90": 1.0,
+        "p95": 1.0,
+        "p99": 1.0,
+        "max": 1.0
+      },
+      "peer_branch_rpc_count": {
+        "count": 32,
+        "mean": 0.1875,
+        "p50": 0.0,
+        "p90": 1.0,
+        "p95": 1.0,
+        "p99": 1.0,
+        "max": 1.0
+      },
+      "control_rpc_count": {
+        "count": 32,
+        "mean": 1.375,
+        "p50": 1.0,
+        "p90": 3.0,
+        "p95": 3.0,
+        "p99": 3.0,
+        "max": 3.0
+      },
+      "all_protocol_rpc_count": {
+        "count": 32,
+        "mean": 2.5625,
+        "p50": 2.0,
+        "p90": 5.0,
+        "p95": 5.0,
+        "p99": 5.0,
+        "max": 5.0
+      },
+      "all_protocol_bytes": {
+        "count": 32,
+        "mean": 28488.0,
+        "p50": 24571.0,
+        "p90": 43067.8,
+        "p95": 45543.25,
+        "p99": 52114.000000000015,
+        "max": 54966.0
+      },
+      "file_read_bytes": {
+        "count": 32,
+        "mean": 2457600.0,
+        "p50": 2457600.0,
+        "p90": 2457600.0,
+        "p95": 2457600.0,
+        "p99": 2457600.0,
+        "max": 2457600.0
+      },
+      "server_thread_cpu_ms": {
+        "count": 32,
+        "mean": 11.17003440625,
+        "p50": 9.450624000000001,
+        "p90": 16.595860000000002,
+        "p95": 17.3585836,
+        "p99": 18.46453374,
+        "max": 18.653647999999997
+      }
+    },
+    "audit": {
+      "metrics_complete": true,
+      "no_node_revisit": true,
+      "budget_respected": true,
+      "no_router_expansion": true
+    }
+  }
+}

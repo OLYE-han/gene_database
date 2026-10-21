@@ -1,0 +1,1176 @@
+[
+  {
+    "case": "00_disabled",
+    "adaptive": false,
+    "qps": 5652.379804172669,
+    "p99": 90.37118912000004,
+    "nodes": [
+      {
+        "node_id": "0",
+        "adaptive_control": {
+          "enabled": false,
+          "events": [],
+          "lane_pending": [
+            0
+          ],
+          "peak_reactors": 1,
+          "pending": 0,
+          "pending_limit": 64,
+          "reactors": 1,
+          "scale_downs": 0,
+          "scale_ups": 0,
+          "lanes": 1,
+          "peak_lanes": 1
+        },
+        "metrics": {
+          "completion_command_wait_ms": {
+            "mean": 0.733790432094009,
+            "p99": 8.325045200000032,
+            "max": 9.961683
+          },
+          "finalize_wait_ms": {
+            "mean": 0.8314551606626853,
+            "p99": 24.665044500000498,
+            "max": 60.850249
+          },
+          "loop_done_to_release_ms": {
+            "mean": 0.24113277865536503,
+            "p99": 0.5066102000000005,
+            "max": 0.956015
+          },
+          "receive_to_accept_ms": {
+            "mean": 1.4223938304758235,
+            "p99": 13.82444290000002,
+            "max": 23.179636
+          },
+          "result_pool_wait_ms": {
+            "mean": 17.020466167212483,
+            "p99": 25.732732700000014,
+            "max": 26.820888
+          },
+          "result_send_ms": {
+            "mean": 0.016456690040454632,
+            "p99": 0.04888470000000002,
+            "max": 0.182393
+          },
+          "result_response_wait_ms": {
+            "mean": 0.6328581510306299,
+            "p99": 1.5168500000000003,
+            "max": 6.970975
+          }
+        },
+        "process_threads": 76
+      },
+      {
+        "node_id": "1",
+        "adaptive_control": {
+          "enabled": false,
+          "events": [],
+          "lane_pending": [
+            0
+          ],
+          "peak_reactors": 1,
+          "pending": 0,
+          "pending_limit": 64,
+          "reactors": 1,
+          "scale_downs": 0,
+          "scale_ups": 0,
+          "lanes": 1,
+          "peak_lanes": 1
+        },
+        "metrics": {
+          "completion_command_wait_ms": {
+            "mean": 0.47195323292682934,
+            "p99": 4.538011700000007,
+            "max": 5.916023
+          },
+          "finalize_wait_ms": {
+            "mean": 0.5871427172764228,
+            "p99": 14.255800160000906,
+            "max": 63.361509
+          },
+          "loop_done_to_release_ms": {
+            "mean": 0.2903573272357724,
+            "p99": 0.6645052300000006,
+            "max": 2.083918
+          },
+          "receive_to_accept_ms": {
+            "mean": 3.237803675813008,
+            "p99": 23.670839130000083,
+            "max": 30.919012
+          },
+          "result_pool_wait_ms": {
+            "mean": 17.727578687601625,
+            "p99": 25.420358590000003,
+            "max": 27.590559
+          },
+          "result_send_ms": {
+            "mean": 0.015683279471544718,
+            "p99": 0.028628160000000055,
+            "max": 0.072889
+          },
+          "result_response_wait_ms": {
+            "mean": 0.6491382985772357,
+            "p99": 1.4621086200000004,
+            "max": 10.028711
+          }
+        },
+        "process_threads": 76
+      },
+      {
+        "node_id": "2",
+        "adaptive_control": {
+          "enabled": false,
+          "events": [],
+          "lane_pending": [
+            0
+          ],
+          "peak_reactors": 1,
+          "pending": 0,
+          "pending_limit": 64,
+          "reactors": 1,
+          "scale_downs": 0,
+          "scale_ups": 0,
+          "lanes": 1,
+          "peak_lanes": 1
+        },
+        "metrics": {
+          "completion_command_wait_ms": {
+            "mean": 0.9652382816446403,
+            "p99": 5.62259464,
+            "max": 6.372442
+          },
+          "finalize_wait_ms": {
+            "mean": 1.6571011045521293,
+            "p99": 52.761602,
+            "max": 67.226302
+          },
+          "loop_done_to_release_ms": {
+            "mean": 0.21513472187958885,
+            "p99": 0.4628610400000001,
+            "max": 0.900873
+          },
+          "receive_to_accept_ms": {
+            "mean": 2.0269112499265782,
+            "p99": 14.59072996,
+            "max": 17.039491
+          },
+          "result_pool_wait_ms": {
+            "mean": 4.145536105433187,
+            "p99": 16.38976236,
+            "max": 18.396133
+          },
+          "result_send_ms": {
+            "mean": 0.01519695947136564,
+            "p99": 0.04333488000000003,
+            "max": 0.275923
+          },
+          "result_response_wait_ms": {
+            "mean": 0.6746092032305433,
+            "p99": 1.5415420000000002,
+            "max": 9.4987
+          }
+        },
+        "process_threads": 76
+      }
+    ]
+  },
+  {
+    "case": "01_fixed",
+    "adaptive": false,
+    "qps": 5905.4549001082505,
+    "p99": 82.70352095999999,
+    "nodes": [
+      {
+        "node_id": "0",
+        "adaptive_control": {
+          "enabled": true,
+          "events": [],
+          "lane_pending": [
+            0
+          ],
+          "peak_reactors": 1,
+          "pending": 0,
+          "pending_limit": 64,
+          "reactors": 1,
+          "scale_downs": 0,
+          "scale_ups": 0,
+          "lanes": 1,
+          "peak_lanes": 1
+        },
+        "metrics": {
+          "completion_command_wait_ms": {
+            "mean": 0.5458519287227894,
+            "p99": 3.901328000000001,
+            "max": 5.329476
+          },
+          "finalize_wait_ms": {
+            "mean": 1.005700702947409,
+            "p99": 31.43864380000022,
+            "max": 68.921201
+          },
+          "loop_done_to_release_ms": {
+            "mean": 0.23159246195338082,
+            "p99": 0.47632460000000026,
+            "max": 2.751764
+          },
+          "receive_to_accept_ms": {
+            "mean": 1.4701913843190137,
+            "p99": 13.80942830000001,
+            "max": 19.456989
+          },
+          "result_pool_wait_ms": {
+            "mean": 8.227052224812175,
+            "p99": 14.034473300000007,
+            "max": 34.23261
+          },
+          "result_send_ms": {
+            "mean": 0.023393071277210558,
+            "p99": 0.0735701,
+            "max": 0.717601
+          },
+          "result_response_wait_ms": {
+            "mean": 9.340266604315161,
+            "p99": 14.173248500000003,
+            "max": 39.029358
+          }
+        },
+        "process_threads": 79
+      },
+      {
+        "node_id": "1",
+        "adaptive_control": {
+          "enabled": true,
+          "events": [],
+          "lane_pending": [
+            0
+          ],
+          "peak_reactors": 1,
+          "pending": 0,
+          "pending_limit": 64,
+          "reactors": 1,
+          "scale_downs": 0,
+          "scale_ups": 0,
+          "lanes": 1,
+          "peak_lanes": 1
+        },
+        "metrics": {
+          "completion_command_wait_ms": {
+            "mean": 0.8335393331300813,
+            "p99": 5.8209417800000045,
+            "max": 9.224869
+          },
+          "finalize_wait_ms": {
+            "mean": 0.2485360585365854,
+            "p99": 7.872184400000046,
+            "max": 42.916547
+          },
+          "loop_done_to_release_ms": {
+            "mean": 0.2972398093495935,
+            "p99": 0.8554704200000013,
+            "max": 2.452495
+          },
+          "receive_to_accept_ms": {
+            "mean": 3.538665848780487,
+            "p99": 21.253521250000116,
+            "max": 27.002991
+          },
+          "result_pool_wait_ms": {
+            "mean": 7.785380771747968,
+            "p99": 14.10307823000001,
+            "max": 36.433093
+          },
+          "result_send_ms": {
+            "mean": 0.03307062621951219,
+            "p99": 0.06970183000000023,
+            "max": 37.347364
+          },
+          "result_response_wait_ms": {
+            "mean": 9.426928429674797,
+            "p99": 13.701870360000017,
+            "max": 46.707234
+          }
+        },
+        "process_threads": 79
+      },
+      {
+        "node_id": "2",
+        "adaptive_control": {
+          "enabled": true,
+          "events": [],
+          "lane_pending": [
+            0
+          ],
+          "peak_reactors": 1,
+          "pending": 0,
+          "pending_limit": 64,
+          "reactors": 1,
+          "scale_downs": 0,
+          "scale_ups": 0,
+          "lanes": 1,
+          "peak_lanes": 1
+        },
+        "metrics": {
+          "completion_command_wait_ms": {
+            "mean": 0.9324918883994127,
+            "p99": 6.896859200000001,
+            "max": 7.639754
+          },
+          "finalize_wait_ms": {
+            "mean": 1.4151956690161527,
+            "p99": 35.04278880000001,
+            "max": 51.748209
+          },
+          "loop_done_to_release_ms": {
+            "mean": 0.21371827400881055,
+            "p99": 0.46247392000000015,
+            "max": 0.937375
+          },
+          "receive_to_accept_ms": {
+            "mean": 2.036402655800294,
+            "p99": 18.640339960000002,
+            "max": 21.247959
+          },
+          "result_pool_wait_ms": {
+            "mean": 2.8405515033773865,
+            "p99": 11.922186920000001,
+            "max": 26.236662
+          },
+          "result_send_ms": {
+            "mean": 0.022290661967694567,
+            "p99": 0.07414576000000002,
+            "max": 0.179998
+          },
+          "result_response_wait_ms": {
+            "mean": 9.586321479882526,
+            "p99": 14.40866408,
+            "max": 39.212507
+          }
+        },
+        "process_threads": 79
+      }
+    ]
+  },
+  {
+    "case": "02_adaptive",
+    "adaptive": false,
+    "qps": 6214.405941290258,
+    "p99": 131.54272162,
+    "nodes": [
+      {
+        "node_id": "0",
+        "adaptive_control": {
+          "enabled": true,
+          "events": [
+            {
+              "reactors": 2,
+              "reason": "send_pressure",
+              "time_ns": 2764551031594959
+            },
+            {
+              "reactors": 3,
+              "reason": "send_pressure",
+              "time_ns": 2764551754048359
+            },
+            {
+              "reactors": 2,
+              "reason": "send_idle",
+              "time_ns": 2764553599873330
+            },
+            {
+              "reactors": 1,
+              "reason": "send_idle",
+              "time_ns": 2764553620139662
+            }
+          ],
+          "lane_pending": [
+            0
+          ],
+          "peak_reactors": 3,
+          "pending": 0,
+          "pending_limit": 64,
+          "reactors": 1,
+          "scale_downs": 2,
+          "scale_ups": 2,
+          "lanes": 1,
+          "peak_lanes": 3
+        },
+        "metrics": {
+          "completion_command_wait_ms": {
+            "mean": 1.7965068767096897,
+            "p99": 8.075663000000004,
+            "max": 9.345205
+          },
+          "finalize_wait_ms": {
+            "mean": 2.058496255442112,
+            "p99": 62.77381720000034,
+            "max": 117.315886
+          },
+          "loop_done_to_release_ms": {
+            "mean": 0.237188890965132,
+            "p99": 0.47895460000000084,
+            "max": 1.676767
+          },
+          "receive_to_accept_ms": {
+            "mean": 2.7577491837796186,
+            "p99": 14.928096700000008,
+            "max": 19.831293
+          },
+          "result_pool_wait_ms": {
+            "mean": 0.21467652013099595,
+            "p99": 0.05735080000000047,
+            "max": 38.699121
+          },
+          "result_send_ms": {
+            "mean": 0.01885548391446735,
+            "p99": 0.04822320000000001,
+            "max": 18.298478
+          },
+          "result_response_wait_ms": {
+            "mean": 1.7260301217491811,
+            "p99": 15.29649790000007,
+            "max": 41.407991
+          }
+        },
+        "process_threads": 100
+      },
+      {
+        "node_id": "1",
+        "adaptive_control": {
+          "enabled": true,
+          "events": [
+            {
+              "reactors": 2,
+              "reason": "send_pressure",
+              "time_ns": 781337716777405
+            },
+            {
+              "reactors": 3,
+              "reason": "send_pressure",
+              "time_ns": 781337836807428
+            },
+            {
+              "reactors": 2,
+              "reason": "send_idle",
+              "time_ns": 781340244335660
+            },
+            {
+              "reactors": 1,
+              "reason": "send_idle",
+              "time_ns": 781340264613099
+            }
+          ],
+          "lane_pending": [
+            0
+          ],
+          "peak_reactors": 3,
+          "pending": 0,
+          "pending_limit": 64,
+          "reactors": 1,
+          "scale_downs": 2,
+          "scale_ups": 2,
+          "lanes": 1,
+          "peak_lanes": 3
+        },
+        "metrics": {
+          "completion_command_wait_ms": {
+            "mean": 2.2929092090798044,
+            "p99": 35.50923730000005,
+            "max": 39.654706
+          },
+          "finalize_wait_ms": {
+            "mean": 0.5778599947068404,
+            "p99": 10.249731890000009,
+            "max": 59.587066
+          },
+          "loop_done_to_release_ms": {
+            "mean": 0.3051925472312703,
+            "p99": 0.7843459600000043,
+            "max": 4.050827
+          },
+          "receive_to_accept_ms": {
+            "mean": 6.610501588762215,
+            "p99": 65.09101656000004,
+            "max": 77.304706
+          },
+          "result_pool_wait_ms": {
+            "mean": 0.8938409533794789,
+            "p99": 51.505583660000035,
+            "max": 106.568244
+          },
+          "result_send_ms": {
+            "mean": 0.29850605618892506,
+            "p99": 0.061377610000000804,
+            "max": 61.030983
+          },
+          "result_response_wait_ms": {
+            "mean": 1.2981955150651465,
+            "p99": 7.350532990000033,
+            "max": 68.214068
+          }
+        },
+        "process_threads": 98
+      },
+      {
+        "node_id": "2",
+        "adaptive_control": {
+          "enabled": true,
+          "events": [
+            {
+              "reactors": 2,
+              "reason": "send_pressure",
+              "time_ns": 24752084207217240
+            },
+            {
+              "reactors": 1,
+              "reason": "send_idle",
+              "time_ns": 24752086797144314
+            }
+          ],
+          "lane_pending": [
+            0
+          ],
+          "peak_reactors": 2,
+          "pending": 0,
+          "pending_limit": 64,
+          "reactors": 1,
+          "scale_downs": 1,
+          "scale_ups": 1,
+          "lanes": 1,
+          "peak_lanes": 2
+        },
+        "metrics": {
+          "completion_command_wait_ms": {
+            "mean": 1.36639432501468,
+            "p99": 7.4219767,
+            "max": 8.438847
+          },
+          "finalize_wait_ms": {
+            "mean": 3.0088558825601877,
+            "p99": 71.66247609999975,
+            "max": 118.996441
+          },
+          "loop_done_to_release_ms": {
+            "mean": 0.21572978567234294,
+            "p99": 0.4754611499999997,
+            "max": 0.943244
+          },
+          "receive_to_accept_ms": {
+            "mean": 2.4954323485026424,
+            "p99": 13.312105049999976,
+            "max": 18.508153
+          },
+          "result_pool_wait_ms": {
+            "mean": 0.25531634997064,
+            "p99": 0.2747146,
+            "max": 34.483418
+          },
+          "result_send_ms": {
+            "mean": 0.027411432472108043,
+            "p99": 0.09106199999999993,
+            "max": 17.111266
+          },
+          "result_response_wait_ms": {
+            "mean": 2.201187366118614,
+            "p99": 24.48968514999998,
+            "max": 40.716043
+          }
+        },
+        "process_threads": 100
+      }
+    ]
+  },
+  {
+    "case": "03_adaptive",
+    "adaptive": false,
+    "qps": 5915.69578612507,
+    "p99": 110.10029535000025,
+    "nodes": [
+      {
+        "node_id": "0",
+        "adaptive_control": {
+          "enabled": true,
+          "events": [
+            {
+              "reactors": 2,
+              "reason": "send_pressure",
+              "time_ns": 2764592486359384
+            },
+            {
+              "reactors": 3,
+              "reason": "send_pressure",
+              "time_ns": 2764592606907836
+            },
+            {
+              "reactors": 4,
+              "reason": "send_pressure",
+              "time_ns": 2764594052049775
+            },
+            {
+              "reactors": 3,
+              "reason": "send_idle",
+              "time_ns": 2764595135648824
+            },
+            {
+              "reactors": 2,
+              "reason": "send_idle",
+              "time_ns": 2764595155887025
+            }
+          ],
+          "lane_pending": [
+            0,
+            0
+          ],
+          "peak_reactors": 4,
+          "pending": 0,
+          "pending_limit": 64,
+          "reactors": 2,
+          "scale_downs": 2,
+          "scale_ups": 3,
+          "lanes": 2,
+          "peak_lanes": 4
+        },
+        "metrics": {
+          "completion_command_wait_ms": {
+            "mean": 1.4086283351330504,
+            "p99": 6.5263975499999995,
+            "max": 8.141975
+          },
+          "finalize_wait_ms": {
+            "mean": 1.9435346752795992,
+            "p99": 38.003856749999926,
+            "max": 109.735787
+          },
+          "loop_done_to_release_ms": {
+            "mean": 0.23727334940223682,
+            "p99": 0.4831718999999998,
+            "max": 2.047538
+          },
+          "receive_to_accept_ms": {
+            "mean": 2.7068159274971073,
+            "p99": 14.582054249999986,
+            "max": 18.30889
+          },
+          "result_pool_wait_ms": {
+            "mean": 0.225055928268415,
+            "p99": 0.06703849999999965,
+            "max": 28.224953
+          },
+          "result_send_ms": {
+            "mean": 0.023678475125337446,
+            "p99": 0.05099669999999957,
+            "max": 22.770714
+          },
+          "result_response_wait_ms": {
+            "mean": 1.992052383339761,
+            "p99": 25.605560049999994,
+            "max": 35.272837
+          }
+        },
+        "process_threads": 103
+      },
+      {
+        "node_id": "1",
+        "adaptive_control": {
+          "enabled": true,
+          "events": [
+            {
+              "reactors": 2,
+              "reason": "send_pressure",
+              "time_ns": 781379168744172
+            },
+            {
+              "reactors": 3,
+              "reason": "send_pressure",
+              "time_ns": 781379292801864
+            },
+            {
+              "reactors": 2,
+              "reason": "send_idle",
+              "time_ns": 781381780845735
+            },
+            {
+              "reactors": 1,
+              "reason": "send_idle",
+              "time_ns": 781381801136502
+            }
+          ],
+          "lane_pending": [
+            0
+          ],
+          "peak_reactors": 3,
+          "pending": 0,
+          "pending_limit": 64,
+          "reactors": 1,
+          "scale_downs": 2,
+          "scale_ups": 2,
+          "lanes": 1,
+          "peak_lanes": 3
+        },
+        "metrics": {
+          "completion_command_wait_ms": {
+            "mean": 1.907667317479675,
+            "p99": 8.815453190000017,
+            "max": 10.145121
+          },
+          "finalize_wait_ms": {
+            "mean": 0.6453795367886179,
+            "p99": 22.267431060002412,
+            "max": 52.333041
+          },
+          "loop_done_to_release_ms": {
+            "mean": 0.29699107093495936,
+            "p99": 0.718722450000007,
+            "max": 2.588394
+          },
+          "receive_to_accept_ms": {
+            "mean": 6.26699541707317,
+            "p99": 38.74298481,
+            "max": 44.045878
+          },
+          "result_pool_wait_ms": {
+            "mean": 0.2475963890243902,
+            "p99": 0.04705766000000019,
+            "max": 59.596926
+          },
+          "result_send_ms": {
+            "mean": 0.024513135365853665,
+            "p99": 0.07283492000000014,
+            "max": 60.271686
+          },
+          "result_response_wait_ms": {
+            "mean": 1.3532430603658538,
+            "p99": 7.891634910000006,
+            "max": 64.22505
+          }
+        },
+        "process_threads": 100
+      },
+      {
+        "node_id": "2",
+        "adaptive_control": {
+          "enabled": true,
+          "events": [
+            {
+              "reactors": 2,
+              "reason": "send_pressure",
+              "time_ns": 24752125679221277
+            },
+            {
+              "reactors": 3,
+              "reason": "send_pressure",
+              "time_ns": 24752127224868116
+            },
+            {
+              "reactors": 2,
+              "reason": "send_idle",
+              "time_ns": 24752128328279990
+            }
+          ],
+          "lane_pending": [
+            0,
+            0
+          ],
+          "peak_reactors": 3,
+          "pending": 0,
+          "pending_limit": 64,
+          "reactors": 2,
+          "scale_downs": 1,
+          "scale_ups": 2,
+          "lanes": 2,
+          "peak_lanes": 3
+        },
+        "metrics": {
+          "completion_command_wait_ms": {
+            "mean": 1.5405756079295154,
+            "p99": 7.954163720000001,
+            "max": 11.042885
+          },
+          "finalize_wait_ms": {
+            "mean": 2.64789866989721,
+            "p99": 47.20767696000004,
+            "max": 76.224021
+          },
+          "loop_done_to_release_ms": {
+            "mean": 0.2241920020558003,
+            "p99": 0.5134164000000002,
+            "max": 10.789932
+          },
+          "receive_to_accept_ms": {
+            "mean": 2.5159758258443463,
+            "p99": 15.455756520000001,
+            "max": 17.469997
+          },
+          "result_pool_wait_ms": {
+            "mean": 0.05795105932452276,
+            "p99": 0.21332256000000008,
+            "max": 17.762939
+          },
+          "result_send_ms": {
+            "mean": 0.03531084698972099,
+            "p99": 0.08999892000000011,
+            "max": 18.209559
+          },
+          "result_response_wait_ms": {
+            "mean": 2.0636992088105726,
+            "p99": 20.614841160000005,
+            "max": 38.816667
+          }
+        },
+        "process_threads": 101
+      }
+    ]
+  },
+  {
+    "case": "04_fixed",
+    "adaptive": false,
+    "qps": 5814.714732569381,
+    "p99": 88.23457135000001,
+    "nodes": [
+      {
+        "node_id": "0",
+        "adaptive_control": {
+          "enabled": true,
+          "events": [],
+          "lane_pending": [
+            0
+          ],
+          "peak_reactors": 1,
+          "pending": 0,
+          "pending_limit": 64,
+          "reactors": 1,
+          "scale_downs": 0,
+          "scale_ups": 0,
+          "lanes": 1,
+          "peak_lanes": 1
+        },
+        "metrics": {
+          "completion_command_wait_ms": {
+            "mean": 1.1242014327293754,
+            "p99": 7.303035940000001,
+            "max": 9.407335
+          },
+          "finalize_wait_ms": {
+            "mean": 2.3057581655744026,
+            "p99": 36.20372898000001,
+            "max": 68.318678
+          },
+          "loop_done_to_release_ms": {
+            "mean": 0.23361164494988435,
+            "p99": 0.46122667,
+            "max": 0.792463
+          },
+          "receive_to_accept_ms": {
+            "mean": 1.9497973305705474,
+            "p99": 16.55552625,
+            "max": 33.754308
+          },
+          "result_pool_wait_ms": {
+            "mean": 4.848859607363146,
+            "p99": 13.41172343,
+            "max": 40.039796
+          },
+          "result_send_ms": {
+            "mean": 0.02185384367771781,
+            "p99": 0.05437410000000004,
+            "max": 18.721631
+          },
+          "result_response_wait_ms": {
+            "mean": 8.099846964726291,
+            "p99": 13.585667970000001,
+            "max": 45.20746
+          }
+        },
+        "process_threads": 79
+      },
+      {
+        "node_id": "1",
+        "adaptive_control": {
+          "enabled": true,
+          "events": [],
+          "lane_pending": [
+            0
+          ],
+          "peak_reactors": 1,
+          "pending": 0,
+          "pending_limit": 64,
+          "reactors": 1,
+          "scale_downs": 0,
+          "scale_ups": 0,
+          "lanes": 1,
+          "peak_lanes": 1
+        },
+        "metrics": {
+          "completion_command_wait_ms": {
+            "mean": 1.86391578446523,
+            "p99": 9.75854167,
+            "max": 11.693076
+          },
+          "finalize_wait_ms": {
+            "mean": 0.5603096734444897,
+            "p99": 13.93669664999999,
+            "max": 50.626096
+          },
+          "loop_done_to_release_ms": {
+            "mean": 0.31036553741358275,
+            "p99": 0.8592846999999999,
+            "max": 2.408701
+          },
+          "receive_to_accept_ms": {
+            "mean": 9.53750166043107,
+            "p99": 32.87077252,
+            "max": 36.520471
+          },
+          "result_pool_wait_ms": {
+            "mean": 4.216598046970313,
+            "p99": 13.165790999999999,
+            "max": 46.39445
+          },
+          "result_send_ms": {
+            "mean": 0.032557990849939,
+            "p99": 0.05804899999999996,
+            "max": 47.278959
+          },
+          "result_response_wait_ms": {
+            "mean": 8.066220819032127,
+            "p99": 13.221620519999997,
+            "max": 54.38366
+          }
+        },
+        "process_threads": 79
+      },
+      {
+        "node_id": "2",
+        "adaptive_control": {
+          "enabled": true,
+          "events": [],
+          "lane_pending": [
+            0
+          ],
+          "peak_reactors": 1,
+          "pending": 0,
+          "pending_limit": 64,
+          "reactors": 1,
+          "scale_downs": 0,
+          "scale_ups": 0,
+          "lanes": 1,
+          "peak_lanes": 1
+        },
+        "metrics": {
+          "completion_command_wait_ms": {
+            "mean": 1.2007501644157368,
+            "p99": 8.6165983,
+            "max": 10.151664
+          },
+          "finalize_wait_ms": {
+            "mean": 3.6283938984145623,
+            "p99": 48.34959009999998,
+            "max": 75.148529
+          },
+          "loop_done_to_release_ms": {
+            "mean": 0.2123529600704639,
+            "p99": 0.4439542999999999,
+            "max": 0.97303
+          },
+          "receive_to_accept_ms": {
+            "mean": 1.9813071967116853,
+            "p99": 14.056808149999998,
+            "max": 18.048542
+          },
+          "result_pool_wait_ms": {
+            "mean": 1.8933018749266002,
+            "p99": 9.727411799999995,
+            "max": 37.418882
+          },
+          "result_send_ms": {
+            "mean": 0.021667953317674692,
+            "p99": 0.0777886499999999,
+            "max": 0.229921
+          },
+          "result_response_wait_ms": {
+            "mean": 8.619497020258367,
+            "p99": 14.066849949999998,
+            "max": 45.616068
+          }
+        },
+        "process_threads": 79
+      }
+    ]
+  },
+  {
+    "case": "05_disabled",
+    "adaptive": false,
+    "qps": 5925.641969162764,
+    "p99": 77.64156612000001,
+    "nodes": [
+      {
+        "node_id": "0",
+        "adaptive_control": {
+          "enabled": false,
+          "events": [],
+          "lane_pending": [
+            0
+          ],
+          "peak_reactors": 1,
+          "pending": 0,
+          "pending_limit": 64,
+          "reactors": 1,
+          "scale_downs": 0,
+          "scale_ups": 0,
+          "lanes": 1,
+          "peak_lanes": 1
+        },
+        "metrics": {
+          "completion_command_wait_ms": {
+            "mean": 0.3523078225433526,
+            "p99": 3.184183509999994,
+            "max": 3.909253
+          },
+          "finalize_wait_ms": {
+            "mean": 0.6232040888246628,
+            "p99": 13.83190178999998,
+            "max": 23.874307
+          },
+          "loop_done_to_release_ms": {
+            "mean": 0.23138458477842,
+            "p99": 0.47418096999999976,
+            "max": 0.85644
+          },
+          "receive_to_accept_ms": {
+            "mean": 1.215084905202312,
+            "p99": 11.255947279999992,
+            "max": 20.93158
+          },
+          "result_pool_wait_ms": {
+            "mean": 19.261289688631983,
+            "p99": 25.44537644,
+            "max": 34.431654
+          },
+          "result_send_ms": {
+            "mean": 0.016904335260115606,
+            "p99": 0.04653772999999982,
+            "max": 0.186607
+          },
+          "result_response_wait_ms": {
+            "mean": 0.6173438741811175,
+            "p99": 1.3845448599999994,
+            "max": 25.379735
+          }
+        },
+        "process_threads": 76
+      },
+      {
+        "node_id": "1",
+        "adaptive_control": {
+          "enabled": false,
+          "events": [],
+          "lane_pending": [
+            0
+          ],
+          "peak_reactors": 1,
+          "pending": 0,
+          "pending_limit": 64,
+          "reactors": 1,
+          "scale_downs": 0,
+          "scale_ups": 0,
+          "lanes": 1,
+          "peak_lanes": 1
+        },
+        "metrics": {
+          "completion_command_wait_ms": {
+            "mean": 1.3309539552845526,
+            "p99": 10.639592380000021,
+            "max": 13.504003
+          },
+          "finalize_wait_ms": {
+            "mean": 0.8539380863821139,
+            "p99": 36.769212870000395,
+            "max": 60.332512
+          },
+          "loop_done_to_release_ms": {
+            "mean": 0.2887727987804878,
+            "p99": 0.6994079100000026,
+            "max": 1.911042
+          },
+          "receive_to_accept_ms": {
+            "mean": 4.044724105284553,
+            "p99": 18.136231330000125,
+            "max": 23.189962
+          },
+          "result_pool_wait_ms": {
+            "mean": 7.687048864024391,
+            "p99": 21.212669440000028,
+            "max": 25.246236
+          },
+          "result_send_ms": {
+            "mean": 0.013535234349593495,
+            "p99": 0.02776723000000003,
+            "max": 0.056122
+          },
+          "result_response_wait_ms": {
+            "mean": 0.5753297510162602,
+            "p99": 1.3828919500000012,
+            "max": 25.575288
+          }
+        },
+        "process_threads": 76
+      },
+      {
+        "node_id": "2",
+        "adaptive_control": {
+          "enabled": false,
+          "events": [],
+          "lane_pending": [
+            0
+          ],
+          "peak_reactors": 1,
+          "pending": 0,
+          "pending_limit": 64,
+          "reactors": 1,
+          "scale_downs": 0,
+          "scale_ups": 0,
+          "lanes": 1,
+          "peak_lanes": 1
+        },
+        "metrics": {
+          "completion_command_wait_ms": {
+            "mean": 1.2448073042584433,
+            "p99": 8.270071800000002,
+            "max": 9.452499
+          },
+          "finalize_wait_ms": {
+            "mean": 1.1914888058737152,
+            "p99": 16.24521392,
+            "max": 26.498569
+          },
+          "loop_done_to_release_ms": {
+            "mean": 0.21351734831130692,
+            "p99": 0.4432298,
+            "max": 0.940455
+          },
+          "receive_to_accept_ms": {
+            "mean": 1.9958311400881055,
+            "p99": 12.8033326,
+            "max": 18.298991
+          },
+          "result_pool_wait_ms": {
+            "mean": 4.18743139030837,
+            "p99": 18.14813548000001,
+            "max": 27.031381
+          },
+          "result_send_ms": {
+            "mean": 0.014878515418502202,
+            "p99": 0.046487440000000005,
+            "max": 0.078943
+          },
+          "result_response_wait_ms": {
+            "mean": 0.652628371218796,
+            "p99": 1.4602732800000002,
+            "max": 25.646218
+          }
+        },
+        "process_threads": 76
+      }
+    ]
+  }
+]

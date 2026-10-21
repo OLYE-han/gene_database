@@ -1,0 +1,60 @@
+base_plan: ../control_capacity_20261020/candidate.yaml
+baseline_threads: 32
+thread_counts:
+- 32
+- 64
+- 128
+short:
+  queries: 10000
+  order:
+  - baseline_network
+  - nodelay
+  - network_auto
+  - network_auto
+  - nodelay
+  - head8_network_auto
+sustained:
+  queries: 100000
+  order:
+  - baseline
+  - candidate
+  - candidate
+  - baseline
+  minimum_short_qps_gain: 0.0
+concurrency: 256
+warmup: 32
+minimum_recall: 0.95
+case_timeout_seconds: 1800
+data_port_base: 28751
+callback_port_base: 28810
+scratch_root: /sharenvme/usershome/xulihan/gene_database/DHDGS/test/adaptive_wait_20261020/temporary_logs
+minimum_result_free_bytes: 650000000
+variants:
+  baseline_network: {}
+  nodelay:
+    network:
+      rpc_tcp_nodelay: true
+  network_auto:
+    network:
+      rpc_tcp_nodelay: true
+    adaptive_services:
+      enabled: true
+      admission: false
+      head_dispatch: true
+      head_dispatch_min: 4
+      head_dispatch_max: 8
+      connections: true
+      head_connections: true
+  head8_network_auto:
+    network:
+      rpc_tcp_nodelay: true
+    adaptive_services:
+      enabled: true
+      admission: false
+      head_dispatch: true
+      head_dispatch_min: 4
+      head_dispatch_max: 8
+      connections: true
+      head_connections: true
+    head_lanes:
+      processes: 8

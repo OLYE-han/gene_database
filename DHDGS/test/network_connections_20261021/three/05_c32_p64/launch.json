@@ -1,0 +1,41 @@
+[
+  {
+    "host": {
+      "id": 0,
+      "ssh": null,
+      "root": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/network_connections_20261021/data/three/05_c32_p64",
+      "python": "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "token_file": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/managed_continuation_three_20261019/cluster.token",
+      "state_file": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/network_connections_20261021/data/three/05_c32_p64/state.json",
+      "project": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/network_module_20261021/source"
+    },
+    "pid": 3652729,
+    "root": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/network_connections_20261021/data/three/05_c32_p64"
+  },
+  {
+    "host": {
+      "id": 1,
+      "ssh": "intel-32",
+      "root": "/sharenvme/userhome/xulihan/dhdgs_deploy/network_connections_20261021/three/05_c32_p64",
+      "python": "/sharenvme/userhome/xulihan/dhdgs_deploy/seq2m_full_20261017/gene_database/DHDGS/.venv/bin/python",
+      "token_file": "/sharenvme/userhome/xulihan/dhdgs_deploy/managed_continuation_three_20261019/cluster.token",
+      "state_file": "/sharenvme/userhome/xulihan/dhdgs_deploy/network_connections_20261021/three/05_c32_p64/state.json",
+      "project": "/sharenvme/userhome/xulihan/dhdgs_deploy/network_module_20261021/source"
+    },
+    "pid": 13055,
+    "root": "/sharenvme/userhome/xulihan/dhdgs_deploy/network_connections_20261021/three/05_c32_p64"
+  },
+  {
+    "host": {
+      "id": 2,
+      "ssh": "intel-30",
+      "root": "/sharenvme/xulihan_dhdgs/network_connections_20261021/three/05_c32_p64",
+      "python": "/sharenvme/xulihan_dhdgs/seq2m_full_20261017/gene_database/DHDGS/.venv/bin/python",
+      "token_file": "/sharenvme/xulihan_dhdgs/managed_continuation_three_20261019/cluster.token",
+      "state_file": "/sharenvme/xulihan_dhdgs/network_connections_20261021/three/05_c32_p64/state.json",
+      "project": "/sharenvme/xulihan_dhdgs/network_module_20261021/source"
+    },
+    "pid": 422747,
+    "root": "/sharenvme/xulihan_dhdgs/network_connections_20261021/three/05_c32_p64"
+  }
+]

@@ -1,0 +1,6 @@
+{
+  "mode": "p2",
+  "queries": 2000,
+  "concurrency": 128,
+  "warmup": 32
+}

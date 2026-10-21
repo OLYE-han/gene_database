@@ -1,0 +1,37 @@
+[
+  {
+    "original": "runs/20261021T110549_benchmark_064f1347/queries.part-00000-00000.json",
+    "compressed": "runs/20261021T110549_benchmark_064f1347/queries.part-00000-00000.json.gz",
+    "sha256": "c79c82ffc51f5ebfff533ad68b7db79a1144e555a7e7c918d6384fb0f309c813",
+    "bytes": 67087147,
+    "compressed_bytes": 10652330
+  },
+  {
+    "original": "runs/20261021T110549_benchmark_064f1347/queries.part-00000-00001.json",
+    "compressed": "runs/20261021T110549_benchmark_064f1347/queries.part-00000-00001.json.gz",
+    "sha256": "dfa25faf241bc36dbf1d54f99d2a66ddda02cfedae4b96017e2ba693e0772db6",
+    "bytes": 67090295,
+    "compressed_bytes": 10714085
+  },
+  {
+    "original": "runs/20261021T110549_benchmark_064f1347/queries.part-00000-00002.json",
+    "compressed": "runs/20261021T110549_benchmark_064f1347/queries.part-00000-00002.json.gz",
+    "sha256": "0ea1fbf95879091c3611477678ea977483d36620fef2467ba26c69ecd860ce37",
+    "bytes": 67092435,
+    "compressed_bytes": 10721877
+  },
+  {
+    "original": "runs/20261021T110549_benchmark_064f1347/queries.part-00000-00003.json",
+    "compressed": "runs/20261021T110549_benchmark_064f1347/queries.part-00000-00003.json.gz",
+    "sha256": "706c1ce9158b7691c19569fa28cbb35ee15597f4fb8ebe38fa8cff27d05a8c73",
+    "bytes": 52359167,
+    "compressed_bytes": 8357948
+  },
+  {
+    "original": "runs/20261021T110549_benchmark_064f1347/report_context.json",
+    "compressed": "runs/20261021T110549_benchmark_064f1347/report_context.json.gz",
+    "sha256": "67991c42fb911362246fdefe0e1846a1638138658d73d1edccdeb050123e4214",
+    "bytes": 41158158,
+    "compressed_bytes": 6757847
+  }
+]

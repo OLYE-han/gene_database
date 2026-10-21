@@ -1,0 +1,99 @@
+{
+  "entry_rpc": {
+    "connect_ms": 2.521405,
+    "connections_created": 1.0,
+    "pool_wait_ms": 19.830811,
+    "request_bytes": 11576.0,
+    "response_bytes": 38.0,
+    "response_wait_ms": 53.517074,
+    "rpc_count": 1.0,
+    "send_ms": 2.539645
+  },
+  "selection": "Nearest p99 query, first 64-thread run",
+  "job": 264,
+  "query_id": 270632,
+  "latency_ms": 120.28705,
+  "stages": [
+    {
+      "stage": "API submit",
+      "start_ms": 0.0,
+      "end_ms": 0.0804,
+      "duration_ms": 0.0804
+    },
+    {
+      "stage": "Route queue",
+      "start_ms": 0.0804,
+      "end_ms": 22.830878,
+      "duration_ms": 22.750478
+    },
+    {
+      "stage": "HNSW routing",
+      "start_ms": 22.830878,
+      "end_ms": 23.311417,
+      "duration_ms": 0.480539
+    },
+    {
+      "stage": "Entry dispatch incl. send queue",
+      "start_ms": 23.311417,
+      "end_ms": 45.70122,
+      "duration_ms": 22.389803
+    },
+    {
+      "stage": "Until last report received",
+      "start_ms": 45.70122,
+      "end_ms": 118.937373,
+      "duration_ms": 73.236153
+    },
+    {
+      "stage": "Report processing / remaining confirmation",
+      "start_ms": 118.937373,
+      "end_ms": 119.534174,
+      "duration_ms": 0.596801
+    },
+    {
+      "stage": "Merge enqueue",
+      "start_ms": 119.534174,
+      "end_ms": 119.569511,
+      "duration_ms": 0.035337
+    },
+    {
+      "stage": "Merge queue",
+      "start_ms": 119.569511,
+      "end_ms": 119.578399,
+      "duration_ms": 0.008888
+    },
+    {
+      "stage": "Merge",
+      "start_ms": 119.578399,
+      "end_ms": 119.839896,
+      "duration_ms": 0.261497
+    },
+    {
+      "stage": "Result handoff",
+      "start_ms": 119.839896,
+      "end_ms": 120.28705,
+      "duration_ms": 0.447154
+    }
+  ],
+  "branches": [
+    {
+      "node_id": 1,
+      "branch_id": "db9df5b3-535c-4801-8570-a6eddd29047f",
+      "wall_ms": 22.063847980462015,
+      "parts_ms": {
+        "Compute ready queue": 0.106853,
+        "Search execution wall": 18.491705,
+        "Transfer finalization": 3.0259870691224933,
+        "Other branch control": 0.4393029113395208
+      },
+      "search_parts_ms": {
+        "pread": 1.4913340000000002,
+        "RaBitQ": 6.570220999999999,
+        "Exact distance": 3.276945999999999,
+        "Other search incl. scheduling": 7.153204000000002
+      },
+      "thread_cpu_ms": 18.042014,
+      "search_wall_minus_cpu_ms": 0.44969099999999784
+    }
+  ]
+}

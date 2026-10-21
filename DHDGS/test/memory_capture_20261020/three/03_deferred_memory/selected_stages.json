@@ -1,0 +1,102 @@
+{
+  "query": [
+    {
+      "stage": "API submit",
+      "start_ns": 2717416559551762,
+      "end_ns": 2717416559579620,
+      "ms": 0.027858
+    },
+    {
+      "stage": "Route queue",
+      "start_ns": 2717416559579620,
+      "end_ns": 2717416559619901,
+      "ms": 0.040281
+    },
+    {
+      "stage": "HNSW + RaBitQ",
+      "start_ns": 2717416559619901,
+      "end_ns": 2717416560176772,
+      "ms": 0.556871
+    },
+    {
+      "stage": "Data + control",
+      "start_ns": 2717416560176772,
+      "end_ns": 2717416615589610,
+      "ms": 55.412838
+    },
+    {
+      "stage": "Merge queue",
+      "start_ns": 2717416615589610,
+      "end_ns": 2717416615917171,
+      "ms": 0.327561
+    },
+    {
+      "stage": "Merge",
+      "start_ns": 2717416615917171,
+      "end_ns": 2717416616220136,
+      "ms": 0.302965
+    },
+    {
+      "stage": "Native result handoff",
+      "start_ns": 2717416616220136,
+      "end_ns": 2717416616702488,
+      "ms": 0.482352
+    },
+    {
+      "stage": "Future callback",
+      "start_ns": 2717416616702488,
+      "end_ns": 2717416616705806,
+      "ms": 0.003318
+    },
+    {
+      "stage": "Recorder notification wait",
+      "start_ns": 2717416616705806,
+      "end_ns": 2717416616725541,
+      "ms": 0.019735
+    },
+    {
+      "stage": "Retain native result",
+      "start_ns": 2717416616725541,
+      "end_ns": 2717416616777383,
+      "ms": 0.051842
+    }
+  ],
+  "run": [
+    {
+      "stage": "All 10,000 queries",
+      "start_ns": 2717415185644045,
+      "end_ns": 2717416821711225,
+      "seconds": 1.63606718
+    },
+    {
+      "stage": "Drain / management snapshots",
+      "start_ns": 2717416821711225,
+      "end_ns": 2717418544888959,
+      "seconds": 1.723177734
+    },
+    {
+      "stage": "Deferred native encoding",
+      "start_ns": 2717418544888959,
+      "end_ns": 2717420277932842,
+      "seconds": 1.733043883
+    },
+    {
+      "stage": "Independent JSON conversion",
+      "start_ns": 2717420277932842,
+      "end_ns": 2717424086255679,
+      "seconds": 3.808322837
+    },
+    {
+      "stage": "Report startup / metadata",
+      "start_ns": 2717424086255679,
+      "end_ns": 2717425549516628,
+      "seconds": 1.463260949
+    },
+    {
+      "stage": "Independent statistics / exports",
+      "start_ns": 2717425549516628,
+      "end_ns": 2717448314079375,
+      "seconds": 22.764562747
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+[
+  {
+    "host": {
+      "id": 0,
+      "ssh": null,
+      "root": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/concurrency_scale_20261020/data/three/06_c512",
+      "python": "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "token_file": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/managed_continuation_three_20261019/cluster.token",
+      "state_file": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/concurrency_scale_20261020/data/three/06_c512/state.json",
+      "project": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/cpp_runtime_20261020/source"
+    },
+    "pid": 3382481,
+    "root": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/concurrency_scale_20261020/data/three/06_c512"
+  },
+  {
+    "host": {
+      "id": 1,
+      "ssh": "intel-32",
+      "root": "/sharenvme/userhome/xulihan/dhdgs_deploy/concurrency_scale_20261020/three/06_c512",
+      "python": "/sharenvme/userhome/xulihan/dhdgs_deploy/seq2m_full_20261017/gene_database/DHDGS/.venv/bin/python",
+      "token_file": "/sharenvme/userhome/xulihan/dhdgs_deploy/managed_continuation_three_20261019/cluster.token",
+      "state_file": "/sharenvme/userhome/xulihan/dhdgs_deploy/concurrency_scale_20261020/three/06_c512/state.json",
+      "project": "/sharenvme/userhome/xulihan/dhdgs_deploy/cpp_runtime_20261020/source"
+    },
+    "pid": 3430215,
+    "root": "/sharenvme/userhome/xulihan/dhdgs_deploy/concurrency_scale_20261020/three/06_c512"
+  },
+  {
+    "host": {
+      "id": 2,
+      "ssh": "intel-30",
+      "root": "/sharenvme/xulihan_dhdgs/concurrency_scale_20261020/three/06_c512",
+      "python": "/sharenvme/xulihan_dhdgs/seq2m_full_20261017/gene_database/DHDGS/.venv/bin/python",
+      "token_file": "/sharenvme/xulihan_dhdgs/managed_continuation_three_20261019/cluster.token",
+      "state_file": "/sharenvme/xulihan_dhdgs/concurrency_scale_20261020/three/06_c512/state.json",
+      "project": "/sharenvme/xulihan_dhdgs/cpp_runtime_20261020/source"
+    },
+    "pid": 3903888,
+    "root": "/sharenvme/xulihan_dhdgs/concurrency_scale_20261020/three/06_c512"
+  }
+]

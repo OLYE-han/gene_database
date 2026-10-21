@@ -1,0 +1,9 @@
+{
+  "phase": "short",
+  "variant": "baseline",
+  "source": "source",
+  "threads": 32,
+  "queries": 10000,
+  "concurrency": 256,
+  "warmup": 32
+}

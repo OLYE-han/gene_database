@@ -1,0 +1,14 @@
+[
+  {
+    "node": 0,
+    "status": "already_not_listening"
+  },
+  {
+    "node": 1,
+    "status": "already_not_listening"
+  },
+  {
+    "node": 2,
+    "status": "stopped_quiescent"
+  }
+]

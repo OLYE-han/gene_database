@@ -1,0 +1,14 @@
+{
+  "base_plan": "gene_database/DHDGS/test/control_capacity_20261020/capacity_data/cluster.yaml",
+  "name": "c1024",
+  "port": 29160,
+  "queries": 10000,
+  "concurrency": 1024,
+  "warmup": 32,
+  "snapshot": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/control_capacity_20261020/verified_source",
+  "mode": "lanes",
+  "lanes": {
+    "processes": 4
+  },
+  "repeat_selection": true
+}

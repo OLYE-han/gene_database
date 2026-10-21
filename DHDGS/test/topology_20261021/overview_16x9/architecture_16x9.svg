@@ -1,0 +1,775 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="1440pt" height="810pt" viewBox="0 0 1440 810" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-10-21T21:02:29.986550</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 810 
+L 1440 810 
+L 1440 0 
+L 0 0 
+z
+" style="fill: #f7f9fc"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 40.05 353.25 
+L 1093.95 353.25 
+Q 1100.25 353.25 1100.25 346.95 
+L 1100.25 67.05 
+Q 1100.25 60.75 1093.95 60.75 
+L 40.05 60.75 
+Q 33.75 60.75 33.75 67.05 
+L 33.75 346.95 
+Q 33.75 353.25 40.05 353.25 
+z
+" clip-path="url(#p8e2ea72b61)" style="fill: #edf3fb; stroke: #a5b6ce; stroke-width: 1.3; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 76.05 193.05 
+L 355.95 193.05 
+Q 362.25 193.05 362.25 186.75 
+L 362.25 112.05 
+Q 362.25 105.75 355.95 105.75 
+L 76.05 105.75 
+Q 69.75 105.75 69.75 112.05 
+L 69.75 186.75 
+Q 69.75 193.05 76.05 193.05 
+z
+" clip-path="url(#p8e2ea72b61)" style="fill: #ffffff; stroke: #2474c5; stroke-width: 1.3; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 418.05 193.05 
+L 697.95 193.05 
+Q 704.25 193.05 704.25 186.75 
+L 704.25 112.05 
+Q 704.25 105.75 697.95 105.75 
+L 418.05 105.75 
+Q 411.75 105.75 411.75 112.05 
+L 411.75 186.75 
+Q 411.75 193.05 418.05 193.05 
+z
+" clip-path="url(#p8e2ea72b61)" style="fill: #ffffff; stroke: #9150b8; stroke-width: 1.3; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 760.05 193.05 
+L 1039.95 193.05 
+Q 1046.25 193.05 1046.25 186.75 
+L 1046.25 112.05 
+Q 1046.25 105.75 1039.95 105.75 
+L 760.05 105.75 
+Q 753.75 105.75 753.75 112.05 
+L 753.75 186.75 
+Q 753.75 193.05 760.05 193.05 
+z
+" clip-path="url(#p8e2ea72b61)" style="fill: #ffffff; stroke: #008b85; stroke-width: 1.3; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 76.05 326.25 
+L 355.95 326.25 
+Q 362.25 326.25 362.25 319.95 
+L 362.25 235.35 
+Q 362.25 229.05 355.95 229.05 
+L 76.05 229.05 
+Q 69.75 229.05 69.75 235.35 
+L 69.75 319.95 
+Q 69.75 326.25 76.05 326.25 
+z
+" clip-path="url(#p8e2ea72b61)" style="fill: #ffffff; stroke: #2474c5; stroke-width: 1.3; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 418.05 326.25 
+L 697.95 326.25 
+Q 704.25 326.25 704.25 319.95 
+L 704.25 235.35 
+Q 704.25 229.05 697.95 229.05 
+L 418.05 229.05 
+Q 411.75 229.05 411.75 235.35 
+L 411.75 319.95 
+Q 411.75 326.25 418.05 326.25 
+z
+" clip-path="url(#p8e2ea72b61)" style="fill: #ffffff; stroke: #9150b8; stroke-width: 1.3; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 760.05 326.25 
+L 1039.95 326.25 
+Q 1046.25 326.25 1046.25 319.95 
+L 1046.25 235.35 
+Q 1046.25 229.05 1039.95 229.05 
+L 760.05 229.05 
+Q 753.75 229.05 753.75 235.35 
+L 753.75 319.95 
+Q 753.75 326.25 760.05 326.25 
+z
+" clip-path="url(#p8e2ea72b61)" style="fill: #ffffff; stroke: #008b85; stroke-width: 1.3; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 40.05 735.75 
+L 1093.95 735.75 
+Q 1100.25 735.75 1100.25 729.45 
+L 1100.25 413.55 
+Q 1100.25 407.25 1093.95 407.25 
+L 40.05 407.25 
+Q 33.75 407.25 33.75 413.55 
+L 33.75 729.45 
+Q 33.75 735.75 40.05 735.75 
+z
+" clip-path="url(#p8e2ea72b61)" style="fill: #eef6f2; stroke: #a3bdb2; stroke-width: 1.3; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 76.05 542.25 
+L 355.95 542.25 
+Q 362.25 542.25 362.25 535.95 
+L 362.25 451.35 
+Q 362.25 445.05 355.95 445.05 
+L 76.05 445.05 
+Q 69.75 445.05 69.75 451.35 
+L 69.75 535.95 
+Q 69.75 542.25 76.05 542.25 
+z
+" clip-path="url(#p8e2ea72b61)" style="fill: #ffffff; stroke: #2474c5; stroke-width: 1.3; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 418.05 542.25 
+L 697.95 542.25 
+Q 704.25 542.25 704.25 535.95 
+L 704.25 451.35 
+Q 704.25 445.05 697.95 445.05 
+L 418.05 445.05 
+Q 411.75 445.05 411.75 451.35 
+L 411.75 535.95 
+Q 411.75 542.25 418.05 542.25 
+z
+" clip-path="url(#p8e2ea72b61)" style="fill: #ffffff; stroke: #9150b8; stroke-width: 1.3; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_12">
+    <path d="M 760.05 542.25 
+L 1039.95 542.25 
+Q 1046.25 542.25 1046.25 535.95 
+L 1046.25 451.35 
+Q 1046.25 445.05 1039.95 445.05 
+L 760.05 445.05 
+Q 753.75 445.05 753.75 451.35 
+L 753.75 535.95 
+Q 753.75 542.25 760.05 542.25 
+z
+" clip-path="url(#p8e2ea72b61)" style="fill: #ffffff; stroke: #d58020; stroke-width: 1.3; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_13">
+    <path d="M 76.05 675.45 
+L 355.95 675.45 
+Q 362.25 675.45 362.25 669.15 
+L 362.25 585.45 
+Q 362.25 579.15 355.95 579.15 
+L 76.05 579.15 
+Q 69.75 579.15 69.75 585.45 
+L 69.75 669.15 
+Q 69.75 675.45 76.05 675.45 
+z
+" clip-path="url(#p8e2ea72b61)" style="fill: #ffffff; stroke: #278065; stroke-width: 1.3; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_14">
+    <path d="M 418.05 675.45 
+L 697.95 675.45 
+Q 704.25 675.45 704.25 669.15 
+L 704.25 585.45 
+Q 704.25 579.15 697.95 579.15 
+L 418.05 579.15 
+Q 411.75 579.15 411.75 585.45 
+L 411.75 669.15 
+Q 411.75 675.45 418.05 675.45 
+z
+" clip-path="url(#p8e2ea72b61)" style="fill: #ffffff; stroke: #9150b8; stroke-width: 1.3; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_15">
+    <path d="M 760.05 675.45 
+L 1039.95 675.45 
+Q 1046.25 675.45 1046.25 669.15 
+L 1046.25 585.45 
+Q 1046.25 579.15 1039.95 579.15 
+L 760.05 579.15 
+Q 753.75 579.15 753.75 585.45 
+L 753.75 669.15 
+Q 753.75 675.45 760.05 675.45 
+z
+" clip-path="url(#p8e2ea72b61)" style="fill: #ffffff; stroke: #d58020; stroke-width: 1.3; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_16">
+    <path d="M 1174.05 542.25 
+L 1399.95 542.25 
+Q 1406.25 542.25 1406.25 535.95 
+L 1406.25 413.55 
+Q 1406.25 407.25 1399.95 407.25 
+L 1174.05 407.25 
+Q 1167.75 407.25 1167.75 413.55 
+L 1167.75 535.95 
+Q 1167.75 542.25 1174.05 542.25 
+z
+" clip-path="url(#p8e2ea72b61)" style="fill: #fff9ef; stroke: #d58020; stroke-width: 1.3; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_17">
+    <path d="M 1174.05 722.25 
+L 1399.95 722.25 
+Q 1406.25 722.25 1406.25 715.95 
+L 1406.25 593.55 
+Q 1406.25 587.25 1399.95 587.25 
+L 1174.05 587.25 
+Q 1167.75 587.25 1167.75 593.55 
+L 1167.75 715.95 
+Q 1167.75 722.25 1174.05 722.25 
+z
+" clip-path="url(#p8e2ea72b61)" style="fill: #fff9ef; stroke: #d58020; stroke-width: 1.3; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_18">
+    <path d="M 1174.05 353.25 
+L 1399.95 353.25 
+Q 1406.25 353.25 1406.25 346.95 
+L 1406.25 67.05 
+Q 1406.25 60.75 1399.95 60.75 
+L 1174.05 60.75 
+Q 1167.75 60.75 1167.75 67.05 
+L 1167.75 346.95 
+Q 1167.75 353.25 1174.05 353.25 
+z
+" clip-path="url(#p8e2ea72b61)" style="fill: #ffffff; stroke: #bdc7d5; stroke-width: 1.3; stroke-linejoin: miter"/>
+   </g>
+   <g id="line2d_1">
+    <path d="M 216 190.8 
+L 216 231.3 
+" clip-path="url(#p8e2ea72b61)" style="fill: none; stroke: #2474c5; stroke-width: 2; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_2">
+    <path d="M 558 231.3 
+L 558 190.8 
+" clip-path="url(#p8e2ea72b61)" style="fill: none; stroke: #9150b8; stroke-width: 2; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_3">
+    <path d="M 900 190.8 
+L 900 231.3 
+" clip-path="url(#p8e2ea72b61)" style="fill: none; stroke-dasharray: 8,6; stroke-dashoffset: 0; stroke: #008b85; stroke-width: 2"/>
+   </g>
+   <g id="line2d_4">
+    <path d="M 216 540 
+L 216 581.4 
+" clip-path="url(#p8e2ea72b61)" style="fill: none; stroke: #2474c5; stroke-width: 2; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_5">
+    <path d="M 558 581.4 
+L 558 540 
+" clip-path="url(#p8e2ea72b61)" style="fill: none; stroke: #9150b8; stroke-width: 2; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_6">
+    <path d="M 900 581.4 
+L 900 540 
+" clip-path="url(#p8e2ea72b61)" style="fill: none; stroke: #d58020; stroke-width: 2; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_7">
+    <path d="M 360 609.3 
+L 387 609.3 
+L 387 691.2 
+L 558 691.2 
+L 558 673.2 
+" clip-path="url(#p8e2ea72b61)" style="fill: none; stroke: #9150b8; stroke-width: 2; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_8">
+    <path d="M 360 592.2 
+L 378 592.2 
+L 378 549 
+L 729 549 
+L 729 608.4 
+L 756 608.4 
+" clip-path="url(#p8e2ea72b61)" style="fill: none; stroke: #d58020; stroke-width: 2; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_9">
+    <path d="M 162 324 
+L 162 447.3 
+" clip-path="url(#p8e2ea72b61)" style="fill: none; stroke: #2474c5; stroke-width: 2.5; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_10">
+    <path d="M 558 447.3 
+L 558 324 
+" clip-path="url(#p8e2ea72b61)" style="fill: none; stroke: #9150b8; stroke-width: 2.5; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_11">
+    <path d="M 900 324 
+L 900 376.2 
+L 576 376.2 
+" clip-path="url(#p8e2ea72b61)" style="fill: none; stroke-dasharray: 8,6; stroke-dashoffset: 0; stroke: #008b85; stroke-width: 2"/>
+   </g>
+   <g id="line2d_12">
+    <path d="M 540 376.2 
+L 315 376.2 
+L 315 447.3 
+" clip-path="url(#p8e2ea72b61)" style="fill: none; stroke-dasharray: 8,6; stroke-dashoffset: 0; stroke: #008b85; stroke-width: 2"/>
+   </g>
+   <g id="line2d_13">
+    <path d="M 1044 493.2 
+L 1134 493.2 
+L 1134 655.2 
+L 1170 655.2 
+" clip-path="url(#p8e2ea72b61)" style="fill: none; stroke: #d58020; stroke-width: 2.4; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_14">
+    <path d="M 1134 493.2 
+L 1170 493.2 
+" clip-path="url(#p8e2ea72b61)" style="fill: none; stroke: #d58020; stroke-width: 2.4; stroke-linecap: square"/>
+   </g>
+   <g id="patch_19">
+    <path d="M 216 192.802258 
+Q 216 211.0525 216 227.066674 
+" clip-path="url(#p8e2ea72b61)" style="fill: none; stroke: #2474c5; stroke-width: 2; stroke-linecap: round"/>
+    <path d="M 218.8 221.466674 
+L 216 227.066674 
+L 213.2 221.466674 
+z
+" clip-path="url(#p8e2ea72b61)" style="fill: #2474c5; stroke: #2474c5; stroke-width: 2; stroke-linecap: round"/>
+   </g>
+   <g id="patch_20">
+    <path d="M 558 229.297742 
+Q 558 211.0475 558 195.033326 
+" clip-path="url(#p8e2ea72b61)" style="fill: none; stroke: #9150b8; stroke-width: 2; stroke-linecap: round"/>
+    <path d="M 555.2 200.633326 
+L 558 195.033326 
+L 560.8 200.633326 
+z
+" clip-path="url(#p8e2ea72b61)" style="fill: #9150b8; stroke: #9150b8; stroke-width: 2; stroke-linecap: round"/>
+   </g>
+   <g id="patch_21">
+    <path d="M 900 192.802258 
+Q 900 211.0525 900 227.066674 
+" clip-path="url(#p8e2ea72b61)" style="fill: none; stroke: #008b85; stroke-width: 2; stroke-linecap: round"/>
+    <path d="M 902.8 221.466674 
+L 900 227.066674 
+L 897.2 221.466674 
+z
+" clip-path="url(#p8e2ea72b61)" style="fill: #008b85; stroke: #008b85; stroke-width: 2; stroke-linecap: round"/>
+   </g>
+   <g id="patch_22">
+    <path d="M 216 541.998743 
+Q 216 560.701354 216 577.167897 
+" clip-path="url(#p8e2ea72b61)" style="fill: none; stroke: #2474c5; stroke-width: 2; stroke-linecap: round"/>
+    <path d="M 218.8 571.567897 
+L 216 577.167897 
+L 213.2 571.567897 
+z
+" clip-path="url(#p8e2ea72b61)" style="fill: #2474c5; stroke: #2474c5; stroke-width: 2; stroke-linecap: round"/>
+   </g>
+   <g id="patch_23">
+    <path d="M 558 579.401257 
+Q 558 560.698646 558 544.232103 
+" clip-path="url(#p8e2ea72b61)" style="fill: none; stroke: #9150b8; stroke-width: 2; stroke-linecap: round"/>
+    <path d="M 555.2 549.832103 
+L 558 544.232103 
+L 560.8 549.832103 
+z
+" clip-path="url(#p8e2ea72b61)" style="fill: #9150b8; stroke: #9150b8; stroke-width: 2; stroke-linecap: round"/>
+   </g>
+   <g id="patch_24">
+    <path d="M 900 579.401257 
+Q 900 560.698646 900 544.232103 
+" clip-path="url(#p8e2ea72b61)" style="fill: none; stroke: #d58020; stroke-width: 2; stroke-linecap: round"/>
+    <path d="M 897.2 549.832103 
+L 900 544.232103 
+L 902.8 549.832103 
+z
+" clip-path="url(#p8e2ea72b61)" style="fill: #d58020; stroke: #d58020; stroke-width: 2; stroke-linecap: round"/>
+   </g>
+   <g id="patch_25">
+    <path d="M 558 689.200488 
+Q 558 682.198321 558 677.432223 
+" clip-path="url(#p8e2ea72b61)" style="fill: none; stroke: #9150b8; stroke-width: 2; stroke-linecap: round"/>
+    <path d="M 555.2 683.032223 
+L 558 677.432223 
+L 560.8 683.032223 
+z
+" clip-path="url(#p8e2ea72b61)" style="fill: #9150b8; stroke: #9150b8; stroke-width: 2; stroke-linecap: round"/>
+   </g>
+   <g id="patch_26">
+    <path d="M 731.00061 608.4 
+Q 742.500879 608.4 751.765079 608.4 
+" clip-path="url(#p8e2ea72b61)" style="fill: none; stroke: #d58020; stroke-width: 2; stroke-linecap: round"/>
+    <path d="M 746.165079 605.6 
+L 751.765079 608.4 
+L 746.165079 611.2 
+z
+" clip-path="url(#p8e2ea72b61)" style="fill: #d58020; stroke: #d58020; stroke-width: 2; stroke-linecap: round"/>
+   </g>
+   <g id="patch_27">
+    <path d="M 162 325.998056 
+Q 162 385.64768 162 442.502219 
+" clip-path="url(#p8e2ea72b61)" style="fill: none; stroke: #2474c5; stroke-width: 2.5; stroke-linecap: round"/>
+    <path d="M 164.8 436.902219 
+L 162 442.502219 
+L 159.2 436.902219 
+z
+" clip-path="url(#p8e2ea72b61)" style="fill: #2474c5; stroke: #2474c5; stroke-width: 2.5; stroke-linecap: round"/>
+   </g>
+   <g id="patch_28">
+    <path d="M 558 445.301944 
+Q 558 385.65232 558 328.797781 
+" clip-path="url(#p8e2ea72b61)" style="fill: none; stroke: #9150b8; stroke-width: 2.5; stroke-linecap: round"/>
+    <path d="M 555.2 334.397781 
+L 558 328.797781 
+L 560.8 334.397781 
+z
+" clip-path="url(#p8e2ea72b61)" style="fill: #9150b8; stroke: #9150b8; stroke-width: 2.5; stroke-linecap: round"/>
+   </g>
+   <g id="patch_29">
+    <path d="M 315 378.200555 
+Q 315 411.748623 315 443.060622 
+" clip-path="url(#p8e2ea72b61)" style="fill: none; stroke: #008b85; stroke-width: 2; stroke-linecap: round"/>
+    <path d="M 317.8 437.460622 
+L 315 443.060622 
+L 312.2 437.460622 
+z
+" clip-path="url(#p8e2ea72b61)" style="fill: #008b85; stroke: #008b85; stroke-width: 2; stroke-linecap: round"/>
+   </g>
+   <g id="patch_30">
+    <path d="M 1135.999512 655.2 
+Q 1152.001573 655.2 1165.320352 655.2 
+" clip-path="url(#p8e2ea72b61)" style="fill: none; stroke: #d58020; stroke-width: 2.4; stroke-linecap: round"/>
+    <path d="M 1159.720352 652.4 
+L 1165.320352 655.2 
+L 1159.720352 658 
+z
+" clip-path="url(#p8e2ea72b61)" style="fill: #d58020; stroke: #d58020; stroke-width: 2.4; stroke-linecap: round"/>
+   </g>
+   <g id="patch_31">
+    <path d="M 1135.999512 493.2 
+Q 1152.001573 493.2 1165.320352 493.2 
+" clip-path="url(#p8e2ea72b61)" style="fill: none; stroke: #d58020; stroke-width: 2.4; stroke-linecap: round"/>
+    <path d="M 1159.720352 490.4 
+L 1165.320352 493.2 
+L 1159.720352 496 
+z
+" clip-path="url(#p8e2ea72b61)" style="fill: #d58020; stroke: #d58020; stroke-width: 2.4; stroke-linecap: round"/>
+   </g>
+   <g id="text_1">
+    <text style="font-weight: 700; font-size: 23px; font-family: 'WenQuanYi Zen Hei'; text-anchor: start; fill: #1d3048" x="36" y="28.60625" transform="rotate(-0 36 28.60625)">DHDGS 线程与通信架构</text>
+   </g>
+   <g id="text_2">
+    <text style="font-size: 12px; font-family: 'WenQuanYi Zen Hei'; text-anchor: end; fill: #1d3048" x="1404" y="26.7825" transform="rotate(-0 1404 26.7825)">06_observe 配置 · C++ 原生路径 · 动态网络模块开启</text>
+   </g>
+   <g id="text_3">
+    <text style="font-weight: 700; font-size: 15px; font-family: 'WenQuanYi Zen Hei'; text-anchor: start; fill: #1d3048" x="63" y="84.158203" transform="rotate(-0 63 84.158203)">顶层路由节点  ·  1 个业务进程</text>
+   </g>
+   <g id="text_4">
+    <text style="font-size: 10px; font-family: 'WenQuanYi Zen Hei'; text-anchor: end; fill: #1d3048" x="1071" y="82.617969" transform="rotate(-0 1071 82.617969)">只路由、保活与合并；不参与逐跳搜索</text>
+   </g>
+   <g id="text_5">
+    <text style="font-weight: 700; font-size: 13px; font-family: 'WenQuanYi Zen Hei'; text-anchor: middle; fill: #2474c5" x="216" y="128.764219" transform="rotate(-0 216 128.764219)">路由池 ×16</text>
+   </g>
+   <g id="text_6">
+    <text style="font-size: 11px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(165.557266 158.507734)">HNSW / 样本 RaBitQ</text>
+    <text style="font-size: 11px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(155.5 174.677734)">选择入口，生成初始分支</text>
+   </g>
+   <g id="text_7">
+    <text style="font-weight: 700; font-size: 13px; font-family: 'WenQuanYi Zen Hei'; text-anchor: middle; fill: #9150b8" x="558" y="128.725625" transform="rotate(-0 558 128.725625)">查询状态 + 合并池 ×4</text>
+   </g>
+   <g id="text_8">
+    <text style="font-size: 10.5px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(495 158.937891)">报告处理后更新分支完整性</text>
+    <text style="font-size: 10.5px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(476.232891 174.049688)">合并 top-k → 最终 API 消费线程 ×1</text>
+   </g>
+   <g id="text_9">
+    <text style="font-weight: 700; font-size: 13px; font-family: 'WenQuanYi Zen Hei'; text-anchor: middle; fill: #008b85" x="900" y="128.427031" transform="rotate(-0 900 128.427031)">租约 / deadline 线程 ×1</text>
+   </g>
+   <g id="text_10">
+    <text style="font-size: 11px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(850.558437 158.797344)">维护 involved_nodes</text>
+    <text style="font-size: 11px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(838.844297 174.484375)">向已涉及节点续租 / 取消</text>
+   </g>
+   <g id="text_11">
+    <text style="font-weight: 700; font-size: 13px; font-family: 'WenQuanYi Zen Hei'; text-anchor: middle; fill: #2474c5" x="216" y="251.925078" transform="rotate(-0 216 251.925078)">入口 Client · 网络模块</text>
+   </g>
+   <g id="text_12">
+    <text style="font-size: 10.5px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(161.349961 279.575391)">发送 reactor：1–4 线程</text>
+    <text style="font-size: 10.5px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(155.551992 294.90293)">独立伸缩 monitor：1 线程</text>
+    <text style="font-size: 10.5px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(157.203281 310.014727)">请求队列 + 每目标连接池</text>
+   </g>
+   <g id="text_13">
+    <text style="font-weight: 700; font-size: 13px; font-family: 'WenQuanYi Zen Hei'; text-anchor: middle; fill: #9150b8" x="558" y="251.96875" transform="rotate(-0 558 251.96875)">报告 Server · 网络模块</text>
+   </g>
+   <g id="text_14">
+    <text style="font-size: 10.5px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(487.553203 278.903555)">reactor：1–4；handler：4–16</text>
+    <text style="font-size: 10.5px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(498.109805 294.718359)">每 reactor 配 4 个 handler</text>
+    <text style="font-size: 10.5px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(497.551992 310.12793)">独立伸缩 monitor：1 线程</text>
+   </g>
+   <g id="text_15">
+    <text style="font-weight: 700; font-size: 13px; font-family: 'WenQuanYi Zen Hei'; text-anchor: middle; fill: #008b85" x="900" y="251.96875" transform="rotate(-0 900 251.96875)">租约 Client · 网络模块</text>
+   </g>
+   <g id="text_16">
+    <text style="font-size: 10.5px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(845.349961 279.575391)">发送 reactor：1–4 线程</text>
+    <text style="font-size: 10.5px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(839.551992 294.90293)">独立伸缩 monitor：1 线程</text>
+    <text style="font-size: 10.5px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(840.619219 309.932695)">lease / cancel；接收应答</text>
+   </g>
+   <g id="text_17">
+    <text style="font-size: 9px; font-family: 'WenQuanYi Zen Hei'; text-anchor: end; fill: #1d3048" x="1071" y="343.262812" transform="rotate(-0 1071 343.262812)">另有主 / API 调用线程 ×1；共享查询状态不是线程</text>
+   </g>
+   <g id="text_18">
+    <text style="font-weight: 700; font-size: 15px; font-family: 'WenQuanYi Zen Hei'; text-anchor: start; fill: #1d3048" x="63" y="427.958203" transform="rotate(-0 63 427.958203)">数据节点 A  ·  1 个业务进程</text>
+   </g>
+   <g id="text_19">
+    <text style="font-size: 10px; font-family: 'WenQuanYi Zen Hei'; text-anchor: end; fill: #1d3048" x="1071" y="426.296094" transform="rotate(-0 1071 426.296094)">同一 query 可在不同节点各有一个并行分支</text>
+   </g>
+   <g id="text_20">
+    <text style="font-weight: 700; font-size: 13px; font-family: 'WenQuanYi Zen Hei'; text-anchor: middle; fill: #2474c5" x="216" y="467.925078" transform="rotate(-0 216 467.925078)">入站 Server · 网络模块</text>
+   </g>
+   <g id="text_21">
+    <text style="font-size: 10.3px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(146.895047 495.13682)">reactor：1–4；handler：4–16</text>
+    <text style="font-size: 10.3px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(142.951273 510.630273)">admin：1–4；每 reactor 配 4+1</text>
+    <text style="font-size: 10.3px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(156.703383 525.766445)">独立伸缩 monitor：1 线程</text>
+   </g>
+   <g id="text_22">
+    <text style="font-weight: 700; font-size: 13px; font-family: 'WenQuanYi Zen Hei'; text-anchor: middle; fill: #9150b8" x="558" y="467.96875" transform="rotate(-0 558 467.96875)">报告 Client · 网络模块</text>
+   </g>
+   <g id="text_23">
+    <text style="font-size: 10.3px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(504.390914 495.795859)">发送 reactor：1–4 线程</text>
+    <text style="font-size: 10.3px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(498.703383 510.831445)">独立伸缩 monitor：1 线程</text>
+    <text style="font-size: 10.3px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(487.371773 525.570102)">心跳 / 本分支 top-k；接收 ACK</text>
+   </g>
+   <g id="text_24">
+    <text style="font-weight: 700; font-size: 13px; font-family: 'WenQuanYi Zen Hei'; text-anchor: middle; fill: #d58020" x="900" y="467.988047" transform="rotate(-0 900 467.988047)">子分支 Client · 网络模块</text>
+   </g>
+   <g id="text_25">
+    <text style="font-size: 10.3px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(846.390914 495.795859)">发送 reactor：1–4 线程</text>
+    <text style="font-size: 10.3px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(840.703383 510.831445)">独立伸缩 monitor：1 线程</text>
+    <text style="font-size: 10.3px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(827.91368 525.655398)">接纳 ACK 回调 → 控制事件队列</text>
+   </g>
+   <g id="text_26">
+    <text style="font-weight: 700; font-size: 13px; font-family: 'WenQuanYi Zen Hei'; text-anchor: middle; fill: #278065" x="216" y="602.087031" transform="rotate(-0 216 602.087031)">有界计算队列 → 搜索池 ×64</text>
+   </g>
+   <g id="text_27">
+    <text style="font-size: 10.5px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(147.75 636.766523)">一条本地分支由一个线程执行</text>
+    <text style="font-size: 10.5px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(130.494727 651.914414)">图遍历 / RaBitQ / 精排 / sync_pread</text>
+   </g>
+   <g id="text_28">
+    <text style="font-weight: 700; font-size: 13px; font-family: 'WenQuanYi Zen Hei'; text-anchor: middle; fill: #9150b8" x="558" y="602.188594" transform="rotate(-0 558 602.188594)">控制调度线程 ×1</text>
+   </g>
+   <g id="text_29">
+    <text style="font-size: 10.5px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(489.312773 636.607383)">处理 start / child / local-done</text>
+    <text style="font-size: 10.5px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(489.75 652.135078)">完成条件、心跳、重试与回收</text>
+   </g>
+   <g id="text_30">
+    <text style="font-weight: 700; font-size: 13px; font-family: 'WenQuanYi Zen Hei'; text-anchor: middle; fill: #d58020" x="900" y="602.183516" transform="rotate(-0 900 602.183516)">边界扩展决定函数</text>
+   </g>
+   <g id="text_31">
+    <text style="font-size: 10.5px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(821.25 636.791953)">在搜索线程内执行，不是额外线程</text>
+    <text style="font-size: 10.5px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(826.5 652.042383)">启发式批准后，才提交远端任务</text>
+   </g>
+   <g id="text_32">
+    <text style="font-size: 9.5px; font-family: 'WenQuanYi Zen Hei'; text-anchor: start; fill: #1d3048" x="63" y="722.393086" transform="rotate(-0 63 722.393086)">其他线程：主线程 ×1  ·  记录维护 ×1  ·  资源采样 ×1</text>
+   </g>
+   <g id="text_33">
+    <text style="font-size: 9.5px; font-family: 'WenQuanYi Zen Hei'; text-anchor: end; fill: #1d3048" x="1071" y="722.235742" transform="rotate(-0 1071 722.235742)">本地存储：图记录 + 原始向量；pread 可能命中页缓存</text>
+   </g>
+   <g id="text_34">
+    <text style="font-weight: 700; font-size: 13px; font-family: 'WenQuanYi Zen Hei'; text-anchor: middle; fill: #d58020" x="1287" y="429.997109" transform="rotate(-0 1287 429.997109)">数据节点 B</text>
+   </g>
+   <g id="text_35">
+    <text style="font-size: 10.5px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(1235.238281 476.557266)">内部线程同 A（省略）</text>
+    <text style="font-size: 10.5px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(1217.703281 491.884805)">接纳 → 搜索 → 直接报告顶层</text>
+    <text style="font-size: 10.5px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(1231.295039 506.96625)">接收顶层 lease / cancel</text>
+   </g>
+   <g id="text_36">
+    <text style="font-weight: 700; font-size: 13px; font-family: 'WenQuanYi Zen Hei'; text-anchor: middle; fill: #d58020" x="1287" y="609.997109" transform="rotate(-0 1287 609.997109)">数据节点 C</text>
+   </g>
+   <g id="text_37">
+    <text style="font-size: 10.5px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(1235.238281 656.557266)">内部线程同 A（省略）</text>
+    <text style="font-size: 10.5px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(1217.703281 671.884805)">接纳 → 搜索 → 直接报告顶层</text>
+    <text style="font-size: 10.5px; font-family: 'WenQuanYi Zen Hei'; fill: #1d3048" transform="translate(1231.295039 686.96625)">接收顶层 lease / cancel</text>
+   </g>
+   <g id="text_38">
+    <text style="font-size: 9px; font-family: 'WenQuanYi Zen Hei'; text-anchor: middle; fill: #1d3048" x="1287" y="751.954922" transform="rotate(-0 1287 751.954922)">B、C 的②③通道与 A 相同，省略重复连线</text>
+   </g>
+   <g id="text_39">
+    <text style="font-weight: 700; font-size: 14px; font-family: 'WenQuanYi Zen Hei'; text-anchor: middle; fill: #1d3048" x="1287" y="88.73125" transform="rotate(-0 1287 88.73125)">通信主干</text>
+   </g>
+   <g id="text_40">
+    <text style="font-weight: 700; font-size: 11px; font-family: 'WenQuanYi Zen Hei'; text-anchor: start; fill: #2474c5" x="1188" y="124.434531" transform="rotate(-0 1188 124.434531)">① 初始搜索请求</text>
+   </g>
+   <g id="text_41">
+    <text style="font-size: 10px; font-family: 'WenQuanYi Zen Hei'; text-anchor: start; fill: #1d3048" x="1188" y="157.239844" transform="rotate(-0 1188 157.239844)">顶层 → 入口数据节点</text>
+   </g>
+   <g id="text_42">
+    <text style="font-weight: 700; font-size: 11px; font-family: 'WenQuanYi Zen Hei'; text-anchor: start; fill: #9150b8" x="1188" y="194.521953" transform="rotate(-0 1188 194.521953)">② 心跳 / 各分支 top-k</text>
+   </g>
+   <g id="text_43">
+    <text style="font-size: 10px; font-family: 'WenQuanYi Zen Hei'; text-anchor: start; fill: #1d3048" x="1188" y="227.449219" transform="rotate(-0 1188 227.449219)">每个数据节点直接 → 顶层</text>
+   </g>
+   <g id="text_44">
+    <text style="font-weight: 700; font-size: 11px; font-family: 'WenQuanYi Zen Hei'; text-anchor: start; fill: #008b85" x="1188" y="264.614531" transform="rotate(-0 1188 264.614531)">③ lease / cancel</text>
+   </g>
+   <g id="text_45">
+    <text style="font-size: 10px; font-family: 'WenQuanYi Zen Hei'; text-anchor: start; fill: #1d3048" x="1188" y="297.605469" transform="rotate(-0 1188 297.605469)">顶层 → 所有已涉及的数据节点</text>
+   </g>
+   <g id="text_46">
+    <text style="font-weight: 700; font-size: 10.5px; font-family: 'WenQuanYi Zen Hei'; text-anchor: start; fill: #d58020" x="1188" y="333.750234" transform="rotate(-0 1188 333.750234)">④ A → B / C：获准子分支</text>
+   </g>
+   <g id="text_47">
+    <text style="font-weight: 700; font-size: 11px; font-family: 'WenQuanYi Zen Hei'; text-anchor: start; fill: #1d3048" x="36" y="766.933125" transform="rotate(-0 36 766.933125)">客户端 / API：提交 → 路由 → 数据节点搜索 → 顶层合并 → 返回</text>
+   </g>
+   <g id="text_48">
+    <text style="font-size: 10px; font-family: 'WenQuanYi Zen Hei'; text-anchor: start; fill: #1d3048" x="36" y="790.898438" transform="rotate(-0 36 790.898438)">所有网络箭头均含原连接应答（ACK 省略反向线）；网络 reactor 非阻塞收发，不等待搜索完成。</text>
+   </g>
+   <g id="text_49">
+    <text style="font-size: 10px; font-family: 'WenQuanYi Zen Hei'; text-anchor: end; fill: #1d3048" x="1404" y="766.725" transform="rotate(-0 1404 766.725)">动态范围按每个逻辑模块独立计算；并非整个进程合计 1–4 线程</text>
+   </g>
+   <g id="text_50">
+    <text style="font-size: 10px; font-family: 'WenQuanYi Zen Hei'; text-anchor: end; fill: #1d3048" x="1404" y="790.907812" transform="rotate(-0 1404 790.907812)">扩展后 A 继续；子分支仅保留目标候选；已访问节点禁止重访。</text>
+   </g>
+   <g id="text_51">
+    <g id="patch_32">
+     <path d="M 169.3 218.424414 
+L 262.7 218.424414 
+L 262.7 204.575586 
+L 169.3 204.575586 
+z
+" style="fill: #f7f9fc"/>
+    </g>
+    <text style="font-size: 10px; font-family: 'WenQuanYi Zen Hei'; text-anchor: middle; fill: #2474c5" x="216" y="214.722461" transform="rotate(-0 216 214.722461)">初始任务入发送队列</text>
+   </g>
+   <g id="text_52">
+    <g id="patch_33">
+     <path d="M 505.107813 218.424414 
+L 610.892187 218.424414 
+L 610.892187 204.575586 
+L 505.107813 204.575586 
+z
+" style="fill: #f7f9fc"/>
+    </g>
+    <text style="font-size: 10px; font-family: 'WenQuanYi Zen Hei'; text-anchor: middle; fill: #9150b8" x="558" y="214.722461" transform="rotate(-0 558 214.722461)">解码 / 校验 / 状态更新</text>
+   </g>
+   <g id="text_53">
+    <g id="patch_34">
+     <path d="M 868.3 218.43457 
+L 931.7 218.43457 
+L 931.7 204.56543 
+L 868.3 204.56543 
+z
+" style="fill: #f7f9fc"/>
+    </g>
+    <text style="font-size: 10px; font-family: 'WenQuanYi Zen Hei'; text-anchor: middle; fill: #008b85" x="900" y="214.732617" transform="rotate(-0 900 214.732617)">定时控制命令</text>
+   </g>
+   <g id="text_54">
+    <g id="patch_35">
+     <path d="M 163.107813 566.680664 
+L 268.892188 566.680664 
+L 268.892188 552.919336 
+L 163.107813 552.919336 
+z
+" style="fill: #f7f9fc"/>
+    </g>
+    <text style="font-size: 10px; font-family: 'WenQuanYi Zen Hei'; text-anchor: middle; fill: #2474c5" x="216" y="562.978711" transform="rotate(-0 216 562.978711)">校验 / 去重 / 接纳入队</text>
+   </g>
+   <g id="text_55">
+    <g id="patch_36">
+     <path d="M 510.703906 575.754102 
+L 605.296094 575.754102 
+L 605.296094 561.845898 
+L 510.703906 561.845898 
+z
+" style="fill: #f7f9fc"/>
+    </g>
+    <text style="font-size: 10px; font-family: 'WenQuanYi Zen Hei'; text-anchor: middle; fill: #9150b8" x="558" y="572.052148" transform="rotate(-0 558 572.052148)">完成报告 / 心跳入队</text>
+   </g>
+   <g id="text_56">
+    <g id="patch_37">
+     <path d="M 863.3 566.671289 
+L 936.7 566.671289 
+L 936.7 552.928711 
+L 863.3 552.928711 
+z
+" style="fill: #f7f9fc"/>
+    </g>
+    <text style="font-size: 10px; font-family: 'WenQuanYi Zen Hei'; text-anchor: middle; fill: #d58020" x="900" y="562.969336" transform="rotate(-0 900 562.969336)">获准子分支入队</text>
+   </g>
+   <g id="text_57">
+    <g id="patch_38">
+     <path d="M 526.3 700.854102 
+L 589.7 700.854102 
+L 589.7 686.945898 
+L 526.3 686.945898 
+z
+" style="fill: #f7f9fc"/>
+    </g>
+    <text style="font-size: 10px; font-family: 'WenQuanYi Zen Hei'; text-anchor: middle; fill: #9150b8" x="558" y="697.152148" transform="rotate(-0 558 697.152148)">本地完成事件</text>
+   </g>
+   <g id="text_58">
+    <g id="patch_39">
+     <path d="M 532.941484 555.567061 
+L 637.058516 555.567061 
+L 637.058516 542.432939 
+L 532.941484 542.432939 
+z
+" style="fill: #f7f9fc"/>
+    </g>
+    <text style="font-size: 9.5px; font-family: 'WenQuanYi Zen Hei'; text-anchor: middle; fill: #d58020" x="585" y="551.955205" transform="rotate(-0 585 551.955205)">遇边界 → 评估远端收益</text>
+   </g>
+   <g id="text_59">
+    <g id="patch_40">
+     <path d="M 116.01 393.574082 
+L 132.39 393.574082 
+L 132.39 376.825918 
+L 116.01 376.825918 
+z
+" style="fill: #f7f9fc"/>
+    </g>
+    <text style="font-size: 13px; font-family: 'WenQuanYi Zen Hei'; text-anchor: middle; fill: #2474c5" x="124.2" y="389.281543" transform="rotate(-0 124.2 389.281543)">①</text>
+   </g>
+   <g id="text_60">
+    <g id="patch_41">
+     <path d="M 594.81 393.574082 
+L 611.19 393.574082 
+L 611.19 376.825918 
+L 594.81 376.825918 
+z
+" style="fill: #f7f9fc"/>
+    </g>
+    <text style="font-size: 13px; font-family: 'WenQuanYi Zen Hei'; text-anchor: middle; fill: #9150b8" x="603" y="389.281543" transform="rotate(-0 603 389.281543)">②</text>
+   </g>
+   <g id="text_61">
+    <g id="patch_42">
+     <path d="M 927.81 384.574082 
+L 944.19 384.574082 
+L 944.19 367.825918 
+L 927.81 367.825918 
+z
+" style="fill: #f7f9fc"/>
+    </g>
+    <text style="font-size: 13px; font-family: 'WenQuanYi Zen Hei'; text-anchor: middle; fill: #008b85" x="936" y="380.281543" transform="rotate(-0 936 380.281543)">③</text>
+   </g>
+   <g id="text_62">
+    <g id="patch_43">
+     <path d="M 1124.01 575.374082 
+L 1140.39 575.374082 
+L 1140.39 558.625918 
+L 1124.01 558.625918 
+z
+" style="fill: #f7f9fc"/>
+    </g>
+    <text style="font-size: 13px; font-family: 'WenQuanYi Zen Hei'; text-anchor: middle; fill: #d58020" x="1132.2" y="571.081543" transform="rotate(-0 1132.2 571.081543)">④</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p8e2ea72b61">
+   <rect x="0" y="0" width="1440" height="810"/>
+  </clipPath>
+ </defs>
+</svg>

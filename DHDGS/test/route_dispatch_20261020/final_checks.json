@@ -1,0 +1,46 @@
+{
+  "ports": [
+    {
+      "host": "192.168.33.35",
+      "port": 32751,
+      "reachable": false
+    },
+    {
+      "host": "192.168.33.32",
+      "port": 32752,
+      "reachable": false
+    },
+    {
+      "host": "192.168.33.30",
+      "port": 32753,
+      "reachable": false
+    },
+    {
+      "host": "192.168.33.35",
+      "port": 32810,
+      "reachable": false
+    },
+    {
+      "host": "192.168.33.35",
+      "port": 22051,
+      "reachable": true
+    },
+    {
+      "host": "192.168.33.32",
+      "port": 22052,
+      "reachable": true
+    },
+    {
+      "host": "192.168.33.30",
+      "port": 22053,
+      "reachable": true
+    },
+    {
+      "host": "127.0.0.1",
+      "port": 22091,
+      "reachable": true
+    }
+  ],
+  "identical_head_sources": true,
+  "identical_query_selections": true
+}

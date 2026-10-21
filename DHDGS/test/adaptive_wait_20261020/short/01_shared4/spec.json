@@ -1,0 +1,8 @@
+{
+  "phase": "short",
+  "variant": "shared4",
+  "threads": 32,
+  "queries": 10000,
+  "concurrency": 256,
+  "warmup": 32
+}

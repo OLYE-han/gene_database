@@ -1,0 +1,12 @@
+test_cancellation_before_commit_never_starts_search (test_split_registration.SplitRegistrationTests.test_cancellation_before_commit_never_starts_search) ... ok
+test_expired_record_destructor_runs_outside_state_lock (test_split_registration.SplitRegistrationTests.test_expired_record_destructor_runs_outside_state_lock) ... ok
+test_expired_reservation_is_retained_until_owner_rolls_back (test_split_registration.SplitRegistrationTests.test_expired_reservation_is_retained_until_owner_rolls_back) ... ok
+test_failure_rolls_back_credits_and_identity (test_split_registration.SplitRegistrationTests.test_failure_rolls_back_credits_and_identity) ... ok
+test_invalid_mode_is_rejected (test_split_registration.SplitRegistrationTests.test_invalid_mode_is_rejected) ... ok
+test_registration_releases_runtime_lock_and_duplicate_waits_outside_it (test_split_registration.SplitRegistrationTests.test_registration_releases_runtime_lock_and_duplicate_waits_outside_it) ... ok
+test_shutdown_fences_commit_and_waits_without_holding_runtime_lock (test_split_registration.SplitRegistrationTests.test_shutdown_fences_commit_and_waits_without_holding_runtime_lock) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.481s
+
+OK

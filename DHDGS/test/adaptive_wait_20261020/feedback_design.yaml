@@ -1,0 +1,42 @@
+# Design parameters only. This file is not loaded by the running service.
+# Local adaptive pool parameters that are implemented live in configs/dhdgs.yaml.
+status: design_not_integrated
+fixed_search:
+  threads_per_node: 32
+  search_budget: 200
+feedback:
+  sample_interval_ms: 1000
+  window_seconds: 10
+  baseline_windows: 3
+  settle_windows: 1
+  evaluation_windows: 3
+  target_stage_wait_ms: 5
+  minimum_busy_fraction: 0.8
+  minimum_qps_gain_fraction: 0.05
+  maximum_p99_regression_fraction: 0.05
+  minimum_recall: 0.95
+  maximum_failure_count: 0
+  growth_step: 1
+  shrink_step: 1
+  per_resource_cooldown_seconds: 60
+  low_load_windows_before_shrink: 3
+  maximum_arrival_rate_change_fraction: 0.10
+  minimum_completed_queries_per_window: 1000
+resources:
+  # Limits are per owner process / per target, not cluster-wide.
+  head_dispatch_threads: {min: 2, max: 8, eligible: true}
+  peer_transfer_threads: {min: 2, max: 16, eligible: true}
+  head_entry_connections: {min: 2, max: 8, eligible: true}
+  peer_transfer_connections: {min: 2, max: 8, eligible: true}
+  # Negative ablation: adding consumers amplifies state-lock contention.
+  admission_threads: {min: 1, max: 1, eligible: false}
+  # No online process migration / native report capacity adapter is implemented.
+  head_lane_processes: {eligible: false}
+  native_report_connections: {eligible: false}
+host_budget:
+  # Must be filled from a measured per-host baseline before enabling a controller.
+  # Intel-35 head and data processes share the same host budget.
+  additional_control_threads: null
+  additional_tcp_connections: null
+  maximum_rss_bytes: null
+  maximum_cpu_busy_fraction: null

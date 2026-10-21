@@ -1,0 +1,33 @@
+clock,lane,stage,start_ms,duration_ms
+head,0,API submission,0.0,0.07212
+head,0,Route queue,0.07212,0.010275
+head,0,HNSW routing,0.082395,0.699294
+head,0,Entry dispatch incl. queue,0.781689,0.156916
+head,0,Data / RPC / control,0.938605,131.140677
+head,0,Report validation / completion gating,132.079282,8.080915
+head,0,Merge queue,140.160197,0.012262
+head,0,Merge,140.172459,0.445411
+head,0,API result handoff,140.61787,0.506112
+node_1,0,Receive queue / validation,0.0,33.281734
+node_1,0,Admission + registration,33.281734,9.799877
+node_1,0,Compute queue + setup,43.081611,0.090707
+node_1,1,Search loop,43.172318,6.944439
+node_1,1,Report build / worker release,50.116757,0.151607
+node_1,2,Completion command wait,50.205385,3.099386
+node_1,2,Finalize incl. pending transfer,53.304771,0.00452
+node_1,2,Schedule + encode / submit,53.309291,6.597601
+node_1,2,Result outbound queue / event loop,59.906892,0.016331
+node_1,2,Result send incl. connect,59.923223,0.01308
+node_1,2,Result response / ACK wait,59.936303,8.135893
+node_1,3,Cross-node submit to ACK callback,45.632454,0.687644
+node_0,0,Receive queue / validation,0.0,0.467887
+node_0,0,Admission + registration,0.467887,0.026217
+node_0,0,Compute queue + setup,0.494104,0.2948
+node_0,1,Search loop,0.788904,5.052128
+node_0,1,Report build / worker release,5.841032,0.172986
+node_0,2,Completion command wait,5.897076,0.274421
+node_0,2,Finalize incl. pending transfer,6.171497,0.004862
+node_0,2,Schedule + encode / submit,6.176359,0.100876
+node_0,2,Result outbound queue / event loop,6.277235,0.011284
+node_0,2,Result send incl. connect,6.288519,0.017566
+node_0,2,Result response / ACK wait,6.306085,7.147994

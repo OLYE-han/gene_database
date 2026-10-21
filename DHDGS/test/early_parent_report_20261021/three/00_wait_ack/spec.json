@@ -1,0 +1,15 @@
+{
+  "backend": "cpp",
+  "topology": "three",
+  "count": 10000,
+  "concurrency": 256,
+  "threads": 64,
+  "route_threads": 16,
+  "head_connections": 128,
+  "adaptive": false,
+  "max_lanes": 8,
+  "network_mode": "fixed",
+  "connections": 128,
+  "control_capacity": 1024,
+  "early": false
+}

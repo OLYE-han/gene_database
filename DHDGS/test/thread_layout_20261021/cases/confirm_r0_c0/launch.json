@@ -1,0 +1,41 @@
+[
+  {
+    "host": {
+      "id": 0,
+      "ssh": null,
+      "root": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/thread_layout_20261021/data/cases/confirm_r0_c0",
+      "python": "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "token_file": "/sharenvme/usershome/xulihan/gene_database/DHDGS/artifacts/runtime_assets/legacy_service/cluster.token",
+      "state_file": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/thread_layout_20261021/data/cases/confirm_r0_c0/state.json",
+      "project": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/thread_layout_20261021/source"
+    },
+    "pid": 325232,
+    "root": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/thread_layout_20261021/data/cases/confirm_r0_c0"
+  },
+  {
+    "host": {
+      "id": 1,
+      "ssh": "intel-32",
+      "root": "/sharenvme/userhome/xulihan/dhdgs_deploy/thread_layout_20261021/cases/confirm_r0_c0",
+      "python": "/sharenvme/userhome/xulihan/dhdgs_deploy/seq2m_full_20261017/gene_database/DHDGS/.venv/bin/python",
+      "token_file": "/sharenvme/userhome/xulihan/dhdgs_deploy/managed_continuation_three_20261019/cluster.token",
+      "state_file": "/sharenvme/userhome/xulihan/dhdgs_deploy/thread_layout_20261021/cases/confirm_r0_c0/state.json",
+      "project": "/sharenvme/userhome/xulihan/dhdgs_deploy/early_parent_report_20261021/source"
+    },
+    "pid": 110881,
+    "root": "/sharenvme/userhome/xulihan/dhdgs_deploy/thread_layout_20261021/cases/confirm_r0_c0"
+  },
+  {
+    "host": {
+      "id": 2,
+      "ssh": "intel-30",
+      "root": "/sharenvme/xulihan_dhdgs/thread_layout_20261021/cases/confirm_r0_c0",
+      "python": "/sharenvme/xulihan_dhdgs/seq2m_full_20261017/gene_database/DHDGS/.venv/bin/python",
+      "token_file": "/sharenvme/xulihan_dhdgs/managed_continuation_three_20261019/cluster.token",
+      "state_file": "/sharenvme/xulihan_dhdgs/thread_layout_20261021/cases/confirm_r0_c0/state.json",
+      "project": "/sharenvme/xulihan_dhdgs/early_parent_report_20261021/source"
+    },
+    "pid": 1445965,
+    "root": "/sharenvme/xulihan_dhdgs/thread_layout_20261021/cases/confirm_r0_c0"
+  }
+]

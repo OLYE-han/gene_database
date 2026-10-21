@@ -1,0 +1,9 @@
+{
+  "backend": "cpp",
+  "topology": "three",
+  "count": 10000,
+  "concurrency": 256,
+  "threads": 64,
+  "route_threads": 16,
+  "head_connections": 32
+}

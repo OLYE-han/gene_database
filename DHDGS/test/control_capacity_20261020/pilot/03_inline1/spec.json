@@ -1,0 +1,14 @@
+{
+  "base_plan": "gene_database/DHDGS/test/managed_continuation_three_20261019/cluster.yaml",
+  "name": "inline1",
+  "port": 32096,
+  "queries": 2000,
+  "concurrency": 128,
+  "warmup": 32,
+  "snapshot": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/control_capacity_20261020/candidate_source",
+  "direct": {
+    "result_backend": "inline",
+    "completion_dispatch": "inline",
+    "distribution_threads": 1
+  }
+}

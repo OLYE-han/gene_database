@@ -1,0 +1,7 @@
+{
+  "index": 3,
+  "mode": "channels8",
+  "queries": 2000,
+  "concurrency": 128,
+  "warmup": 32
+}

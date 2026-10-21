@@ -50,3 +50,45 @@ artifacts/
 /test/seq2m_full_20261017
 /test/concurrency_20261018
 /test/managed_continuation_three_20261019
+
+# Keep full benchmark archives, per-query streams and copied source trees local.
+# Reports, experiment scripts/configs and compact plots remain versionable.
+/test/**/runs/
+/test/**/worker_results/
+/test/**/temporary_logs/
+/test/**/snapshot/
+/test/**/snapshots/
+/test/**/source_snapshot/
+/test/**/head_snapshot/
+/test/**/data_snapshot/
+/test/**/source/
+/test/**/sources/
+/test/**/source_*/
+/test/**/*_source/
+/test/**/validated_sources/
+/test/**/before/
+/test/**/after/
+/test/**/*.jsonl
+/test/**/*.jsonl.gz
+/test/**/*.pid
+/test/**/*.bin
+/test/**/*.npy
+/test/**/*.npz
+/test/**/*.fbin
+/test/**/*.tar
+/test/**/*.tar.gz
+/test/**/full_profile.json
+/test/**/isolated_profile.json
+/test/**/profile.json
+/test/**/query_selection.json
+/test/**/selection.json
+!/test/network_module_20261021/p99_query/selection.json
+/test/**/query_head_timings.csv
+/test/**/receiver_timings.csv
+/test/lock_optimization_20261020/Reference_Code
+
+# Temporary copies used while investigating third-party/runtime behavior.
+/test/cpp_runtime_20261020/pcg64.c
+/test/cpp_runtime_20261020/pcg64.h
+/test/cpp_runtime_20261020/seedseq.pyx
+/test/early_parent_report_20261021/native_control_before.cpp

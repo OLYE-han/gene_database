@@ -1,0 +1,13 @@
+{
+  "case": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/network_module_20261021/three/06_observe",
+  "run": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/network_module_20261021/three/06_observe/runs/20261021T110959_benchmark_de833a87",
+  "source": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/network_module_20261021/three/06_observe/runs/20261021T110959_benchmark_de833a87/queries.jsonl.gz",
+  "selection_rule": "Minimum absolute distance to np.percentile(client_wall_ms,99), tie break by ascending job",
+  "query_count": 10000,
+  "p99_ms": 108.74401204000003,
+  "selected_latency_ms": 108.74273,
+  "difference_ms": 0.0012820400000350674,
+  "job": 994,
+  "query_id": 1025153,
+  "request_id": "e49dc362-3f96-4d63-9ab5-24ab36571842"
+}

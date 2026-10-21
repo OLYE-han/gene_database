@@ -1,0 +1,71 @@
+{
+  "time": "2026-10-20T14:20:59.868167+00:00",
+  "checks": [
+    {
+      "host": "192.168.33.35",
+      "port": 30751,
+      "listening": false,
+      "expected": false
+    },
+    {
+      "host": "192.168.33.32",
+      "port": 30752,
+      "listening": false,
+      "expected": false
+    },
+    {
+      "host": "192.168.33.30",
+      "port": 30753,
+      "listening": false,
+      "expected": false
+    },
+    {
+      "host": "192.168.33.35",
+      "port": 30810,
+      "listening": false,
+      "expected": false
+    },
+    {
+      "host": "127.0.0.1",
+      "port": 30751,
+      "listening": false,
+      "expected": false
+    },
+    {
+      "host": "127.0.0.1",
+      "port": 30752,
+      "listening": false,
+      "expected": false
+    },
+    {
+      "host": "127.0.0.1",
+      "port": 30753,
+      "listening": false,
+      "expected": false
+    },
+    {
+      "host": "192.168.33.35",
+      "port": 22051,
+      "listening": true,
+      "expected": true
+    },
+    {
+      "host": "192.168.33.32",
+      "port": 22052,
+      "listening": true,
+      "expected": true
+    },
+    {
+      "host": "192.168.33.30",
+      "port": 22053,
+      "listening": true,
+      "expected": true
+    },
+    {
+      "host": "127.0.0.1",
+      "port": 22091,
+      "listening": true,
+      "expected": true
+    }
+  ]
+}

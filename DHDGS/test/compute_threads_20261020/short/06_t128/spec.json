@@ -1,0 +1,7 @@
+{
+  "phase": "short",
+  "threads": 128,
+  "queries": 10000,
+  "concurrency": 256,
+  "warmup": 32
+}

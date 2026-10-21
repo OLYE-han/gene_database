@@ -1,0 +1,642 @@
+[
+  {
+    "case": "short/10_baseline",
+    "stage": "Admission",
+    "mean_ms": 0.03326698299999999
+  },
+  {
+    "case": "short/10_baseline",
+    "stage": "Input queue + IPC",
+    "mean_ms": 2.3542749617000025
+  },
+  {
+    "case": "short/10_baseline",
+    "stage": "Worker preparation",
+    "mean_ms": 0.042809064700000066
+  },
+  {
+    "case": "short/10_baseline",
+    "stage": "Receive queue",
+    "mean_ms": 0.31745692240000156
+  },
+  {
+    "case": "short/10_baseline",
+    "stage": "Receive handoff",
+    "mean_ms": 0.004353414400000001
+  },
+  {
+    "case": "short/10_baseline",
+    "stage": "Route queue",
+    "mean_ms": 19.434456360899993
+  },
+  {
+    "case": "short/10_baseline",
+    "stage": "HNSW + route preparation",
+    "mean_ms": 1.9935022089000045
+  },
+  {
+    "case": "short/10_baseline",
+    "stage": "Dispatch queue",
+    "mean_ms": 4.168586722200001
+  },
+  {
+    "case": "short/10_baseline",
+    "stage": "Register + request preparation",
+    "mean_ms": 0.1656518930999996
+  },
+  {
+    "case": "short/10_baseline",
+    "stage": "Entry RPC incl. ACK",
+    "mean_ms": 5.842562136899999
+  },
+  {
+    "case": "short/10_baseline",
+    "stage": "Wait for complete reports",
+    "mean_ms": 89.5565630286004
+  },
+  {
+    "case": "short/10_baseline",
+    "stage": "Merge queue",
+    "mean_ms": 30.22129475359987
+  },
+  {
+    "case": "short/10_baseline",
+    "stage": "Merge + metrics",
+    "mean_ms": 0.36547058759999945
+  },
+  {
+    "case": "short/10_baseline",
+    "stage": "Cleanup + persistence",
+    "mean_ms": 1.4313461025999967
+  },
+  {
+    "case": "short/10_baseline",
+    "stage": "Output IPC",
+    "mean_ms": 10.1383802722
+  },
+  {
+    "case": "short/10_baseline",
+    "stage": "Client consumer",
+    "mean_ms": 33.4055439393
+  },
+  {
+    "case": "short/11_gil",
+    "stage": "Admission",
+    "mean_ms": 0.01755018720000008
+  },
+  {
+    "case": "short/11_gil",
+    "stage": "Input queue + IPC",
+    "mean_ms": 2.745008105399993
+  },
+  {
+    "case": "short/11_gil",
+    "stage": "Worker preparation",
+    "mean_ms": 0.057307044099999725
+  },
+  {
+    "case": "short/11_gil",
+    "stage": "Receive queue",
+    "mean_ms": 0.31594805659999886
+  },
+  {
+    "case": "short/11_gil",
+    "stage": "Receive handoff",
+    "mean_ms": 0.004649263700000002
+  },
+  {
+    "case": "short/11_gil",
+    "stage": "Route queue",
+    "mean_ms": 22.403673761399997
+  },
+  {
+    "case": "short/11_gil",
+    "stage": "HNSW + route preparation",
+    "mean_ms": 1.9683716955999964
+  },
+  {
+    "case": "short/11_gil",
+    "stage": "Dispatch queue",
+    "mean_ms": 4.864117756599988
+  },
+  {
+    "case": "short/11_gil",
+    "stage": "Register + request preparation",
+    "mean_ms": 0.14196661509999972
+  },
+  {
+    "case": "short/11_gil",
+    "stage": "Entry RPC incl. ACK",
+    "mean_ms": 5.3298501041999895
+  },
+  {
+    "case": "short/11_gil",
+    "stage": "Wait for complete reports",
+    "mean_ms": 69.69013117670004
+  },
+  {
+    "case": "short/11_gil",
+    "stage": "Merge queue",
+    "mean_ms": 31.091892707900126
+  },
+  {
+    "case": "short/11_gil",
+    "stage": "Merge + metrics",
+    "mean_ms": 0.3440465385999999
+  },
+  {
+    "case": "short/11_gil",
+    "stage": "Cleanup + persistence",
+    "mean_ms": 1.4144071562999898
+  },
+  {
+    "case": "short/11_gil",
+    "stage": "Output IPC",
+    "mean_ms": 11.065807122799969
+  },
+  {
+    "case": "short/11_gil",
+    "stage": "Client consumer",
+    "mean_ms": 43.6630921515001
+  },
+  {
+    "case": "short/12_split",
+    "stage": "Admission",
+    "mean_ms": 0.02084308559999996
+  },
+  {
+    "case": "short/12_split",
+    "stage": "Input queue + IPC",
+    "mean_ms": 2.0827409231
+  },
+  {
+    "case": "short/12_split",
+    "stage": "Worker preparation",
+    "mean_ms": 0.03806085570000003
+  },
+  {
+    "case": "short/12_split",
+    "stage": "Receive queue",
+    "mean_ms": 0.26107198649999974
+  },
+  {
+    "case": "short/12_split",
+    "stage": "Receive handoff",
+    "mean_ms": 0.0033966080000000076
+  },
+  {
+    "case": "short/12_split",
+    "stage": "Route queue",
+    "mean_ms": 10.323480059100032
+  },
+  {
+    "case": "short/12_split",
+    "stage": "HNSW + route preparation",
+    "mean_ms": 1.7870635481999972
+  },
+  {
+    "case": "short/12_split",
+    "stage": "Dispatch queue",
+    "mean_ms": 9.747960785699972
+  },
+  {
+    "case": "short/12_split",
+    "stage": "Register + request preparation",
+    "mean_ms": 0.13332952099999992
+  },
+  {
+    "case": "short/12_split",
+    "stage": "Entry RPC incl. ACK",
+    "mean_ms": 6.789978027999965
+  },
+  {
+    "case": "short/12_split",
+    "stage": "Wait for complete reports",
+    "mean_ms": 154.69947590180047
+  },
+  {
+    "case": "short/12_split",
+    "stage": "Merge queue",
+    "mean_ms": 13.65585601549992
+  },
+  {
+    "case": "short/12_split",
+    "stage": "Merge + metrics",
+    "mean_ms": 0.32080572779999933
+  },
+  {
+    "case": "short/12_split",
+    "stage": "Cleanup + persistence",
+    "mean_ms": 1.2950686849000037
+  },
+  {
+    "case": "short/12_split",
+    "stage": "Output IPC",
+    "mean_ms": 8.751997106399996
+  },
+  {
+    "case": "short/12_split",
+    "stage": "Client consumer",
+    "mean_ms": 21.135167510100022
+  },
+  {
+    "case": "short/13_split",
+    "stage": "Admission",
+    "mean_ms": 0.02219518620000001
+  },
+  {
+    "case": "short/13_split",
+    "stage": "Input queue + IPC",
+    "mean_ms": 2.484514422500008
+  },
+  {
+    "case": "short/13_split",
+    "stage": "Worker preparation",
+    "mean_ms": 0.04348829490000006
+  },
+  {
+    "case": "short/13_split",
+    "stage": "Receive queue",
+    "mean_ms": 0.2895972244999997
+  },
+  {
+    "case": "short/13_split",
+    "stage": "Receive handoff",
+    "mean_ms": 0.003580985299999994
+  },
+  {
+    "case": "short/13_split",
+    "stage": "Route queue",
+    "mean_ms": 16.20204834180001
+  },
+  {
+    "case": "short/13_split",
+    "stage": "HNSW + route preparation",
+    "mean_ms": 1.8450038303999994
+  },
+  {
+    "case": "short/13_split",
+    "stage": "Dispatch queue",
+    "mean_ms": 16.079757204500105
+  },
+  {
+    "case": "short/13_split",
+    "stage": "Register + request preparation",
+    "mean_ms": 0.16374204870000003
+  },
+  {
+    "case": "short/13_split",
+    "stage": "Entry RPC incl. ACK",
+    "mean_ms": 7.259974254200025
+  },
+  {
+    "case": "short/13_split",
+    "stage": "Wait for complete reports",
+    "mean_ms": 81.12237026760019
+  },
+  {
+    "case": "short/13_split",
+    "stage": "Merge queue",
+    "mean_ms": 24.0465244114
+  },
+  {
+    "case": "short/13_split",
+    "stage": "Merge + metrics",
+    "mean_ms": 0.3212257772000005
+  },
+  {
+    "case": "short/13_split",
+    "stage": "Cleanup + persistence",
+    "mean_ms": 1.335891556200001
+  },
+  {
+    "case": "short/13_split",
+    "stage": "Output IPC",
+    "mean_ms": 10.859411396999976
+  },
+  {
+    "case": "short/13_split",
+    "stage": "Client consumer",
+    "mean_ms": 36.192484513200135
+  },
+  {
+    "case": "short/14_gil",
+    "stage": "Admission",
+    "mean_ms": 0.01901585550000007
+  },
+  {
+    "case": "short/14_gil",
+    "stage": "Input queue + IPC",
+    "mean_ms": 3.1374978582999944
+  },
+  {
+    "case": "short/14_gil",
+    "stage": "Worker preparation",
+    "mean_ms": 0.038571570199999884
+  },
+  {
+    "case": "short/14_gil",
+    "stage": "Receive queue",
+    "mean_ms": 0.3031397174000014
+  },
+  {
+    "case": "short/14_gil",
+    "stage": "Receive handoff",
+    "mean_ms": 0.003580347599999994
+  },
+  {
+    "case": "short/14_gil",
+    "stage": "Route queue",
+    "mean_ms": 20.09353385290004
+  },
+  {
+    "case": "short/14_gil",
+    "stage": "HNSW + route preparation",
+    "mean_ms": 1.9669618280000032
+  },
+  {
+    "case": "short/14_gil",
+    "stage": "Dispatch queue",
+    "mean_ms": 5.4521091627000065
+  },
+  {
+    "case": "short/14_gil",
+    "stage": "Register + request preparation",
+    "mean_ms": 0.13693345919999925
+  },
+  {
+    "case": "short/14_gil",
+    "stage": "Entry RPC incl. ACK",
+    "mean_ms": 5.33471788269999
+  },
+  {
+    "case": "short/14_gil",
+    "stage": "Wait for complete reports",
+    "mean_ms": 66.77165064809982
+  },
+  {
+    "case": "short/14_gil",
+    "stage": "Merge queue",
+    "mean_ms": 31.57863646829995
+  },
+  {
+    "case": "short/14_gil",
+    "stage": "Merge + metrics",
+    "mean_ms": 0.3461705315000005
+  },
+  {
+    "case": "short/14_gil",
+    "stage": "Cleanup + persistence",
+    "mean_ms": 1.4134312695000049
+  },
+  {
+    "case": "short/14_gil",
+    "stage": "Output IPC",
+    "mean_ms": 11.80046181740002
+  },
+  {
+    "case": "short/14_gil",
+    "stage": "Client consumer",
+    "mean_ms": 46.95881075860007
+  },
+  {
+    "case": "short/15_baseline",
+    "stage": "Admission",
+    "mean_ms": 0.03297653140000004
+  },
+  {
+    "case": "short/15_baseline",
+    "stage": "Input queue + IPC",
+    "mean_ms": 2.4571004638999865
+  },
+  {
+    "case": "short/15_baseline",
+    "stage": "Worker preparation",
+    "mean_ms": 0.04638528240000015
+  },
+  {
+    "case": "short/15_baseline",
+    "stage": "Receive queue",
+    "mean_ms": 0.32002205900000125
+  },
+  {
+    "case": "short/15_baseline",
+    "stage": "Receive handoff",
+    "mean_ms": 0.003985536200000031
+  },
+  {
+    "case": "short/15_baseline",
+    "stage": "Route queue",
+    "mean_ms": 22.46968058819992
+  },
+  {
+    "case": "short/15_baseline",
+    "stage": "HNSW + route preparation",
+    "mean_ms": 1.994112837600006
+  },
+  {
+    "case": "short/15_baseline",
+    "stage": "Dispatch queue",
+    "mean_ms": 7.09431026350001
+  },
+  {
+    "case": "short/15_baseline",
+    "stage": "Register + request preparation",
+    "mean_ms": 0.15101578090000017
+  },
+  {
+    "case": "short/15_baseline",
+    "stage": "Entry RPC incl. ACK",
+    "mean_ms": 5.979188788499991
+  },
+  {
+    "case": "short/15_baseline",
+    "stage": "Wait for complete reports",
+    "mean_ms": 75.0674605768001
+  },
+  {
+    "case": "short/15_baseline",
+    "stage": "Merge queue",
+    "mean_ms": 34.18790135880011
+  },
+  {
+    "case": "short/15_baseline",
+    "stage": "Merge + metrics",
+    "mean_ms": 0.3531809399999979
+  },
+  {
+    "case": "short/15_baseline",
+    "stage": "Cleanup + persistence",
+    "mean_ms": 1.4480353385999978
+  },
+  {
+    "case": "short/15_baseline",
+    "stage": "Output IPC",
+    "mean_ms": 9.887898994900034
+  },
+  {
+    "case": "short/15_baseline",
+    "stage": "Client consumer",
+    "mean_ms": 33.82181072459984
+  },
+  {
+    "case": "sustained/00_baseline",
+    "stage": "Admission",
+    "mean_ms": 0.023162193459999963
+  },
+  {
+    "case": "sustained/00_baseline",
+    "stage": "Input queue + IPC",
+    "mean_ms": 1.9701576586599843
+  },
+  {
+    "case": "sustained/00_baseline",
+    "stage": "Worker preparation",
+    "mean_ms": 0.05377408175000014
+  },
+  {
+    "case": "sustained/00_baseline",
+    "stage": "Receive queue",
+    "mean_ms": 0.2778372160199976
+  },
+  {
+    "case": "sustained/00_baseline",
+    "stage": "Receive handoff",
+    "mean_ms": 0.0036042348899999977
+  },
+  {
+    "case": "sustained/00_baseline",
+    "stage": "Route queue",
+    "mean_ms": 6.92189374502999
+  },
+  {
+    "case": "sustained/00_baseline",
+    "stage": "HNSW + route preparation",
+    "mean_ms": 1.86506413821001
+  },
+  {
+    "case": "sustained/00_baseline",
+    "stage": "Dispatch queue",
+    "mean_ms": 14.554324689430043
+  },
+  {
+    "case": "sustained/00_baseline",
+    "stage": "Register + request preparation",
+    "mean_ms": 0.13112300767999885
+  },
+  {
+    "case": "sustained/00_baseline",
+    "stage": "Entry RPC incl. ACK",
+    "mean_ms": 7.001583592990031
+  },
+  {
+    "case": "sustained/00_baseline",
+    "stage": "Wait for complete reports",
+    "mean_ms": 174.8244481376321
+  },
+  {
+    "case": "sustained/00_baseline",
+    "stage": "Merge queue",
+    "mean_ms": 38.13919363784038
+  },
+  {
+    "case": "sustained/00_baseline",
+    "stage": "Merge + metrics",
+    "mean_ms": 0.37224026853000136
+  },
+  {
+    "case": "sustained/00_baseline",
+    "stage": "Cleanup + persistence",
+    "mean_ms": 1.4184210726800208
+  },
+  {
+    "case": "sustained/00_baseline",
+    "stage": "Output IPC",
+    "mean_ms": 9.234743665689965
+  },
+  {
+    "case": "sustained/00_baseline",
+    "stage": "Client consumer",
+    "mean_ms": 10.8260640593399
+  },
+  {
+    "case": "sustained/01_split",
+    "stage": "Admission",
+    "mean_ms": 0.015208887919999867
+  },
+  {
+    "case": "sustained/01_split",
+    "stage": "Input queue + IPC",
+    "mean_ms": 1.9306489516700205
+  },
+  {
+    "case": "sustained/01_split",
+    "stage": "Worker preparation",
+    "mean_ms": 0.055103183940000175
+  },
+  {
+    "case": "sustained/01_split",
+    "stage": "Receive queue",
+    "mean_ms": 0.28511472439000274
+  },
+  {
+    "case": "sustained/01_split",
+    "stage": "Receive handoff",
+    "mean_ms": 0.0037794757199999234
+  },
+  {
+    "case": "sustained/01_split",
+    "stage": "Route queue",
+    "mean_ms": 6.9334861539500405
+  },
+  {
+    "case": "sustained/01_split",
+    "stage": "HNSW + route preparation",
+    "mean_ms": 1.8809796884899967
+  },
+  {
+    "case": "sustained/01_split",
+    "stage": "Dispatch queue",
+    "mean_ms": 21.216531936059962
+  },
+  {
+    "case": "sustained/01_split",
+    "stage": "Register + request preparation",
+    "mean_ms": 0.1680760564099987
+  },
+  {
+    "case": "sustained/01_split",
+    "stage": "Entry RPC incl. ACK",
+    "mean_ms": 8.904345756339943
+  },
+  {
+    "case": "sustained/01_split",
+    "stage": "Wait for complete reports",
+    "mean_ms": 159.9728179061311
+  },
+  {
+    "case": "sustained/01_split",
+    "stage": "Merge queue",
+    "mean_ms": 41.73291284738078
+  },
+  {
+    "case": "sustained/01_split",
+    "stage": "Merge + metrics",
+    "mean_ms": 0.37462565272000264
+  },
+  {
+    "case": "sustained/01_split",
+    "stage": "Cleanup + persistence",
+    "mean_ms": 1.4335174741599963
+  },
+  {
+    "case": "sustained/01_split",
+    "stage": "Output IPC",
+    "mean_ms": 9.716992983170053
+  },
+  {
+    "case": "sustained/01_split",
+    "stage": "Client consumer",
+    "mean_ms": 11.248181255499874
+  }
+]

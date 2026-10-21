@@ -1,0 +1,84 @@
+{
+  "checked_at": "2026-10-20T11:56:13.473816+00:00",
+  "ports": [
+    {
+      "name": "experiment_data_0",
+      "host": "192.168.33.35",
+      "port": 30551,
+      "listening": false,
+      "expected_listening": false,
+      "matches_expected": true,
+      "error": "ConnectionRefusedError"
+    },
+    {
+      "name": "experiment_data_1",
+      "host": "192.168.33.32",
+      "port": 30552,
+      "listening": false,
+      "expected_listening": false,
+      "matches_expected": true,
+      "error": "ConnectionRefusedError"
+    },
+    {
+      "name": "experiment_data_2",
+      "host": "192.168.33.30",
+      "port": 30553,
+      "listening": false,
+      "expected_listening": false,
+      "matches_expected": true,
+      "error": "ConnectionRefusedError"
+    },
+    {
+      "name": "experiment_head",
+      "host": "192.168.33.35",
+      "port": 30610,
+      "listening": false,
+      "expected_listening": false,
+      "matches_expected": true,
+      "error": "ConnectionRefusedError"
+    },
+    {
+      "name": "existing_data_0",
+      "host": "192.168.33.35",
+      "port": 22051,
+      "listening": true,
+      "expected_listening": true,
+      "matches_expected": true,
+      "error": null
+    },
+    {
+      "name": "existing_data_1",
+      "host": "192.168.33.32",
+      "port": 22052,
+      "listening": true,
+      "expected_listening": true,
+      "matches_expected": true,
+      "error": null
+    },
+    {
+      "name": "existing_data_2",
+      "host": "192.168.33.30",
+      "port": 22053,
+      "listening": true,
+      "expected_listening": true,
+      "matches_expected": true,
+      "error": null
+    },
+    {
+      "name": "existing_head",
+      "host": "127.0.0.1",
+      "port": 22091,
+      "listening": true,
+      "expected_listening": true,
+      "matches_expected": true,
+      "error": null
+    }
+  ],
+  "working_source_mismatches": [],
+  "deployment_source_mismatches": {
+    "0": [],
+    "1": [],
+    "2": []
+  },
+  "note": "Read-only TCP reachability; no lifecycle commands were sent."
+}

@@ -1,0 +1,385 @@
+case,stage,mean_ms
+00_baseline,Admission,0.018691193599999982
+00_baseline,Input queue + IPC,2.4280116361999955
+00_baseline,Worker preparation,0.05117656650000003
+00_baseline,Receive queue,0.3292552564999991
+00_baseline,Receive handoff,0.003526012200000007
+00_baseline,Route queue,20.420391404199954
+00_baseline,HNSW + route preparation,1.9563421044000031
+00_baseline,Dispatch queue,6.395197771199995
+00_baseline,Register + request preparation,0.15351433540000053
+00_baseline,Entry RPC incl. ACK,5.961454874800013
+00_baseline,Wait for complete reports,72.81004936919976
+00_baseline,Merge queue,29.12308886739989
+00_baseline,Merge + metrics,0.33987660979999895
+00_baseline,Cleanup + persistence,1.3949271843999953
+00_baseline,Output IPC,10.738009562300029
+00_baseline,Client consumer,40.61588306590006
+01_shared4,Admission,0.017414689899999915
+01_shared4,Input queue + IPC,2.517427959399998
+01_shared4,Worker preparation,0.057293398099999775
+01_shared4,Receive queue,0.30446435010000156
+01_shared4,Receive handoff,0.0042147865999999775
+01_shared4,Route queue,13.344753686999992
+01_shared4,HNSW + route preparation,1.8552564286000004
+01_shared4,Dispatch queue,36.006363278699986
+01_shared4,Register + request preparation,0.2125450722999994
+01_shared4,Entry RPC incl. ACK,9.175339011100037
+01_shared4,Wait for complete reports,79.00215477660043
+01_shared4,Merge queue,20.873280985399905
+01_shared4,Merge + metrics,0.3278487705000011
+01_shared4,Cleanup + persistence,1.3445161782000006
+01_shared4,Output IPC,9.496923504600009
+01_shared4,Client consumer,25.527389933499954
+02_independent1,Admission,0.015959751100000093
+02_independent1,Input queue + IPC,2.103223828999994
+02_independent1,Worker preparation,0.04493261159999993
+02_independent1,Receive queue,0.29682449830000046
+02_independent1,Receive handoff,0.0036472962000000083
+02_independent1,Route queue,12.623386318400028
+02_independent1,HNSW + route preparation,1.8538978634999956
+02_independent1,Dispatch queue,3.1186616775999965
+02_independent1,Register + request preparation,0.14912160850000003
+02_independent1,Entry RPC incl. ACK,5.579216286899979
+02_independent1,Wait for complete reports,148.565425603001
+02_independent1,Merge queue,15.905925587700048
+02_independent1,Merge + metrics,0.3127266695000012
+02_independent1,Cleanup + persistence,1.332764970499995
+02_independent1,Output IPC,8.070643695
+02_independent1,Client consumer,20.524658373999934
+03_independent4,Admission,0.013743612099999995
+03_independent4,Input queue + IPC,1.2225398739999962
+03_independent4,Worker preparation,0.05949325359999998
+03_independent4,Receive queue,0.2239235720999994
+03_independent4,Receive handoff,0.0034728372999999913
+03_independent4,Route queue,5.214234344999959
+03_independent4,HNSW + route preparation,1.645806100099999
+03_independent4,Dispatch queue,11.560637308799956
+03_independent4,Register + request preparation,0.11755081799999992
+03_independent4,Entry RPC incl. ACK,7.961249423300005
+03_independent4,Wait for complete reports,203.2351300128002
+03_independent4,Merge queue,7.5726980098999785
+03_independent4,Merge + metrics,0.29756653110000075
+03_independent4,Cleanup + persistence,1.2201837095000043
+03_independent4,Output IPC,6.485682042299985
+03_independent4,Client consumer,7.471812705600013
+04_mirror,Admission,0.01904408659999995
+04_mirror,Input queue + IPC,2.6807778726999976
+04_mirror,Worker preparation,0.04225872899999997
+04_mirror,Receive queue,0.32578488540000095
+04_mirror,Receive handoff,0.00338423269999999
+04_mirror,Route queue,25.940149915399985
+04_mirror,HNSW + route preparation,2.0042103568999985
+04_mirror,Dispatch queue,7.224963078100003
+04_mirror,Register + request preparation,0.14966716330000004
+04_mirror,Entry RPC incl. ACK,5.907744942299997
+04_mirror,Wait for complete reports,66.09378041939974
+04_mirror,Merge queue,33.1879312614
+04_mirror,Merge + metrics,0.3544613424999989
+04_mirror,Cleanup + persistence,1.4207443309999963
+04_mirror,Output IPC,10.80868539869997
+04_mirror,Client consumer,38.355586865099795
+05_elastic,Admission,0.015617286499999985
+05_elastic,Input queue + IPC,2.6603442449000045
+05_elastic,Worker preparation,0.04586460690000011
+05_elastic,Receive queue,0.278603338700001
+05_elastic,Receive handoff,0.0034224212000000024
+05_elastic,Route queue,13.081305549699978
+05_elastic,HNSW + route preparation,1.7798986453000034
+05_elastic,Dispatch queue,54.6509450404001
+05_elastic,Register + request preparation,0.1714253063999999
+05_elastic,Entry RPC incl. ACK,11.085628311900043
+05_elastic,Wait for complete reports,86.76776783419982
+05_elastic,Merge queue,13.91019341870005
+05_elastic,Merge + metrics,0.3147631559000019
+05_elastic,Cleanup + persistence,1.2796040232000039
+05_elastic,Output IPC,8.722871398599986
+05_elastic,Client consumer,18.801385040599968
+06_elastic_all,Admission,0.018503488699999977
+06_elastic_all,Input queue + IPC,2.530892813899999
+06_elastic_all,Worker preparation,0.045241319900000146
+06_elastic_all,Receive queue,0.30704994840000027
+06_elastic_all,Receive handoff,0.0035734337999999985
+06_elastic_all,Route queue,14.021281696300044
+06_elastic_all,HNSW + route preparation,1.9614758561999948
+06_elastic_all,Dispatch queue,24.387335683800043
+06_elastic_all,Register + request preparation,0.2534021004000005
+06_elastic_all,Entry RPC incl. ACK,17.622645389099997
+06_elastic_all,Wait for complete reports,106.92735607590026
+06_elastic_all,Merge queue,17.77086231530004
+06_elastic_all,Merge + metrics,0.35261377569999985
+06_elastic_all,Cleanup + persistence,1.3955221222999945
+06_elastic_all,Output IPC,8.219407931399967
+06_elastic_all,Client consumer,18.296729368999912
+07_owned,Admission,0.01476968330000002
+07_owned,Input queue + IPC,1.3995993473000006
+07_owned,Worker preparation,0.057073025200000134
+07_owned,Receive queue,0.2420347197000006
+07_owned,Receive handoff,0.0029621808000000064
+07_owned,Route queue,7.2549417011999875
+07_owned,HNSW + route preparation,1.6973424619000026
+07_owned,Dispatch queue,36.684567591000025
+07_owned,Register + request preparation,0.1268602319
+07_owned,Entry RPC incl. ACK,11.240549046200018
+07_owned,Wait for complete reports,164.5138185554002
+07_owned,Merge queue,11.305747313500008
+07_owned,Merge + metrics,0.3032568753999999
+07_owned,Cleanup + persistence,1.2186050365000005
+07_owned,Output IPC,6.4218739158000115
+07_owned,Client consumer,7.878147549100003
+08_owned_elastic,Admission,0.03270975810000008
+08_owned_elastic,Input queue + IPC,2.1171107009000014
+08_owned_elastic,Worker preparation,0.04388275929999993
+08_owned_elastic,Receive queue,0.28887718269999985
+08_owned_elastic,Receive handoff,0.0038343920999999847
+08_owned_elastic,Route queue,9.0346316728
+08_owned_elastic,HNSW + route preparation,1.850133475199997
+08_owned_elastic,Dispatch queue,40.006441108800004
+08_owned_elastic,Register + request preparation,0.22049191119999936
+08_owned_elastic,Entry RPC incl. ACK,19.193294558499957
+08_owned_elastic,Wait for complete reports,98.65166833419934
+08_owned_elastic,Merge queue,15.974653647500082
+08_owned_elastic,Merge + metrics,0.3394484315000007
+08_owned_elastic,Cleanup + persistence,1.3264876114000022
+08_owned_elastic,Output IPC,7.907318971600021
+08_owned_elastic,Client consumer,16.855996552100034
+12_owned_fifo,Admission,0.013747760499999975
+12_owned_fifo,Input queue + IPC,1.399094671099998
+12_owned_fifo,Worker preparation,0.04651503030000013
+12_owned_fifo,Receive queue,0.23064371739999975
+12_owned_fifo,Receive handoff,0.0031106700999999895
+12_owned_fifo,Route queue,5.841605522700009
+12_owned_fifo,HNSW + route preparation,1.6476067025999974
+12_owned_fifo,Dispatch queue,40.94605181880004
+12_owned_fifo,Register + request preparation,0.13448986460000004
+12_owned_fifo,Entry RPC incl. ACK,11.356177792599977
+12_owned_fifo,Wait for complete reports,158.30836289229885
+12_owned_fifo,Merge queue,10.39858049450001
+12_owned_fifo,Merge + metrics,0.30528584530000086
+12_owned_fifo,Cleanup + persistence,1.1702765480000028
+12_owned_fifo,Output IPC,6.788965704400005
+12_owned_fifo,Client consumer,10.432413916199973
+13_owned_connections,Admission,0.016358042200000027
+13_owned_connections,Input queue + IPC,1.9940878573999923
+13_owned_connections,Worker preparation,0.05156890300000012
+13_owned_connections,Receive queue,0.2496100977
+13_owned_connections,Receive handoff,0.0034984591000000145
+13_owned_connections,Route queue,10.697451067400019
+13_owned_connections,HNSW + route preparation,1.7942696232000013
+13_owned_connections,Dispatch queue,99.32305310149978
+13_owned_connections,Register + request preparation,0.1430947398999994
+13_owned_connections,Entry RPC incl. ACK,11.91932751079998
+13_owned_connections,Wait for complete reports,39.609500861400015
+13_owned_connections,Merge queue,19.75345747540003
+13_owned_connections,Merge + metrics,0.3209185568999998
+13_owned_connections,Cleanup + persistence,1.2285488234000055
+13_owned_connections,Output IPC,7.931678735499985
+13_owned_connections,Client consumer,15.901168781999973
+14_owned_connections,Admission,0.01345962880000003
+14_owned_connections,Input queue + IPC,1.8042686636000003
+14_owned_connections,Worker preparation,0.05695824640000012
+14_owned_connections,Receive queue,0.22074468580000026
+14_owned_connections,Receive handoff,0.002911061299999999
+14_owned_connections,Route queue,7.669864473599996
+14_owned_connections,HNSW + route preparation,1.6407977086000005
+14_owned_connections,Dispatch queue,146.8704548675
+14_owned_connections,Register + request preparation,0.1360078583
+14_owned_connections,Entry RPC incl. ACK,15.047695300399983
+14_owned_connections,Wait for complete reports,46.67634383960008
+14_owned_connections,Merge queue,14.488713574500062
+14_owned_connections,Merge + metrics,0.30330786399999865
+14_owned_connections,Cleanup + persistence,1.1352426061000065
+14_owned_connections,Output IPC,7.397183712599978
+14_owned_connections,Client consumer,11.022213634999996
+15_owned_fifo,Admission,0.014500355099999942
+15_owned_fifo,Input queue + IPC,1.6983615374000034
+15_owned_fifo,Worker preparation,0.04492053380000012
+15_owned_fifo,Receive queue,0.2552514041999999
+15_owned_fifo,Receive handoff,0.0034354414000000075
+15_owned_fifo,Route queue,8.1012658205
+15_owned_fifo,HNSW + route preparation,1.796242823500009
+15_owned_fifo,Dispatch queue,48.66255979139998
+15_owned_fifo,Register + request preparation,0.17053552569999986
+15_owned_fifo,Entry RPC incl. ACK,11.235024278200013
+15_owned_fifo,Wait for complete reports,117.51590582490012
+15_owned_fifo,Merge queue,12.389858473400004
+15_owned_fifo,Merge + metrics,0.3171616829000005
+15_owned_fifo,Cleanup + persistence,1.3114867481000008
+15_owned_fifo,Output IPC,6.846265820300014
+15_owned_fifo,Client consumer,8.974698488899985
+16_connections_nolog,Admission,0.014201023199999985
+16_connections_nolog,Input queue + IPC,1.6777687886000077
+16_connections_nolog,Worker preparation,0.054843796899999936
+16_connections_nolog,Receive queue,0.2250487745999996
+16_connections_nolog,Receive handoff,0.003498993900000002
+16_connections_nolog,Route queue,7.349561000700022
+16_connections_nolog,HNSW + route preparation,1.4550757306000075
+16_connections_nolog,Dispatch queue,135.17523407360002
+16_connections_nolog,Register + request preparation,0.10242150949999984
+16_connections_nolog,Entry RPC incl. ACK,13.652562764999983
+16_connections_nolog,Wait for complete reports,41.71469973720001
+16_connections_nolog,Merge queue,11.078226331799964
+16_connections_nolog,Merge + metrics,0.34191857830000033
+16_connections_nolog,Cleanup + persistence,0.1977116480000004
+16_connections_nolog,Output IPC,8.124199219299989
+16_connections_nolog,Client consumer,13.747334737700053
+17_baseline_ref,Admission,0.015009495200000013
+17_baseline_ref,Input queue + IPC,2.7613542533999964
+17_baseline_ref,Worker preparation,0.06800576810000002
+17_baseline_ref,Receive queue,0.31748680269999946
+17_baseline_ref,Receive handoff,0.003949104099999985
+17_baseline_ref,Route queue,20.5878511136
+17_baseline_ref,HNSW + route preparation,2.0041279749000056
+17_baseline_ref,Dispatch queue,6.435642637300019
+17_baseline_ref,Register + request preparation,0.17070670739999994
+17_baseline_ref,Entry RPC incl. ACK,5.841952399500005
+17_baseline_ref,Wait for complete reports,80.51476151529984
+17_baseline_ref,Merge queue,32.06201225510003
+17_baseline_ref,Merge + metrics,0.3703107803999995
+17_baseline_ref,Cleanup + persistence,1.4412163649000016
+17_baseline_ref,Output IPC,10.007397446500033
+17_baseline_ref,Client consumer,31.755086020799926
+18_branch_owner_auto,Admission,0.015166813099999985
+18_branch_owner_auto,Input queue + IPC,2.2467760451999945
+18_branch_owner_auto,Worker preparation,0.048565763500000136
+18_branch_owner_auto,Receive queue,0.2574770082000008
+18_branch_owner_auto,Receive handoff,0.002875495400000006
+18_branch_owner_auto,Route queue,10.051236668200028
+18_branch_owner_auto,HNSW + route preparation,1.6594881255999996
+18_branch_owner_auto,Dispatch queue,137.83155567329948
+18_branch_owner_auto,Register + request preparation,0.13644486030000064
+18_branch_owner_auto,Entry RPC incl. ACK,13.852166881700025
+18_branch_owner_auto,Wait for complete reports,33.79715421079986
+18_branch_owner_auto,Merge queue,16.2398147279
+18_branch_owner_auto,Merge + metrics,0.29639524960000024
+18_branch_owner_auto,Cleanup + persistence,1.1698239685000056
+18_branch_owner_auto,Output IPC,7.570632541499987
+18_branch_owner_auto,Client consumer,14.047513166199971
+24_baseline_network,Admission,0.018219747499999973
+24_baseline_network,Input queue + IPC,2.8842531614999904
+24_baseline_network,Worker preparation,0.05215355949999996
+24_baseline_network,Receive queue,0.3333562193000011
+24_baseline_network,Receive handoff,0.004040435400000001
+24_baseline_network,Route queue,20.35168114540008
+24_baseline_network,HNSW + route preparation,1.9516243506999922
+24_baseline_network,Dispatch queue,5.593655846799995
+24_baseline_network,Register + request preparation,0.15274393519999982
+24_baseline_network,Entry RPC incl. ACK,5.810388405100008
+24_baseline_network,Wait for complete reports,86.94073033280004
+24_baseline_network,Merge queue,27.906601687900093
+24_baseline_network,Merge + metrics,0.3318101887999998
+24_baseline_network,Cleanup + persistence,1.4217942601999995
+24_baseline_network,Output IPC,10.47740301259996
+24_baseline_network,Client consumer,35.81465091009999
+25_nodelay,Admission,0.01734506490000003
+25_nodelay,Input queue + IPC,2.38738948539999
+25_nodelay,Worker preparation,0.05799778000000002
+25_nodelay,Receive queue,0.32483729579999954
+25_nodelay,Receive handoff,0.00372499220000001
+25_nodelay,Route queue,19.41217671339995
+25_nodelay,HNSW + route preparation,2.0082127865000095
+25_nodelay,Dispatch queue,7.004267942700008
+25_nodelay,Register + request preparation,0.16926350369999957
+25_nodelay,Entry RPC incl. ACK,6.125680001300016
+25_nodelay,Wait for complete reports,80.76279270379992
+25_nodelay,Merge queue,32.94670343189993
+25_nodelay,Merge + metrics,0.3672085112000004
+25_nodelay,Cleanup + persistence,1.4761717004999977
+25_nodelay,Output IPC,9.941608765400023
+25_nodelay,Client consumer,31.037915165399895
+26_network_auto,Admission,0.01569459620000006
+26_network_auto,Input queue + IPC,2.0589473056000025
+26_network_auto,Worker preparation,0.05366792039999996
+26_network_auto,Receive queue,0.33291810949999906
+26_network_auto,Receive handoff,0.004038765100000016
+26_network_auto,Route queue,18.184167009899863
+26_network_auto,HNSW + route preparation,2.0142204915999957
+26_network_auto,Dispatch queue,1.5298136296000013
+26_network_auto,Register + request preparation,0.13102781540000064
+26_network_auto,Entry RPC incl. ACK,6.412442501599993
+26_network_auto,Wait for complete reports,109.20150174169964
+26_network_auto,Merge queue,28.13209918089995
+26_network_auto,Merge + metrics,0.3553096573999991
+26_network_auto,Cleanup + persistence,1.4706298983000026
+26_network_auto,Output IPC,9.443838458799986
+26_network_auto,Client consumer,29.634342341099853
+27_network_auto,Admission,0.015620981900000021
+27_network_auto,Input queue + IPC,2.052322723699998
+27_network_auto,Worker preparation,0.04923587289999989
+27_network_auto,Receive queue,0.3176105701000006
+27_network_auto,Receive handoff,0.0036979836000000112
+27_network_auto,Route queue,13.58817784679998
+27_network_auto,HNSW + route preparation,2.0397206559000036
+27_network_auto,Dispatch queue,2.8202717805000024
+27_network_auto,Register + request preparation,0.15369028340000043
+27_network_auto,Entry RPC incl. ACK,6.872042418600016
+27_network_auto,Wait for complete reports,106.50323133959989
+27_network_auto,Merge queue,27.109175090100017
+27_network_auto,Merge + metrics,0.3774459733000002
+27_network_auto,Cleanup + persistence,1.4849114265000039
+27_network_auto,Output IPC,9.097992188900005
+27_network_auto,Client consumer,31.191103739500065
+28_nodelay,Admission,0.0167597115
+28_nodelay,Input queue + IPC,2.5750190827999884
+28_nodelay,Worker preparation,0.038589637600000115
+28_nodelay,Receive queue,0.319426004
+28_nodelay,Receive handoff,0.0034713853000000027
+28_nodelay,Route queue,22.283864228400045
+28_nodelay,HNSW + route preparation,1.9577160840000023
+28_nodelay,Dispatch queue,4.380893239800006
+28_nodelay,Register + request preparation,0.14590840829999993
+28_nodelay,Entry RPC incl. ACK,5.616645620800016
+28_nodelay,Wait for complete reports,82.09919188559999
+28_nodelay,Merge queue,26.954089214299962
+28_nodelay,Merge + metrics,0.3446833444000001
+28_nodelay,Cleanup + persistence,1.4346609105000043
+28_nodelay,Output IPC,10.025899716000009
+28_nodelay,Client consumer,36.43243122249997
+29_head8_network_auto,Admission,0.016104722600000003
+29_head8_network_auto,Input queue + IPC,1.5182576535000036
+29_head8_network_auto,Worker preparation,0.049907563499999835
+29_head8_network_auto,Receive queue,0.12595748250000077
+29_head8_network_auto,Receive handoff,0.0028526599000000034
+29_head8_network_auto,Route queue,0.514256272300001
+29_head8_network_auto,HNSW + route preparation,1.4296174121999963
+29_head8_network_auto,Dispatch queue,2.024807373600004
+29_head8_network_auto,Register + request preparation,0.08333661120000027
+29_head8_network_auto,Entry RPC incl. ACK,8.14408887500002
+29_head8_network_auto,Wait for complete reports,221.39643025469985
+29_head8_network_auto,Merge queue,2.2586417555999936
+29_head8_network_auto,Merge + metrics,0.27631964540000126
+29_head8_network_auto,Cleanup + persistence,0.8951987044999987
+29_head8_network_auto,Output IPC,9.956088428599982
+29_head8_network_auto,Client consumer,15.357916325300017
+30_old_long,Admission,0.015881620950000012
+30_old_long,Input queue + IPC,1.8041082079999935
+30_old_long,Worker preparation,0.05302947183999928
+30_old_long,Receive queue,0.3002562396100025
+30_old_long,Receive handoff,0.003914127360000002
+30_old_long,Route queue,8.47061336760007
+30_old_long,HNSW + route preparation,1.9521566388799985
+30_old_long,Dispatch queue,16.78099592623976
+30_old_long,Register + request preparation,0.14483014431000024
+30_old_long,Entry RPC incl. ACK,7.450799484980044
+30_old_long,Wait for complete reports,239.48487598575036
+30_old_long,Merge queue,45.402610579029925
+30_old_long,Merge + metrics,0.4073607196500005
+30_old_long,Cleanup + persistence,1.4974654128799898
+30_old_long,Output IPC,9.66458362523001
+30_old_long,Client consumer,13.05357969850001
+31_new_long,Admission,0.015379423879999753
+31_new_long,Input queue + IPC,1.4196093145900066
+31_new_long,Worker preparation,0.05373079910000085
+31_new_long,Receive queue,0.2508628799399992
+31_new_long,Receive handoff,0.003460509799999971
+31_new_long,Route queue,4.458017452909995
+31_new_long,HNSW + route preparation,1.7700496976600075
+31_new_long,Dispatch queue,12.34891512269994
+31_new_long,Register + request preparation,0.12144698964000021
+31_new_long,Entry RPC incl. ACK,7.030251354670016
+31_new_long,Wait for complete reports,214.22478505604946
+31_new_long,Merge queue,32.902459449090024
+31_new_long,Merge + metrics,0.35353168800999546
+31_new_long,Cleanup + persistence,1.3496618420499902
+31_new_long,Output IPC,8.529674128389956
+31_new_long,Client consumer,6.838960165430134

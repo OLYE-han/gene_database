@@ -1,0 +1,667 @@
+{
+  "audit_date": "2026-10-20",
+  "scope": "Current first-party source and included hnswlib; excludes historical test snapshots. Constructor sites are not runtime lock-instance counts.",
+  "python_constructor_sites": [
+    {
+      "path": "python/dhdgs/adaptive_service.py",
+      "line": 20,
+      "expression": "threading.Condition()"
+    },
+    {
+      "path": "python/dhdgs/adaptive_service.py",
+      "line": 25,
+      "expression": "threading.Event()"
+    },
+    {
+      "path": "python/dhdgs/async_io.py",
+      "line": 85,
+      "expression": "threading.Condition()"
+    },
+    {
+      "path": "python/dhdgs/benchmark.py",
+      "line": 103,
+      "expression": "threading.Event()"
+    },
+    {
+      "path": "python/dhdgs/benchmark.py",
+      "line": 103,
+      "expression": "threading.Lock()"
+    },
+    {
+      "path": "python/dhdgs/compute_executor.py",
+      "line": 23,
+      "expression": "threading.Condition()"
+    },
+    {
+      "path": "python/dhdgs/compute_executor.py",
+      "line": 144,
+      "expression": "threading.Condition()"
+    },
+    {
+      "path": "python/dhdgs/compute_executor.py",
+      "line": 145,
+      "expression": "threading.Event()"
+    },
+    {
+      "path": "python/dhdgs/control_scheduler.py",
+      "line": 25,
+      "expression": "threading.Lock()"
+    },
+    {
+      "path": "python/dhdgs/head_direct.py",
+      "line": 34,
+      "expression": "threading.Condition(self.lock)"
+    },
+    {
+      "path": "python/dhdgs/head_direct.py",
+      "line": 34,
+      "expression": "threading.Lock()"
+    },
+    {
+      "path": "python/dhdgs/head_direct.py",
+      "line": 46,
+      "expression": "threading.Event()"
+    },
+    {
+      "path": "python/dhdgs/head_direct.py",
+      "line": 55,
+      "expression": "threading.Event()"
+    },
+    {
+      "path": "python/dhdgs/head_direct.py",
+      "line": 120,
+      "expression": "asyncio.Event()"
+    },
+    {
+      "path": "python/dhdgs/head_direct.py",
+      "line": 402,
+      "expression": "threading.Condition()"
+    },
+    {
+      "path": "python/dhdgs/head_direct.py",
+      "line": 404,
+      "expression": "threading.BoundedSemaphore(c['peer']['max_active_queries'])"
+    },
+    {
+      "path": "python/dhdgs/head_direct.py",
+      "line": 405,
+      "expression": "threading.BoundedSemaphore(p['result_queue_capacity'])"
+    },
+    {
+      "path": "python/dhdgs/head_flow.py",
+      "line": 9,
+      "expression": "threading.Condition()"
+    },
+    {
+      "path": "python/dhdgs/head_http.py",
+      "line": 14,
+      "expression": "threading.Event()"
+    },
+    {
+      "path": "python/dhdgs/head_hub.py",
+      "line": 13,
+      "expression": "threading.Lock()"
+    },
+    {
+      "path": "python/dhdgs/head_hub.py",
+      "line": 46,
+      "expression": "threading.Lock()"
+    },
+    {
+      "path": "python/dhdgs/head_lanes.py",
+      "line": 47,
+      "expression": "threading.Lock()"
+    },
+    {
+      "path": "python/dhdgs/head_lanes.py",
+      "line": 48,
+      "expression": "threading.Lock()"
+    },
+    {
+      "path": "python/dhdgs/head_lanes.py",
+      "line": 142,
+      "expression": "threading.Lock()"
+    },
+    {
+      "path": "python/dhdgs/head_lanes.py",
+      "line": 144,
+      "expression": "threading.Event()"
+    },
+    {
+      "path": "python/dhdgs/head_lanes.py",
+      "line": 151,
+      "expression": "threading.Event()"
+    },
+    {
+      "path": "python/dhdgs/head_pipeline.py",
+      "line": 12,
+      "expression": "threading.Condition()"
+    },
+    {
+      "path": "python/dhdgs/head_pipeline.py",
+      "line": 71,
+      "expression": "threading.Condition()"
+    },
+    {
+      "path": "python/dhdgs/head_receivers.py",
+      "line": 39,
+      "expression": "threading.Lock()"
+    },
+    {
+      "path": "python/dhdgs/head_receivers.py",
+      "line": 40,
+      "expression": "threading.Lock()"
+    },
+    {
+      "path": "python/dhdgs/head_receivers.py",
+      "line": 41,
+      "expression": "threading.Lock()"
+    },
+    {
+      "path": "python/dhdgs/head_receivers.py",
+      "line": 179,
+      "expression": "threading.Lock()"
+    },
+    {
+      "path": "python/dhdgs/head_receivers.py",
+      "line": 180,
+      "expression": "threading.Condition(self.lock)"
+    },
+    {
+      "path": "python/dhdgs/head_receivers.py",
+      "line": 203,
+      "expression": "threading.Event()"
+    },
+    {
+      "path": "python/dhdgs/head_receivers.py",
+      "line": 204,
+      "expression": "threading.Lock()"
+    },
+    {
+      "path": "python/dhdgs/head_receivers.py",
+      "line": 317,
+      "expression": "threading.Event()"
+    },
+    {
+      "path": "python/dhdgs/index.py",
+      "line": 344,
+      "expression": "threading.Lock()"
+    },
+    {
+      "path": "python/dhdgs/managed_cluster.py",
+      "line": 48,
+      "expression": "threading.Condition()"
+    },
+    {
+      "path": "python/dhdgs/managed_cluster.py",
+      "line": 48,
+      "expression": "threading.Lock()"
+    },
+    {
+      "path": "python/dhdgs/managed_cluster.py",
+      "line": 210,
+      "expression": "threading.Event()"
+    },
+    {
+      "path": "python/dhdgs/managed_cluster.py",
+      "line": 210,
+      "expression": "threading.Lock()"
+    },
+    {
+      "path": "python/dhdgs/managed_node.py",
+      "line": 97,
+      "expression": "threading.Lock()"
+    },
+    {
+      "path": "python/dhdgs/managed_node.py",
+      "line": 97,
+      "expression": "threading.RLock()"
+    },
+    {
+      "path": "python/dhdgs/metrics.py",
+      "line": 204,
+      "expression": "threading.Event()"
+    },
+    {
+      "path": "python/dhdgs/peer.py",
+      "line": 53,
+      "expression": "threading.Lock()"
+    },
+    {
+      "path": "python/dhdgs/peer.py",
+      "line": 123,
+      "expression": "threading.Event()"
+    },
+    {
+      "path": "python/dhdgs/peer.py",
+      "line": 130,
+      "expression": "threading.RLock()"
+    },
+    {
+      "path": "python/dhdgs/peer.py",
+      "line": 267,
+      "expression": "threading.Lock()"
+    },
+    {
+      "path": "python/dhdgs/peer.py",
+      "line": 272,
+      "expression": "threading.Event()"
+    },
+    {
+      "path": "python/dhdgs/peer.py",
+      "line": 273,
+      "expression": "threading.Event()"
+    },
+    {
+      "path": "python/dhdgs/peer.py",
+      "line": 330,
+      "expression": "threading.Condition(threading.Lock() if self.independent_admission else self.lock)"
+    },
+    {
+      "path": "python/dhdgs/peer.py",
+      "line": 330,
+      "expression": "threading.Lock()"
+    },
+    {
+      "path": "python/dhdgs/peer_rpc.py",
+      "line": 58,
+      "expression": "threading.Condition()"
+    },
+    {
+      "path": "python/dhdgs/peer_rpc.py",
+      "line": 260,
+      "expression": "threading.Event()"
+    },
+    {
+      "path": "python/dhdgs/pipeline_hub.py",
+      "line": 106,
+      "expression": "threading.Condition(self.lock)"
+    },
+    {
+      "path": "python/dhdgs/pipeline_hub.py",
+      "line": 106,
+      "expression": "threading.Lock()"
+    },
+    {
+      "path": "python/dhdgs/report_registry.py",
+      "line": 18,
+      "expression": "context.Lock()"
+    },
+    {
+      "path": "python/dhdgs/resumable.py",
+      "line": 15,
+      "expression": "threading.Event()"
+    },
+    {
+      "path": "python/dhdgs/search.py",
+      "line": 82,
+      "expression": "threading.Lock()"
+    },
+    {
+      "path": "python/dhdgs/sender.py",
+      "line": 16,
+      "expression": "threading.Condition()"
+    },
+    {
+      "path": "python/dhdgs/transport.py",
+      "line": 79,
+      "expression": "threading.Lock()"
+    },
+    {
+      "path": "tools/deploy_cluster.py",
+      "line": 223,
+      "expression": "threading.Event()"
+    }
+  ],
+  "cpp_declarations": [
+    {
+      "path": "cpp/async_io.cpp",
+      "line": 24,
+      "source": "std::atomic<uint64_t> submits{0};"
+    },
+    {
+      "path": "cpp/native.cpp",
+      "line": 292,
+      "source": "std::vector<std::mutex> graph_locks(n);"
+    },
+    {
+      "path": "cpp/native.cpp",
+      "line": 295,
+      "source": "std::atomic<size_t> next{0},completed{0};"
+    },
+    {
+      "path": "cpp/native.cpp",
+      "line": 296,
+      "source": "std::atomic<bool> failed{false};"
+    },
+    {
+      "path": "cpp/native.cpp",
+      "line": 298,
+      "source": "std::mutex failure_lock;"
+    },
+    {
+      "path": "cpp/native_control.cpp",
+      "line": 57,
+      "source": "std::mutex queue_mu,state_mu,close_mu,updates_mu;"
+    },
+    {
+      "path": "cpp/native_control.cpp",
+      "line": 58,
+      "source": "std::condition_variable wake;"
+    },
+    {
+      "path": "cpp/native_control.cpp",
+      "line": 60,
+      "source": "std::atomic<uint64_t> command_depth{0},command_peak{0};"
+    },
+    {
+      "path": "cpp/native_wire.cpp",
+      "line": 110,
+      "source": "Config config; mutable std::mutex mutex;std::deque<std::unique_ptr<Job>> incoming;std::atomic<size_t> count{0};bool stopping=false;int wake=-1;std::thread thread;std::thread::id reactor_id;std::mutex close_mutex;"
+    },
+    {
+      "path": "cpp/native_wire.cpp",
+      "line": 224,
+      "source": "Client client;std::mutex mutex;std::vector<std::pair<uint64_t,Result>> completed;std::atomic<uint64_t> next{0};"
+    },
+    {
+      "path": "cpp/read_metrics.hpp",
+      "line": 22,
+      "source": "std::unique_ptr<std::atomic<double>[]> sums_;"
+    },
+    {
+      "path": "cpp/read_metrics.hpp",
+      "line": 23,
+      "source": "std::atomic<uint64_t> requests_{0}, completed_{0}, failed_{0}, active_{0}, peak_{0};"
+    },
+    {
+      "path": "cpp/read_metrics.hpp",
+      "line": 44,
+      "source": ": names_(names), sums_(new std::atomic<double>[names.size()]) {"
+    },
+    {
+      "path": "cpp/search_control.hpp",
+      "line": 14,
+      "source": "std::atomic<double> lease_, deadline_;"
+    },
+    {
+      "path": "cpp/search_control.hpp",
+      "line": 15,
+      "source": "std::atomic<bool> stopped_{false};"
+    }
+  ],
+  "source_sha256": [
+    {
+      "path": "python/dhdgs/__init__.py",
+      "sha256": "6df51e7a5fc03cf0661e100fcfcc1e52466b8a6f27c774c64004631b41e5308c"
+    },
+    {
+      "path": "python/dhdgs/__main__.py",
+      "sha256": "6d8b7d7846a845059d7a3107143f11131f63c5511d669b44085b15ec5e3d2279"
+    },
+    {
+      "path": "python/dhdgs/adaptive_service.py",
+      "sha256": "ad273643d571c1ba0072db0ef31a9232aab869260ff29642d82d74c49f57f7bf"
+    },
+    {
+      "path": "python/dhdgs/async_io.py",
+      "sha256": "f47091a4fea19525d511b96f8ce0050bc4fa6e6afa05fe5c3c95efd8cacf6fc1"
+    },
+    {
+      "path": "python/dhdgs/benchmark.py",
+      "sha256": "8a019afe7d28ed2994846cdbf9bbe0528e14786ef4a1c36999f44e36489dc48a"
+    },
+    {
+      "path": "python/dhdgs/cli.py",
+      "sha256": "204aabe7014c5c4ff3e4916ec14301d60478f69f1e0517465403ca4221b939c6"
+    },
+    {
+      "path": "python/dhdgs/cluster_test.py",
+      "sha256": "65973d9d158a49678aad651f4c807e76acb45957ba02b226fea4efd9ec6be67f"
+    },
+    {
+      "path": "python/dhdgs/compute_executor.py",
+      "sha256": "acfd6229b8231a708f8a61732b7ab48e25450705aeb64ccc9acd088b5bd848fc"
+    },
+    {
+      "path": "python/dhdgs/config.py",
+      "sha256": "66a00e8ad210057de8f53c078f2a46c04bbfcd9f932543135f07d77f036ae66a"
+    },
+    {
+      "path": "python/dhdgs/control_scheduler.py",
+      "sha256": "ea755e18af04d6156cb1888d00ddf38155cec45fd365eadba7f3fccdf7084c95"
+    },
+    {
+      "path": "python/dhdgs/data.py",
+      "sha256": "c35a2d3c57ee5f00276206b9fe30c6b88aad8dd9a9c4ad0819b089567b3431bd"
+    },
+    {
+      "path": "python/dhdgs/executor_trace.py",
+      "sha256": "5c57f2dc208ea5096266c8117f7065d1b89020e84ee674b6dd5fcaf87daf2a07"
+    },
+    {
+      "path": "python/dhdgs/experiments.py",
+      "sha256": "b72fb3e8abd1abd7fe65537fca4a07e48bd4e1244de979b433921b63c0d500bf"
+    },
+    {
+      "path": "python/dhdgs/gc_profile.py",
+      "sha256": "c29188f621d2f214034a75c46f0c60f717f2c5dedbc0bca027cc62c43f67c3fb"
+    },
+    {
+      "path": "python/dhdgs/head_direct.py",
+      "sha256": "f15e4a625abb5344bee993efefee71e4f0c459f3e07cc7c07e17dce1c316864b"
+    },
+    {
+      "path": "python/dhdgs/head_flow.py",
+      "sha256": "64d334835ba2083a810e5cb9e5ab64cdc54aa23c9c965803eb55591eaba01b8b"
+    },
+    {
+      "path": "python/dhdgs/head_http.py",
+      "sha256": "3f596d0048740df4f7295f993f8e062f99685ed3b6a3b67ac07d3ce877f67810"
+    },
+    {
+      "path": "python/dhdgs/head_hub.py",
+      "sha256": "181bb21143d103f08f8088935160c1a3dad002ce88c5a1b8c3707fc119311402"
+    },
+    {
+      "path": "python/dhdgs/head_lanes.py",
+      "sha256": "6c4d269f8676aa973b1a7db81da1a5e0324038847e4cdddd6f584f858f2a297d"
+    },
+    {
+      "path": "python/dhdgs/head_merge.py",
+      "sha256": "6918eebce4d61426d58488fa4fc5239c25e516de1382c3d3435404f2c9696f0c"
+    },
+    {
+      "path": "python/dhdgs/head_pipeline.py",
+      "sha256": "2b6c236046fb9b0427c53ee6110be9075bc8fe4b9af361abe92e9a02fe866b30"
+    },
+    {
+      "path": "python/dhdgs/head_receivers.py",
+      "sha256": "2e98a6fdf3c2e8b3e3519e4a73c6045cde59900f134a33903bd9320f37749eb3"
+    },
+    {
+      "path": "python/dhdgs/index.py",
+      "sha256": "617ea5cba521a9b41396ddc9a92254e95b285b90bd557ce6701209b834b78ee8"
+    },
+    {
+      "path": "python/dhdgs/managed_cluster.py",
+      "sha256": "d87f81efc4f8db463ef3728da0754b98466ac6eaded61d5cb2dc1284f4790c91"
+    },
+    {
+      "path": "python/dhdgs/managed_node.py",
+      "sha256": "120c7485f6e42d995c21200445d9b471b1c2ee0a24571413b542c8fc01007c08"
+    },
+    {
+      "path": "python/dhdgs/metrics.py",
+      "sha256": "212c18a5903dd70357189ae018755e2668d77d0a67eccf30f16b42c2aa89a04d"
+    },
+    {
+      "path": "python/dhdgs/native_search.py",
+      "sha256": "458a2754fe53401df419ee05aa2f76c8fa36acc443c905e339452735ee50747e"
+    },
+    {
+      "path": "python/dhdgs/partition.py",
+      "sha256": "5a4d7bdbd5ad6ba0fc0b1fab08fe3da27f9000164a22f3531a29d1ad128153d0"
+    },
+    {
+      "path": "python/dhdgs/peer.py",
+      "sha256": "fd575155a3f1b67da9f5734ef9b15f39f35f826ad595db99842c6981d2b3e015"
+    },
+    {
+      "path": "python/dhdgs/peer_rpc.py",
+      "sha256": "5905f8472f5f03435ee829900bff27e50312663778131df787aae54b7744cd49"
+    },
+    {
+      "path": "python/dhdgs/peer_search.py",
+      "sha256": "1099f411473149ed18d9c147d3521acff4becba2cc1875f59b4fad2e21865143"
+    },
+    {
+      "path": "python/dhdgs/pipeline_hub.py",
+      "sha256": "11dcb4dadf90eb638a8950c18a8965c4a920c9aa0283afbaec0c3440a48cef73"
+    },
+    {
+      "path": "python/dhdgs/reference_search.py",
+      "sha256": "21c5f4543c7d7de076c1240788d673aa1791817617afccd0280d5e5f080fa8ed"
+    },
+    {
+      "path": "python/dhdgs/report_registry.py",
+      "sha256": "7779cb53e089b3ed2bcbd05b574ecc38c3aa89b5de0c7bbc28d4035516e506b0"
+    },
+    {
+      "path": "python/dhdgs/resumable.py",
+      "sha256": "e0e566154f041544480d3d80d111c4b582748bee412ab5fb731f77484ea88190"
+    },
+    {
+      "path": "python/dhdgs/runtime.py",
+      "sha256": "7295454a675ba221fa445a5cf89ff3a3a52c3f08aacbbf9850396cd122372b73"
+    },
+    {
+      "path": "python/dhdgs/scheduler.py",
+      "sha256": "4c4c9c94f3aadd4c25d7b1c14a63c29292d94e451237d6ebce49cc411556e177"
+    },
+    {
+      "path": "python/dhdgs/search.py",
+      "sha256": "518ace867f82e3a33312f85a8f7f4ac6df08bbb80f645a1ef0a6c63acdaeab1c"
+    },
+    {
+      "path": "python/dhdgs/sender.py",
+      "sha256": "4a2d0fb794b025c7cefb3696f54885954cbc27b1acca884132d31a9a8274529e"
+    },
+    {
+      "path": "python/dhdgs/tracing.py",
+      "sha256": "bfbecd9e26baaecacef7286a168334fb0cc888f5bf62dec11d930b7fb2b7befb"
+    },
+    {
+      "path": "python/dhdgs/transport.py",
+      "sha256": "ab9148697e675e53cf822006f65a5d2173026a6f0d9435b1112070d742419825"
+    },
+    {
+      "path": "tools/audit_full_run.py",
+      "sha256": "f788eb29e1738e0c2d8be48fad55e7ef2836667a2f9d3c3bf1466e9f2dceae9a"
+    },
+    {
+      "path": "tools/build_full.py",
+      "sha256": "d0a572524be8e4006f273c2a2209918380e53b2f0c99c93e40bac66f33d5da96"
+    },
+    {
+      "path": "tools/calibrate_full.py",
+      "sha256": "cb823d6ace924fab002a760cc540c2856040519dfb5ea6b17fe4f2cb03f306a6"
+    },
+    {
+      "path": "tools/cluster_ctl.py",
+      "sha256": "e3d4a456ab3ece5fcfeb0539af3121083682c7606a87761c29b5011fbf6b4ff1"
+    },
+    {
+      "path": "tools/cluster_service.py",
+      "sha256": "db0939ab7ec6652d9fd6c0f19d625e93a1fe16a8add3cce0ee9523f11cd33338"
+    },
+    {
+      "path": "tools/deploy_cluster.py",
+      "sha256": "9baa832e4d22a0cf5057e233b67ba5e09e5071a288b0eae0c60cb527a2363855"
+    },
+    {
+      "path": "tools/deploy_node.py",
+      "sha256": "158c8173bfcf281794ad840c8aef1293ca7ef1482334a770b9025c4d3502da81"
+    },
+    {
+      "path": "tools/finish_full_run.py",
+      "sha256": "99db535f0d4003e05f89937be33abf55745a63db40e429a25600bb91c09e67d3"
+    },
+    {
+      "path": "tools/full_truth.py",
+      "sha256": "4a1a7c1b616a67d98254faa42bfd342a631d5b709b677d7ea3de7cfec9bd6f04"
+    },
+    {
+      "path": "tools/manage_cluster.py",
+      "sha256": "fcc82d8c85653c5c4dd68a4a30a1c72688c486b8445d21fc4b24dc3518d7b8d4"
+    },
+    {
+      "path": "tools/run_full_deployment.py",
+      "sha256": "6aa8088ed163791164e647cbcef9fb83be78ad647795b436ff394920a2dc4684"
+    },
+    {
+      "path": "tools/verify_full_index.py",
+      "sha256": "0db1b5ac7828da53a2e42c1e491d67462450fca4dc4dae417d58cf4d20982a6f"
+    },
+    {
+      "path": "cpp/async_io.cpp",
+      "sha256": "3af9b9c378554aaaf42a6bb5a7740e64c5257b5b2327e4892840db7127fe4277"
+    },
+    {
+      "path": "cpp/native.cpp",
+      "sha256": "47fe34a0328fc9d2d0cafda8eda3a1a670c408e098a956ce849b2e178c346297"
+    },
+    {
+      "path": "cpp/native_control.cpp",
+      "sha256": "8079c9293faa71b725d110d7a4a226a32cedcc558bb5fca44c56afcbcf496fda"
+    },
+    {
+      "path": "cpp/native_control.hpp",
+      "sha256": "53b8db873c8cf27fa9ed3441c8a715a22f089aa792a815b7f7065d482afa4e06"
+    },
+    {
+      "path": "cpp/native_wire.cpp",
+      "sha256": "f9f68334459a833d75b9db32a743fb701f090aac497a735d7cb5a64afdcedba1"
+    },
+    {
+      "path": "cpp/native_wire.hpp",
+      "sha256": "0e74859f306e17771a7743275c20eb963b498f00a244b0ebaa4fef9441d6d118"
+    },
+    {
+      "path": "cpp/read_metrics.cpp",
+      "sha256": "4f5e07dc6353c61321c98dc65626010ef23c197025d9a24f6483867d8640067b"
+    },
+    {
+      "path": "cpp/read_metrics.hpp",
+      "sha256": "9c2f1b26169757b6831cc1755853962396354f22b787431553b5d333867a81f8"
+    },
+    {
+      "path": "cpp/search_control.hpp",
+      "sha256": "fc5b0f2d0abff0f21cc24d0dc8b97d5f5d6efc7089a43a2d12d333524e65925b"
+    },
+    {
+      "path": "cpp/search_loop.hpp",
+      "sha256": "3d15d4309c55900cba6c56b25762274b98c1fad4fa8884a017f6b42996325f11"
+    },
+    {
+      "path": "../Reference_Code/RaBitQ-Library/include/rabitqlib/third/hnswlib/hnswalg.h",
+      "sha256": "204dff313d92ffd8eefb5bc3253830d257df64b97b83d6fb1fb0d37704a932aa"
+    },
+    {
+      "path": "../Reference_Code/RaBitQ-Library/include/rabitqlib/third/hnswlib/visited_list_pool.h",
+      "sha256": "8e5bab8d12b5ef26e3b603b656b8a1acba6738498d1d98f44c9fdb1cb0e25110"
+    },
+    {
+      "path": "configs/dhdgs.yaml",
+      "sha256": "a0053a28b7c10f150cf0fa952f7222e9dff8e37c3691ebaa21f055c810d01dc0"
+    },
+    {
+      "path": "test/control_capacity_20261020/candidate.yaml",
+      "sha256": "a045959ab0899b83ca860e60ff3afe8d589257400450d11cc2830e3956f9314a"
+    },
+    {
+      "path": "CMakeLists.txt",
+      "sha256": "1785f13a2edfebc6711e4054fe34a092d0a46f60a12ca3d51348e52f12a74ed7"
+    }
+  ]
+}

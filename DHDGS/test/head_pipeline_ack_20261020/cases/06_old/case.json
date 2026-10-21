@@ -1,0 +1,6 @@
+{
+  "mode": "old",
+  "queries": 2000,
+  "concurrency": 128,
+  "warmup": 32
+}

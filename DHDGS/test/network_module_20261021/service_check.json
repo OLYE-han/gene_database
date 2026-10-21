@@ -1,0 +1,50 @@
+[
+  {
+    "host": "192.168.33.35",
+    "port": 35751,
+    "kind": "isolated",
+    "open": false
+  },
+  {
+    "host": "192.168.33.35",
+    "port": 22051,
+    "kind": "existing",
+    "open": true
+  },
+  {
+    "host": "192.168.33.32",
+    "port": 35752,
+    "kind": "isolated",
+    "open": false
+  },
+  {
+    "host": "192.168.33.32",
+    "port": 22052,
+    "kind": "existing",
+    "open": true
+  },
+  {
+    "host": "192.168.33.30",
+    "port": 35753,
+    "kind": "isolated",
+    "open": false
+  },
+  {
+    "host": "192.168.33.30",
+    "port": 22053,
+    "kind": "existing",
+    "open": true
+  },
+  {
+    "host": "127.0.0.1",
+    "port": 35810,
+    "kind": "isolated",
+    "open": false
+  },
+  {
+    "host": "127.0.0.1",
+    "port": 22091,
+    "kind": "existing",
+    "open": true
+  }
+]

@@ -1,0 +1,7 @@
+{
+  "index": 5,
+  "mode": "inline4",
+  "queries": 2000,
+  "concurrency": 128,
+  "warmup": 32
+}

@@ -1,0 +1,94 @@
+{
+  "cases": [
+    {
+      "case": "00_c256",
+      "nodes": {
+        "0": {
+          "distinct_compute_threads": 64,
+          "peak_overlapping_search_intervals": 64,
+          "mean_overlapping_search_intervals": 26.55818803051731,
+          "search_interval_window_seconds": 1.642034189,
+          "search_thread_cpu_seconds": 43.52841971000008,
+          "mean_search_cpu_cores": 26.508838854633662,
+          "branches": 5192
+        },
+        "1": {
+          "distinct_compute_threads": 64,
+          "peak_overlapping_search_intervals": 64,
+          "mean_overlapping_search_intervals": 28.035015510703584,
+          "search_interval_window_seconds": 1.644190727,
+          "search_thread_cpu_seconds": 45.69516372600005,
+          "mean_search_cpu_cores": 27.791887507707642,
+          "branches": 4919
+        },
+        "2": {
+          "distinct_compute_threads": 64,
+          "peak_overlapping_search_intervals": 64,
+          "mean_overlapping_search_intervals": 14.561236603760065,
+          "search_interval_window_seconds": 1.638523952,
+          "search_thread_cpu_seconds": 23.77612798600001,
+          "mean_search_cpu_cores": 14.5106990697198,
+          "branches": 3404
+        }
+      }
+    },
+    {
+      "case": "03_c2048",
+      "nodes": {
+        "0": {
+          "distinct_compute_threads": 64,
+          "peak_overlapping_search_intervals": 64,
+          "mean_overlapping_search_intervals": 26.85825937629916,
+          "search_interval_window_seconds": 1.718653514,
+          "search_thread_cpu_seconds": 46.05833046099998,
+          "mean_search_cpu_cores": 26.799078514553912,
+          "branches": 5191
+        },
+        "2": {
+          "distinct_compute_threads": 64,
+          "peak_overlapping_search_intervals": 64,
+          "mean_overlapping_search_intervals": 13.83020925580243,
+          "search_interval_window_seconds": 1.712638674,
+          "search_thread_cpu_seconds": 23.61934883999998,
+          "mean_search_cpu_cores": 13.791203713060598,
+          "branches": 3405
+        },
+        "1": {
+          "distinct_compute_threads": 64,
+          "peak_overlapping_search_intervals": 64,
+          "mean_overlapping_search_intervals": 29.54617557649291,
+          "search_interval_window_seconds": 1.721806473,
+          "search_thread_cpu_seconds": 50.40246924800018,
+          "mean_search_cpu_cores": 29.273016473321263,
+          "branches": 4922
+        }
+      }
+    }
+  ],
+  "sources": {
+    "native_pool.hpp": {
+      "current": "b2751fec1514e4139c493487a1c5e182a8186493c32893dceb26bf7753d9ab46",
+      "deployed_source": "b2751fec1514e4139c493487a1c5e182a8186493c32893dceb26bf7753d9ab46"
+    },
+    "native_runtime.cpp": {
+      "current": "e40d81e8530c9ac37d338ff57eb366311b4cbf41a9d4ab0eace73d1a0efebee2",
+      "deployed_source": "e40d81e8530c9ac37d338ff57eb366311b4cbf41a9d4ab0eace73d1a0efebee2"
+    },
+    "native_control.cpp": {
+      "current": "62e532015c896b37f3f6545d7bf0178d0d8796da132cfe5d39917b854ded578b",
+      "deployed_source": "62e532015c896b37f3f6545d7bf0178d0d8796da132cfe5d39917b854ded578b"
+    },
+    "search_loop.hpp": {
+      "current": "aaafe254f18d44eb1ae5d68fd9bea4ad7a748294afae43c1471833971fd045b4",
+      "deployed_source": "aaafe254f18d44eb1ae5d68fd9bea4ad7a748294afae43c1471833971fd045b4"
+    },
+    "runtime_bindings.hpp": {
+      "current": "f337f5e008797c4f0479553c95c0562ff28a6204c6c9c198d34a8b0135007448",
+      "deployed_source": "af65f1290744c2ec34b2fb4d678d133fad9601f134f08a33559984d3d0c31490"
+    },
+    "native.cpp": {
+      "current": "b0eb2ec7945f263685fa46115c70d4771e29cf92bc9eb5f828dd8b1707241bf7",
+      "deployed_source": "b0eb2ec7945f263685fa46115c70d4771e29cf92bc9eb5f828dd8b1707241bf7"
+    }
+  }
+}

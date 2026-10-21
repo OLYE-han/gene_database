@@ -1,0 +1,41 @@
+[
+  {
+    "host": {
+      "id": 0,
+      "ssh": null,
+      "root": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/cpp_runtime_20261020/local/01_python/data0",
+      "python": "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "token_file": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/managed_continuation_three_20261019/cluster.token",
+      "state_file": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/cpp_runtime_20261020/local/01_python/data0/state.json",
+      "project": "/sharenvme/usershome/xulihan/gene_database/DHDGS"
+    },
+    "pid": 3054166,
+    "root": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/cpp_runtime_20261020/local/01_python/data0"
+  },
+  {
+    "host": {
+      "id": 1,
+      "ssh": null,
+      "root": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/cpp_runtime_20261020/local/01_python/data1",
+      "python": "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "token_file": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/managed_continuation_three_20261019/cluster.token",
+      "state_file": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/cpp_runtime_20261020/local/01_python/data1/state.json",
+      "project": "/sharenvme/usershome/xulihan/gene_database/DHDGS"
+    },
+    "pid": 3054170,
+    "root": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/cpp_runtime_20261020/local/01_python/data1"
+  },
+  {
+    "host": {
+      "id": 2,
+      "ssh": null,
+      "root": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/cpp_runtime_20261020/local/01_python/data2",
+      "python": "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "token_file": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/managed_continuation_three_20261019/cluster.token",
+      "state_file": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/cpp_runtime_20261020/local/01_python/data2/state.json",
+      "project": "/sharenvme/usershome/xulihan/gene_database/DHDGS"
+    },
+    "pid": 3054172,
+    "root": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/cpp_runtime_20261020/local/01_python/data2"
+  }
+]

@@ -1,0 +1,170 @@
+[
+  {
+    "case": "00_wait_ack",
+    "counts": {
+      "queries": 10000,
+      "parents": 3514,
+      "ready_before_peer_ack": 0,
+      "sent_before_peer_ack": 0,
+      "incomplete_at_delivery": 0,
+      "incomplete_after_reconciliation": 0,
+      "reconciled_branches": 0,
+      "matching_transfer_counters": 3514
+    },
+    "parent_completion_to_publication_ms": {
+      "mean": 5.573353483494593,
+      "p99": 102.1244559,
+      "max": 113.820144
+    },
+    "largest_observed_send_lead": []
+  },
+  {
+    "case": "01_early",
+    "counts": {
+      "queries": 10000,
+      "parents": 3510,
+      "ready_before_peer_ack": 1641,
+      "sent_before_peer_ack": 584,
+      "incomplete_at_delivery": 1797,
+      "incomplete_after_reconciliation": 0,
+      "reconciled_branches": 1812,
+      "matching_transfer_counters": 3510
+    },
+    "parent_completion_to_publication_ms": {
+      "mean": 0.008344127065527066,
+      "p99": 0.02419531999999998,
+      "max": 0.075779
+    },
+    "largest_observed_send_lead": [
+      {
+        "request_id": "e1eb2c90-6359-472c-846c-eaa042b26683",
+        "query_id": 1927340,
+        "job": 7917,
+        "node_id": 2,
+        "latency_ms": 160.664488,
+        "publication_ms": 0.00465,
+        "sent_ahead_of_peer_ack_ms": 134.941761
+      },
+      {
+        "request_id": "cde27bc5-8c8a-4082-98b7-b3fb112b0fdc",
+        "query_id": 1855406,
+        "job": 7844,
+        "node_id": 2,
+        "latency_ms": 177.139398,
+        "publication_ms": 0.003866,
+        "sent_ahead_of_peer_ack_ms": 134.092483
+      },
+      {
+        "request_id": "57a8ff8f-5706-4d3b-8b4e-a79b08ac0bac",
+        "query_id": 1831414,
+        "job": 7822,
+        "node_id": 2,
+        "latency_ms": 178.134858,
+        "publication_ms": 0.005032,
+        "sent_ahead_of_peer_ack_ms": 133.447842
+      },
+      {
+        "request_id": "75f187bc-8cbd-4743-95b3-514956683372",
+        "query_id": 1899191,
+        "job": 7881,
+        "node_id": 2,
+        "latency_ms": 165.542106,
+        "publication_ms": 0.005424,
+        "sent_ahead_of_peer_ack_ms": 133.010332
+      },
+      {
+        "request_id": "82cde9ce-120f-4859-804d-3ce48b11240b",
+        "query_id": 1839471,
+        "job": 7830,
+        "node_id": 2,
+        "latency_ms": 173.963434,
+        "publication_ms": 0.003834,
+        "sent_ahead_of_peer_ack_ms": 132.84339
+      }
+    ]
+  },
+  {
+    "case": "02_early",
+    "counts": {
+      "queries": 10000,
+      "parents": 3517,
+      "ready_before_peer_ack": 1753,
+      "sent_before_peer_ack": 1087,
+      "incomplete_at_delivery": 1876,
+      "incomplete_after_reconciliation": 0,
+      "reconciled_branches": 1890,
+      "matching_transfer_counters": 3517
+    },
+    "parent_completion_to_publication_ms": {
+      "mean": 0.008685785897071368,
+      "p99": 0.0267702,
+      "max": 0.121281
+    },
+    "largest_observed_send_lead": [
+      {
+        "request_id": "4ae4a7e1-a63a-4b5a-bb6a-304443538d1c",
+        "query_id": 1497268,
+        "job": 7478,
+        "node_id": 2,
+        "latency_ms": 134.930688,
+        "publication_ms": 0.015006,
+        "sent_ahead_of_peer_ack_ms": 117.524167
+      },
+      {
+        "request_id": "887f896a-2ca5-4c9d-956a-35eaf1ab3fc1",
+        "query_id": 1506815,
+        "job": 7491,
+        "node_id": 2,
+        "latency_ms": 132.370768,
+        "publication_ms": 0.008466,
+        "sent_ahead_of_peer_ack_ms": 116.940489
+      },
+      {
+        "request_id": "71120120-9dc4-414f-9cbd-dd002e96653d",
+        "query_id": 1503035,
+        "job": 7486,
+        "node_id": 2,
+        "latency_ms": 139.207987,
+        "publication_ms": 0.006864,
+        "sent_ahead_of_peer_ack_ms": 116.574868
+      },
+      {
+        "request_id": "b1555d08-d27f-4d68-83c0-eee45293c8b4",
+        "query_id": 1554446,
+        "job": 7536,
+        "node_id": 2,
+        "latency_ms": 126.482047,
+        "publication_ms": 0.013671,
+        "sent_ahead_of_peer_ack_ms": 115.548574
+      },
+      {
+        "request_id": "efb8f415-cd15-446b-a7f7-d7b11db38bb4",
+        "query_id": 1557078,
+        "job": 7542,
+        "node_id": 2,
+        "latency_ms": 119.833714,
+        "publication_ms": 0.008321,
+        "sent_ahead_of_peer_ack_ms": 113.708935
+      }
+    ]
+  },
+  {
+    "case": "03_wait_ack",
+    "counts": {
+      "queries": 10000,
+      "parents": 3515,
+      "ready_before_peer_ack": 0,
+      "sent_before_peer_ack": 0,
+      "incomplete_at_delivery": 0,
+      "incomplete_after_reconciliation": 0,
+      "reconciled_branches": 0,
+      "matching_transfer_counters": 3515
+    },
+    "parent_completion_to_publication_ms": {
+      "mean": 10.757135245519201,
+      "p99": 83.4462227200001,
+      "max": 98.274726
+    },
+    "largest_observed_send_lead": []
+  }
+]

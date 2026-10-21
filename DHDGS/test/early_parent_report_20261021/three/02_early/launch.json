@@ -1,0 +1,41 @@
+[
+  {
+    "host": {
+      "id": 0,
+      "ssh": null,
+      "root": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/early_parent_report_20261021/data/three/02_early",
+      "python": "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "token_file": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/managed_continuation_three_20261019/cluster.token",
+      "state_file": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/early_parent_report_20261021/data/three/02_early/state.json",
+      "project": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/early_parent_report_20261021/source"
+    },
+    "pid": 4100075,
+    "root": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/early_parent_report_20261021/data/three/02_early"
+  },
+  {
+    "host": {
+      "id": 1,
+      "ssh": "intel-32",
+      "root": "/sharenvme/userhome/xulihan/dhdgs_deploy/early_parent_report_20261021/three/02_early",
+      "python": "/sharenvme/userhome/xulihan/dhdgs_deploy/seq2m_full_20261017/gene_database/DHDGS/.venv/bin/python",
+      "token_file": "/sharenvme/userhome/xulihan/dhdgs_deploy/managed_continuation_three_20261019/cluster.token",
+      "state_file": "/sharenvme/userhome/xulihan/dhdgs_deploy/early_parent_report_20261021/three/02_early/state.json",
+      "project": "/sharenvme/userhome/xulihan/dhdgs_deploy/early_parent_report_20261021/source"
+    },
+    "pid": 68939,
+    "root": "/sharenvme/userhome/xulihan/dhdgs_deploy/early_parent_report_20261021/three/02_early"
+  },
+  {
+    "host": {
+      "id": 2,
+      "ssh": "intel-30",
+      "root": "/sharenvme/xulihan_dhdgs/early_parent_report_20261021/three/02_early",
+      "python": "/sharenvme/xulihan_dhdgs/seq2m_full_20261017/gene_database/DHDGS/.venv/bin/python",
+      "token_file": "/sharenvme/xulihan_dhdgs/managed_continuation_three_20261019/cluster.token",
+      "state_file": "/sharenvme/xulihan_dhdgs/early_parent_report_20261021/three/02_early/state.json",
+      "project": "/sharenvme/xulihan_dhdgs/early_parent_report_20261021/source"
+    },
+    "pid": 1070068,
+    "root": "/sharenvme/xulihan_dhdgs/early_parent_report_20261021/three/02_early"
+  }
+]

@@ -1,0 +1,7 @@
+{
+  "index": 4,
+  "mode": "shared4",
+  "queries": 2000,
+  "concurrency": 128,
+  "warmup": 32
+}

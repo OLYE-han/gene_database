@@ -1,0 +1,13 @@
+{
+  "base_plan": "gene_database/DHDGS/test/control_capacity_20261020/independent_data/cluster.yaml",
+  "name": "independent",
+  "port": 37064,
+  "queries": 2000,
+  "concurrency": 128,
+  "warmup": 32,
+  "snapshot": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/control_capacity_20261020/verified_source",
+  "mode": "lanes",
+  "lanes": {
+    "processes": 4
+  }
+}
