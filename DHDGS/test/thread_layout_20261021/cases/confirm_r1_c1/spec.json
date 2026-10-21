@@ -1,0 +1,27 @@
+{
+  "backend": "cpp",
+  "topology": "three",
+  "count": 50000,
+  "concurrency": 256,
+  "threads": 32,
+  "route_threads": 16,
+  "head_connections": 128,
+  "adaptive": false,
+  "max_lanes": 8,
+  "network_mode": "fixed",
+  "connections": 128,
+  "control_capacity": 1024,
+  "early": true,
+  "layout": {
+    "search": 32,
+    "route": 16,
+    "merge": 4,
+    "data_tx": 4,
+    "data_rx": 4,
+    "data_handlers_per_rx": 4,
+    "head_tx": 4,
+    "head_rx": 4,
+    "head_handlers_per_rx": 4
+  },
+  "source_commit": "40933805ab6fbe5fc860c54bb3f9eab6877771bc"
+}

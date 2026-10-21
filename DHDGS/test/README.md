@@ -93,3 +93,5 @@ GitHub 保存实验脚本、完整 YAML、汇总结果、来源哈希和回归�
 
 
 2026-10-21清理：按要求删除早于10月20日的40个本地实验目录，释放约12.84GiB。在用全量索引和ground truth验证文件迁至`artifacts/seq2m_runtime`，旧服务配置/认证迁至`artifacts/runtime_assets`；三个旧路径仅为兼容运行服务的链接。历史条目仍描述原实验，可从Git历史查看已删除的紧凑报告；本地原始数据已清理。清理清单和后续三机线程扫描见[thread_layout_20261021](thread_layout_20261021/STATUS.md)。
+
+- 2026-10-21三机线程布局：45轮/81万请求，配置、性能取舍与p99时序图见[thread_layout_20261021/REPORT.md](thread_layout_20261021/REPORT.md)。

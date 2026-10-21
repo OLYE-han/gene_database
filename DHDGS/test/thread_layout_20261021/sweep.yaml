@@ -1,0 +1,207 @@
+status: prepared_not_run
+fixed:
+  topology: Intel-35 head + data0; Intel-32 data1; Intel-30 data2
+  concurrency: 256
+  budget: 200
+  top_k: 10
+  minimum_recall: 0.95
+  early_parent_report: true
+  send_pending_per_client: 4096
+  control_pending: 1024
+  total_connections_per_endpoint_per_client: 128
+  total_receive_handler_queue_capacity: 4096
+  max_receive_connections: 4096
+  search_engine: native C++
+  io_backend: sync_pread
+  warmup_queries: 200
+  query_selection: same 2000 rows, repeated identically
+  result_memory_limit_bytes: 34359738368
+baseline:
+  search: 64
+  route: 16
+  merge: 4
+  data_tx: 1
+  data_rx: 1
+  data_handlers_per_rx: 4
+  head_tx: 1
+  head_rx: 1
+  head_handlers_per_rx: 4
+screen_queries: 10000
+screening:
+- name: s64_net1
+  layout:
+    search: 64
+    route: 16
+    merge: 4
+    data_tx: 1
+    data_rx: 1
+    data_handlers_per_rx: 4
+    head_tx: 1
+    head_rx: 1
+    head_handlers_per_rx: 4
+- name: s64_net2
+  layout:
+    search: 64
+    route: 16
+    merge: 4
+    data_tx: 2
+    data_rx: 2
+    data_handlers_per_rx: 4
+    head_tx: 2
+    head_rx: 2
+    head_handlers_per_rx: 4
+- name: s64_net4
+  layout:
+    search: 64
+    route: 16
+    merge: 4
+    data_tx: 4
+    data_rx: 4
+    data_handlers_per_rx: 4
+    head_tx: 4
+    head_rx: 4
+    head_handlers_per_rx: 4
+- name: s128_net1
+  layout:
+    search: 128
+    route: 16
+    merge: 4
+    data_tx: 1
+    data_rx: 1
+    data_handlers_per_rx: 4
+    head_tx: 1
+    head_rx: 1
+    head_handlers_per_rx: 4
+- name: s128_net2
+  layout:
+    search: 128
+    route: 16
+    merge: 4
+    data_tx: 2
+    data_rx: 2
+    data_handlers_per_rx: 4
+    head_tx: 2
+    head_rx: 2
+    head_handlers_per_rx: 4
+- name: s128_net4
+  layout:
+    search: 128
+    route: 16
+    merge: 4
+    data_tx: 4
+    data_rx: 4
+    data_handlers_per_rx: 4
+    head_tx: 4
+    head_rx: 4
+    head_handlers_per_rx: 4
+- name: s256_net1
+  layout:
+    search: 256
+    route: 16
+    merge: 4
+    data_tx: 1
+    data_rx: 1
+    data_handlers_per_rx: 4
+    head_tx: 1
+    head_rx: 1
+    head_handlers_per_rx: 4
+- name: s256_net2
+  layout:
+    search: 256
+    route: 16
+    merge: 4
+    data_tx: 2
+    data_rx: 2
+    data_handlers_per_rx: 4
+    head_tx: 2
+    head_rx: 2
+    head_handlers_per_rx: 4
+- name: s256_net4
+  layout:
+    search: 256
+    route: 16
+    merge: 4
+    data_tx: 4
+    data_rx: 4
+    data_handlers_per_rx: 4
+    head_tx: 4
+    head_rx: 4
+    head_handlers_per_rx: 4
+refinement:
+  method: coordinate search around screening winner; retain baseline interleaved;
+    independent head and data settings
+  search:
+  - 32
+  - 64
+  - 96
+  - 128
+  - 192
+  - 256
+  route:
+  - 8
+  - 16
+  - 32
+  - 64
+  merge:
+  - 2
+  - 4
+  - 8
+  - 16
+  data_tx:
+  - 1
+  - 2
+  - 4
+  - 8
+  data_rx:
+  - 1
+  - 2
+  - 4
+  data_handlers_per_rx:
+  - 2
+  - 4
+  - 8
+  head_tx:
+  - 1
+  - 2
+  - 4
+  head_rx:
+  - 1
+  - 2
+  - 4
+  head_handlers_per_rx:
+  - 2
+  - 4
+  - 8
+confirmation:
+  queries: 50000
+  repetitions: 3
+  layouts: baseline and top two; alternate order
+  primary: median QPS among all zero-query-failure, recall >= .95, budget/no-revisit
+    compliant runs; keep network metric completeness as a separate flag
+  secondary: report p99; within 3% QPS prefer fewer threads and lower p99
+constraints:
+- No implementation changes during comparison; use committed binaries and record hashes
+- Network reactor counts fixed min=max; no adaptive variation during causal thread
+  sweeps
+- Connections per reactor = 128 / send reactors; record actual thread and connection
+  counts
+- Receive queue capacity per reactor = 4096 / receive reactors; total pending limits
+  fixed
+- Native network_module and adaptive_control are mutually exclusive; do not sweep
+  incompatible controls
+- Legacy Python transfer_workers/control_workers/head_lanes do not control this C++
+  path and are not claimed as tested knobs
+- Homogeneous data search thread count is required by current protocol configuration
+  signature
+- Results describe the tested configuration space, dataset and concurrency; not a
+  proof of global optimum
+- CPU load and full query records retained; p99 overall and cross-node timelines for
+  final contenders
+- Compress raw results only after verified archival; never change completion timestamps
+  or omit failed requests
+- Initial 10k screening used the archived 4GiB capture cap without overflow; remaining
+  and all 50k confirmations use 32GiB to keep archival outside measured queries. This
+  is a capture threshold, not a search budget change.
+- A paused refinement run had 3 late-heartbeat network-counter records incomplete,
+  but all 10000 results succeeded. Retain this run and all slow requests; do not filter
+  performance by network metric completeness. See metrics_audit_notes.json.
