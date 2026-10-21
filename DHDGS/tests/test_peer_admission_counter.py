@@ -160,3 +160,21 @@ class AdmissionCounterTests(unittest.TestCase):
             finally:
                 runtime.close()
                 if control is not None:control.join(2)
+
+
+class LeaseIdentityTests(unittest.TestCase):
+    def test_lease_does_not_scan_retained_queries_and_preserves_token(self):
+        class NoScan(dict):
+            def items(self):raise AssertionError('lease scanned history')
+        runtime=PeerRuntime.__new__(PeerRuntime)
+        runtime.lock=threading.Lock()
+        runtime.c={'peer':{'lease_timeout_ms':1000}}
+        record={'state':{'token':'secret'},'cancelled':False,'lease':0}
+        runtime.records=NoScan({('q','b'):record})
+        runtime.query_visits={'q':('q','b'),'expired':('expired','b')}
+        self.assertEqual(runtime.lease('missing','secret'),{'found':False})
+        self.assertEqual(runtime.lease('expired','secret'),{'found':False})
+        with self.assertRaises(ValueError):runtime.lease('q','wrong')
+        self.assertEqual(runtime.lease('q','secret',cancel=True),{'found':True})
+        self.assertTrue(record['cancelled'])
+        self.assertGreater(record['lease'],time.monotonic())

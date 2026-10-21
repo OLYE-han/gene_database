@@ -44,14 +44,16 @@ class DeferredHandler(BaseHTTPRequestHandler):
 
 class PipelineHTTPServer(HTTPServer):
     """The shared adaptive ingress is the only pool reading HTTP requests."""
-    def __init__(self,address,handler,flow,capacity):
+    def __init__(self,address,handler,flow,capacity,ingress_workers=4):
         self.flow=flow
+        # Native query execution needs only a small HTTP parsing boundary.
+        self.ingress=flow.ingress if flow is not None else QueuedSender(ingress_workers,capacity,'dhdgs-http-ingress')
         self.management=QueuedSender(1,capacity,'dhdgs-head-management')
         self.responses=QueuedSender(1,capacity,'dhdgs-head-http-response')
         super().__init__(address,handler)
 
     def process_request(self,request,address):
-        try:self.flow.ingress.submit(self._process,request,address)
+        try:self.ingress.submit(self._process,request,address)
         except RuntimeError:self.shutdown_request(request)
 
     def _process(self,request,address):
@@ -62,6 +64,7 @@ class PipelineHTTPServer(HTTPServer):
             if not getattr(handler,'deferred',False):self.shutdown_request(request)
 
     def server_close(self):
+        if self.flow is None:self.ingress.shutdown(wait=True)
         self.management.shutdown(wait=True)
         self.responses.shutdown(wait=True)
         super().server_close()

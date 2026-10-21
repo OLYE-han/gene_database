@@ -1,7 +1,7 @@
 """Peer branches plus a control-only head registry. Trusted-cluster protocol."""
 from __future__ import annotations
 
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, Future
 from collections import deque
 import hashlib
 from contextlib import nullcontext
@@ -282,11 +282,20 @@ class PeerRuntime:
             self.io=LocalIO(shard,c['storage']['io'],trace=c['metrics']['detailed_trace'] or bool(c['metrics'].get('trace_query_ids')))
         self.optimized=c['peer']['communication']['mode']=='optimized'
         comm=c['peer']['communication']
+        self.adaptive_settings=c['peer'].get('adaptive_services',{})
+        self.adaptive_enabled=self.adaptive_settings.get('enabled',False)
         self.rpc_pool=None
         if self.optimized and comm['reuse_connections']:
             from .peer_rpc import ConnectionPool
-            self.rpc_pool=ConnectionPool(comm['connections_per_endpoint'],comm['max_connection_endpoints'],
-                                        c['peer']['connection_pool']['probe_mode'])
+            if self.adaptive_enabled and self.adaptive_settings['connections']:
+                from .adaptive_connections import AdaptiveConnectionPool
+                self.rpc_pool=AdaptiveConnectionPool(self.adaptive_settings,comm['max_connection_endpoints'])
+            elif c['peer']['connection_pool'].get('data_scheduling','broadcast')=='fifo':
+                from .peer_rpc import FairConnectionPool
+                self.rpc_pool=FairConnectionPool(comm['connections_per_endpoint'],comm['max_connection_endpoints'])
+            else:self.rpc_pool=ConnectionPool(comm['connections_per_endpoint'],comm['max_connection_endpoints'],
+                                             c['peer']['connection_pool']['probe_mode'])
+        if self.rpc_pool is not None:self.rpc_pool.tcp_nodelay=c['network'].get('rpc_tcp_nodelay',False)
         self.queued_senders=self.optimized and c['peer']['sender']['mode']=='queued'
         self.native_controller=None
         if c['peer']['control']['scheduler']=='native':
@@ -296,7 +305,12 @@ class PeerRuntime:
             from .sender import QueuedSender
             self.control_workers=(QueuedSender(comm['control_workers'],comm['max_pending_control'],'dhdgs-control')
                                   if self.native_controller is None else None)
-            self.transfers=QueuedSender(comm['transfer_workers'],c['peer']['sender']['transfer_queue_capacity'],'dhdgs-transfer')
+            if self.adaptive_enabled and self.adaptive_settings['transfer']:
+                from .adaptive_service import AdaptiveServicePool
+                a=self.adaptive_settings
+                self.transfers=AdaptiveServicePool(a,a['transfer_min'],a['transfer_max'],
+                    c['peer']['sender']['transfer_queue_capacity'],'dhdgs-transfer')
+            else:self.transfers=QueuedSender(comm['transfer_workers'],c['peer']['sender']['transfer_queue_capacity'],'dhdgs-transfer')
         else:
             self.control_workers=(ThreadPoolExecutor(max_workers=comm['control_workers'],thread_name_prefix='dhdgs-control')
                                   if self.optimized and self.native_controller is None else None)
@@ -321,6 +335,9 @@ class PeerRuntime:
         self.independent_admission=c['peer']['admission']['queue_lock']=='independent'
         self.admission_queue=deque()
         self.admission_cv=threading.Condition(threading.Lock() if self.independent_admission else self.lock)
+        # A separate short accounting lock lets the unique execution owner
+        # start a branch without waiting behind native registration/mirroring.
+        self.admission_accounting_lock=threading.Lock()
         self.admission_pending=0;self.admission_peak_pending=0;self.admission_rejected=0
         self.control_scheduler=None
         if self.optimized and c['peer']['control']['scheduler']=='event':
@@ -328,7 +345,16 @@ class PeerRuntime:
             self.control_scheduler=ControlEventScheduler(self)
         self.admission_thread=None
         self.admission_threads=[]
-        if self.buffered_admission:
+        self.admission_pool=None
+        if self.buffered_admission and self.adaptive_enabled and self.adaptive_settings['admission']:
+            from .adaptive_service import AdaptiveServicePool
+            a=self.adaptive_settings
+            def downstream_ready():
+                m=self.workers.metrics()
+                return m['active']<m['workers'] and m['queued']==0
+            self.admission_pool=AdaptiveServicePool(a,a['admission_min'],a['admission_max'],
+                c['peer']['admission']['queue_capacity'],'dhdgs-admission',downstream_ready)
+        elif self.buffered_admission:
             self.admission_threads=[threading.Thread(target=self._admit_loop,
                 name=f'dhdgs-admission-{i}',daemon=True)
                 for i in range(c['peer']['admission']['dispatch_threads'])]
@@ -360,10 +386,16 @@ class PeerRuntime:
             raise ValueError('Invalid carried frontier')
         key=(state['query_request_id'],state['branch_id'])
         digest=hashlib.sha256(msgpack.packb(state,use_bin_type=True)).hexdigest()
+        if self.c['peer'].get('locking',{}).get('split_native_registration',False):
+            return self._accept_split_registration(state,key,digest,traced,cpu_enter)
+        mirror_enter=time.monotonic_ns() if traced else None
+        updates=(self.native_controller.take_updates() if self.native_controller is not None and
+                 self.adaptive_settings.get('mirror_outside_lock',False) else None)
         lock_requested=time.monotonic_ns() if traced else None
         with self.lock:
             lock_acquired=time.monotonic_ns() if traced else None
-            self._native_updates_locked()
+            self._native_updates_locked(updates)
+            mirror_applied=time.monotonic_ns() if traced else None
             if self.stop.is_set():raise RuntimeError('Peer runtime closed')
             if key in self.records:
                 if self.records[key]['digest']!=digest: raise ValueError('Conflicting branch retry')
@@ -377,21 +409,7 @@ class PeerRuntime:
             if self.buffered_admission and self.admission_pending>=self.c['peer']['admission']['queue_capacity']:
                 self.admission_rejected+=1
                 raise RuntimeError('Peer admission queue capacity exceeded')
-            now=time.monotonic()
-            initial_delay=self.c['peer']['control']['initial_heartbeat_delay_ms']/1000 if self.optimized else 0.
-            rec={'state':state,'digest':digest,'status':'queued','lease':now+self.c['peer']['lease_timeout_ms']/1000,
-                 'deadline':now+self.c['peer']['query_timeout_seconds'],'cancelled':False,'children':[],
-                 'report':None,'error':None,'acked':False,'touched':now,'peer_rpc_count':0,'peer_request_bytes':0,
-                 'peer_response_bytes':0,'peer_transfer_errors':0,'created_at':now,
-                 'created_perf':time.perf_counter(),'pending_start':self.buffered_admission,
-                 'control_inflight':False,'control_next_at':now+initial_delay if initial_delay else 0.,
-                 # Only the unchanged empty initial state is deferred. Child
-                 # topology, terminal result and error still change signature
-                 # and therefore bypass the initial heartbeat timer.
-                 'control_signature':((),False,None) if initial_delay else None}
-            if self.c['peer']['execution_model']=='native':
-                from .index import native
-                rec['native_control']=native().SearchControl(rec['lease'],rec['deadline'])
+            rec=self._new_record(state,digest);now=rec['created_at']
             if self.native_controller is not None:
                 metadata={name:state[name] for name in ('query_request_id','branch_id','parent_branch_id',
                     'token','head_endpoint','entry_node','target_node','visited_nodes','ancestry','work_grant','branch_slots')}
@@ -407,20 +425,27 @@ class PeerRuntime:
                     'admission_mode':'buffered' if self.buffered_admission else 'direct',
                     'accept_thread_cpu_enter_ns':cpu_enter,
                     'accept_state_lock_enter_ns':lock_requested,
-                    'accept_state_lock_acquired_ns':lock_acquired}
+                    'accept_state_lock_acquired_ns':lock_acquired,
+                    'accept_mirror_enter_ns':mirror_enter,'accept_mirror_applied_ns':mirror_applied}
                 rec['control_events']=[]
             if self.buffered_admission:
                 # Publish identity, reserve pending capacity and enqueue atomically.
-                self.admission_pending+=1
-                self.admission_peak_pending=max(self.admission_peak_pending,self.admission_pending)
+                with self.admission_accounting_lock:
+                    self.admission_pending+=1
+                    self.admission_peak_pending=max(self.admission_peak_pending,self.admission_pending)
                 # Lock order is state -> queue. Consumer releases queue before
                 # touching state/submitting work; no queue -> state inversion.
-                with self.admission_cv if self.independent_admission else nullcontext():
-                    self.admission_queue.append(key)
+                if self.admission_pool is not None:
                     if 'execution_timestamps' in rec:
-                        rec['execution_timestamps'].update(enqueued_ns=time.monotonic_ns(),
-                            queue_depth_at_enqueue=len(self.admission_queue))
-                    self.admission_cv.notify()
+                        rec['execution_timestamps'].update(enqueued_ns=time.monotonic_ns())
+                    self.admission_pool.submit(self._adaptive_admit,key)
+                else:
+                    with self.admission_cv if self.independent_admission else nullcontext():
+                        self.admission_queue.append(key)
+                        if 'execution_timestamps' in rec:
+                            rec['execution_timestamps'].update(enqueued_ns=time.monotonic_ns(),
+                                queue_depth_at_enqueue=len(self.admission_queue))
+                        self.admission_cv.notify()
         if traced:rec['execution_timestamps']['accept_state_lock_released_ns']=time.monotonic_ns()
         if not self.buffered_admission:
             try:self._submit_branch(key)
@@ -428,6 +453,109 @@ class PeerRuntime:
                 self._admission_failed(key,exc);raise
         self._control_changed(key)
         if traced:rec['execution_timestamps']['accept_thread_cpu_return_ns']=time.thread_time_ns()
+        return {'accepted':True,'duplicate':False}
+
+    def _new_record(self,state,digest):
+        now=time.monotonic()
+        initial_delay=self.c['peer']['control']['initial_heartbeat_delay_ms']/1000 if self.optimized else 0.
+        rec={'state':state,'digest':digest,'status':'queued','lease':now+self.c['peer']['lease_timeout_ms']/1000,
+             'deadline':now+self.c['peer']['query_timeout_seconds'],'cancelled':False,'children':[],
+             'report':None,'error':None,'acked':False,'touched':now,'peer_rpc_count':0,'peer_request_bytes':0,
+             'peer_response_bytes':0,'peer_transfer_errors':0,'created_at':now,
+             'created_perf':time.perf_counter(),'pending_start':self.buffered_admission,
+             'control_inflight':False,'control_next_at':now+initial_delay if initial_delay else 0.,
+             'control_signature':((),False,None) if initial_delay else None}
+        if self.c['peer']['execution_model']=='native':
+            from .index import native
+            rec['native_control']=native().SearchControl(rec['lease'],rec['deadline'])
+        return rec
+
+    def _accept_split_registration(self,state,key,digest,traced,cpu_enter):
+        """Reserve identity/credits, register without D1, then commit once.
+
+        A matching retry waits for the same registration Future outside D1.
+        No successful ACK or searchable task exists before commit. Shutdown
+        fences commit and waits for outstanding registrations before closing
+        the native controller. A failed reservation releases each credit once.
+        """
+        rec=self._new_record(state,digest)
+        ready=Future();rec['registration_future']=ready;rec['status']='registering'
+        if traced:
+            rec['execution_timestamps']={'receiver_thread_id':threading.get_native_id(),
+                'admission_mode':'buffered','accept_thread_cpu_enter_ns':cpu_enter,
+                'accept_mirror_enter_ns':time.monotonic_ns()}
+            rec['control_events']=[]
+        updates=self.native_controller.take_updates()
+        retired=[];duplicate=False;pending=None
+        trace=rec.get('execution_timestamps')
+        if trace is not None:trace['accept_state_lock_enter_ns']=time.monotonic_ns()
+        with self.lock:
+            if trace is not None:trace['accept_state_lock_acquired_ns']=time.monotonic_ns()
+            self._native_updates_locked(updates,retired)
+            if trace is not None:trace['accept_mirror_applied_ns']=time.monotonic_ns()
+            if self.stop.is_set():raise RuntimeError('Peer runtime closed')
+            old=self.records.get(key)
+            if old is not None:
+                if old['digest']!=digest:raise ValueError('Conflicting branch retry')
+                duplicate=True;pending=old.get('registration_future')
+            else:
+                if key in self.tombstones:raise ValueError('Expired branch cannot be replayed')
+                if state['query_request_id'] in self.query_visits:raise ValueError('Query already visited this data node')
+                if self.active_count>=self.c['peer']['max_active_queries']:raise RuntimeError('Peer branch capacity exceeded')
+                if len(self.records)>=self.c['peer']['max_tombstones']+self.c['peer']['max_active_queries']:
+                    raise RuntimeError('Peer dedup retention capacity exceeded')
+                with self.admission_accounting_lock:
+                    if self.admission_pending>=self.c['peer']['admission']['queue_capacity']:
+                        self.admission_rejected+=1;raise RuntimeError('Peer admission queue capacity exceeded')
+                    self.admission_pending+=1
+                    self.admission_peak_pending=max(self.admission_peak_pending,self.admission_pending)
+                self.records[key]=rec;self.active_count+=1
+                self.query_visits[state['query_request_id']]=key
+                if trace is not None:trace['accepted_ns']=time.monotonic_ns()
+        if trace is not None:trace['accept_state_lock_released_ns']=time.monotonic_ns()
+        retired.clear()  # Last Python/native references are dropped without D1.
+        if duplicate:
+            if pending is not None:pending.result(timeout=self.c['peer']['handoff_timeout_seconds'])
+            return {'accepted':True,'duplicate':True}
+        try:
+            metadata={name:state[name] for name in ('query_request_id','branch_id','parent_branch_id',
+                'token','head_endpoint','entry_node','target_node','visited_nodes','ancestry','work_grant','branch_slots')}
+            metadata.update(accepted_ns=time.monotonic_ns(),created_ns=int(rec['created_at']*1e9),
+                lease=rec['lease'],deadline=rec['deadline'],trace=traced)
+            if trace is not None:trace['accept_native_register_enter_ns']=time.monotonic_ns()
+            rec['native_ticket']=self.native_controller.register_branch(metadata,rec['native_control'])
+            if trace is not None:
+                trace['accept_native_register_return_ns']=time.monotonic_ns()
+                trace['accept_commit_lock_enter_ns']=time.monotonic_ns()
+            with self.lock:
+                if trace is not None:trace['accept_commit_lock_acquired_ns']=time.monotonic_ns()
+                if self.stop.is_set():raise RuntimeError('Peer runtime closed during registration')
+                if rec.get('registration_expired') or rec['cancelled'] or rec['native_control'].cancelled():
+                    raise TimeoutError('Branch cancelled or expired during registration')
+                rec['status']='queued'
+                if self.admission_pool is not None:
+                    if trace is not None:trace['enqueued_ns']=time.monotonic_ns()
+                    self.admission_pool.submit(self._adaptive_admit,key)
+                else:
+                    with self.admission_cv if self.independent_admission else nullcontext():
+                        self.admission_queue.append(key)
+                        if trace is not None:trace.update(enqueued_ns=time.monotonic_ns(),queue_depth_at_enqueue=len(self.admission_queue))
+                        self.admission_cv.notify()
+            if trace is not None:trace['accept_commit_lock_released_ns']=time.monotonic_ns()
+        except BaseException as exc:
+            # Native registration may have succeeded: keep that identity and
+            # report failure, so a retry cannot start a second branch.
+            if 'native_ticket' in rec and not rec.get('registration_expired'):self._admission_failed(key,exc)
+            else:
+                with self.lock:
+                    self._release_pending_locked(rec);self._pop_record_locked(key)
+                    if rec.get('registration_expired'):self.tombstones[key]=time.monotonic()
+                    elif self.query_visits.get(key[0])==key:self.query_visits.pop(key[0],None)
+            ready.set_exception(exc)
+            raise
+        ready.set_result(None)
+        rec.pop('registration_future',None)
+        if trace is not None:trace['accept_thread_cpu_return_ns']=time.thread_time_ns()
         return {'accepted':True,'duplicate':False}
 
     def _mark_acked_locked(self,rec):
@@ -447,11 +575,11 @@ class PeerRuntime:
         if self.control_scheduler is not None:self.control_scheduler.dirty(key)
         else:self.control_wakeup.set()
 
-    def _native_updates_locked(self):
+    def _native_updates_locked(self,updates=None,retired=None):
         """Mirror terminal metadata only; native reporting never waits for this."""
         if self.native_controller is None:return
         now=time.monotonic()
-        for update in self.native_controller.take_updates():
+        for update in (self.native_controller.take_updates() if updates is None else updates):
             key=(update['query_request_id'],update['branch_id'])
             rec=self.records.get(key)
             if rec is None:continue
@@ -460,22 +588,44 @@ class PeerRuntime:
                 rec['status']=update.get('status','complete')
                 rec['touched']=now
             elif update['kind']=='expired':
-                self._pop_record_locked(key);self.tombstones[key]=now
+                pending=rec.get('registration_future')
+                if pending is not None and not pending.done():
+                    rec['registration_expired']=True
+                    continue  # Reservation owner performs the rollback once.
+                removed=self._pop_record_locked(key)
+                if retired is not None and removed is not None:retired.append(removed)
+                self.tombstones[key]=now
         while self.tombstones:
             first,stamp=next(iter(self.tombstones.items()))
             if len(self.tombstones)<=self.c['peer']['max_tombstones'] and now-stamp<=self.c['peer']['retention_seconds']:break
             self.tombstones.pop(first)
             if self.query_visits.get(first[0])==first:self.query_visits.pop(first[0],None)
 
+    def _adaptive_admit(self,key):
+        trace=self.records[key].get('execution_timestamps')
+        if trace is not None:trace.update(dequeued_ns=time.monotonic_ns(),
+            admission_thread_id=threading.get_native_id())
+        try:self._submit_branch(key)
+        except Exception as exc:self._admission_failed(key,exc)
+
     def _admit_loop(self):
         while True:
+            queue_lock_enter=time.monotonic_ns()
+            queue_cpu_enter=time.thread_time_ns()
             with self.admission_cv:
+                queue_lock_acquired=time.monotonic_ns()
+                was_empty=not self.admission_queue
                 self.admission_cv.wait_for(lambda:self.admission_queue or self.stop.is_set())
                 if not self.admission_queue:return
                 key=self.admission_queue.popleft()
                 trace=self.records[key].get('execution_timestamps')
                 if trace is not None:trace.update(dequeued_ns=time.monotonic_ns(),
-                    queue_depth_after_dequeue=len(self.admission_queue))
+                    queue_depth_after_dequeue=len(self.admission_queue),
+                    admission_lock_enter_ns=queue_lock_enter,
+                    admission_lock_acquired_ns=queue_lock_acquired,
+                    admission_lock_cpu_ns=time.thread_time_ns()-queue_cpu_enter,
+                    admission_waited_empty=was_empty,
+                    admission_thread_id=threading.get_native_id())
             try:self._submit_branch(key)
             except Exception as exc:self._admission_failed(key,exc)
 
@@ -495,13 +645,22 @@ class PeerRuntime:
         self._control_changed(key)
 
     def _release_pending_locked(self,rec):
-        if rec.get('pending_start'):
-            rec['pending_start']=False;self.admission_pending-=1
+        with self.admission_accounting_lock:
+            if rec.get('pending_start'):
+                rec['pending_start']=False;self.admission_pending-=1
 
     def _submit_branch(self,key):
         trace=self.records[key].get('execution_timestamps')
-        if trace is not None:trace['submit_state_lock_enter_ns']=time.monotonic_ns()
-        with self.lock:
+        # Queue ownership gives exactly one submitter per accepted branch.
+        # This block changes no shared counter/map: compute_submit_at belongs
+        # to this branch alone and is published before executor submission.
+        # Cancellation is advisory here (also checked by native execution),
+        # and can happen after this check with either locking strategy.
+        bypass=self.adaptive_settings.get('submit_without_state_lock',False)
+        if trace is not None:
+            trace['submit_state_lock_enter_ns']=time.monotonic_ns()
+            trace['submit_state_lock_bypassed']=bypass
+        with nullcontext() if bypass else self.lock:
             if trace is not None:trace['submit_state_lock_acquired_ns']=time.monotonic_ns()
             rec=self.records[key];now=time.monotonic()
             expired=(rec['native_control'].cancelled() if 'native_ticket' in rec else now>=min(rec['lease'],rec['deadline']))
@@ -527,31 +686,38 @@ class PeerRuntime:
             task.enqueue()
 
     def _execution_started(self,key,started):
-        with self.lock:
+        # Only this branch's executor owner sets its running metadata. Shared
+        # pending credits remain serialized by admission_accounting_lock.
+        bypass=self.adaptive_settings.get('start_without_state_lock',False)
+        with nullcontext() if bypass else self.lock:
             rec=self.records[key];self._release_pending_locked(rec)
             if 'execution_timestamps' in rec:
                 rec['execution_timestamps']['worker_state_lock_acquired_ns']=time.monotonic_ns()
+                rec['execution_timestamps']['worker_state_lock_bypassed']=bypass
             rec['query_admission_queue_ms']=max(0.,rec['compute_submit_at']-rec['created_at'])*1000
             rec['query_executor_start_wait_ms']=max(0.,started-rec['compute_submit_at'])*1000
             rec['status']='running'
             return rec
 
     def lease(self,qid,token,cancel=False):
+        # single_visit_parallel_local_v1 permits one retained branch per query
+        # on this server. Use the existing identity index: scanning retained
+        # completed queries under the shared lock makes lease cost grow with
+        # run duration and amplifies congestion precisely when queries slow.
         with self.lock:
-            found=False
-            for (query,_),rec in self.records.items():
-                if query==qid:
-                    if rec['state']['token']!=token: raise ValueError('Invalid lease token')
-                    rec['lease']=time.monotonic()+self.c['peer']['lease_timeout_ms']/1000
-                    rec['cancelled'] |= cancel
-                    if 'native_control' in rec:
-                        rec['native_control'].renew(rec['lease'])
-                        if rec['cancelled']:rec['native_control'].cancel()
-                    if 'native_ticket' in rec:
-                        rec['native_ticket'].renew(rec['lease'])
-                        if rec['cancelled']:rec['native_ticket'].cancel()
-                    found=True
-            return {'found':found}
+            key=self.query_visits.get(qid)
+            rec=self.records.get(key) if key is not None else None
+            if rec is None:return {'found':False}
+            if rec['state']['token']!=token:raise ValueError('Invalid lease token')
+            rec['lease']=time.monotonic()+self.c['peer']['lease_timeout_ms']/1000
+            rec['cancelled'] |= cancel
+            if 'native_control' in rec:
+                rec['native_control'].renew(rec['lease'])
+                if rec['cancelled']:rec['native_control'].cancel()
+            if 'native_ticket' in rec:
+                rec['native_ticket'].renew(rec['lease'])
+                if rec['cancelled']:rec['native_ticket'].cancel()
+            return {'found':True}
 
     def _run(self,key):
         worker_enter_ns=time.monotonic_ns()
@@ -871,7 +1037,12 @@ class PeerRuntime:
                 self.admission_cv.notify_all()
             for rec in self.records.values():
                 if 'native_control' in rec:rec['native_control'].cancel()
+            registrations=[r['registration_future'] for r in self.records.values() if 'registration_future' in r]
+        for pending in registrations:
+            try:pending.result()
+            except BaseException:pass
         for thread in self.admission_threads:thread.join()
+        if self.admission_pool is not None:self.admission_pool.shutdown(wait=True)
         if self.io is not None:
             self.io.close()
             with self.lock:tasks=[r['task'] for r in self.records.values() if 'task' in r]
@@ -904,6 +1075,8 @@ class PeerRuntime:
                         rec['control_events']=item.get('control_events',[])
             with self.admission_cv if self.independent_admission else nullcontext():
                 admission_depth=len(self.admission_queue)
+            adaptive_admission=self.admission_pool.metrics() if self.admission_pool is not None else None
+            if adaptive_admission is not None:admission_depth=adaptive_admission['queued']
             return {'execution_model':self.c['peer']['execution_model'],
                     'compute_mode':self.compute_mode,'compute_startup':dict(self.compute_startup),
                     'compute_queue':self.workers.metrics() if self.compute_mode=='fixed' else None,
@@ -920,7 +1093,9 @@ class PeerRuntime:
                                    **({'control':self.control_workers.metrics()} if self.control_workers is not None else {})}
                                    if self.queued_senders else None),
                     'admission_mode':self.c['peer']['admission']['mode'],
-                    'admission_dispatch_threads':len(self.admission_threads),
+                    'admission_dispatch_threads':adaptive_admission['workers'] if adaptive_admission else len(self.admission_threads),
+                    'adaptive_admission':adaptive_admission,
+                    'adaptive_connections':self.rpc_pool.metrics() if hasattr(self.rpc_pool,'metrics') else None,
                     'admission_queue_lock':self.c['peer']['admission']['queue_lock'],
                     'admission_queue_depth':admission_depth,
                     'admission_pending_start':self.admission_pending,

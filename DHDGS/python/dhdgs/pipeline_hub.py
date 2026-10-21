@@ -106,10 +106,21 @@ class PipelineHub(HeadHub):
         self.lock=threading.Lock();self.cv=threading.Condition(self.lock)
         self.sessions={};self.pending={};self.closed=OrderedDict();self.stopping=False
         p=c['peer'];comm=p['communication']
-        self.pool=FairConnectionPool(comm['connections_per_endpoint'],comm['max_connection_endpoints'])
+        a=p.get('adaptive_services',{})
+        if a.get('enabled') and a['head_connections']:
+            from .adaptive_connections import AdaptiveConnectionPool
+            self.pool=AdaptiveConnectionPool(a,comm['max_connection_endpoints'])
+        else:self.pool=FairConnectionPool(comm['connections_per_endpoint'],comm['max_connection_endpoints'])
+        self.pool.tcp_nodelay=c['network'].get('rpc_tcp_nodelay',False)
         # Lease traffic has independent connections and cannot consume entry capacity.
         self.lease_pool=FairConnectionPool(1,comm['max_connection_endpoints'])
-        self.dispatcher=QueuedSender(p['head_pipeline']['dispatch_workers'],p['max_active_queries'],'dhdgs-head-dispatch')
+        self.lease_pool.tcp_nodelay=c['network'].get('rpc_tcp_nodelay',False)
+        a=p.get('adaptive_services',{})
+        if a.get('enabled') and a['head_dispatch']:
+            from .adaptive_service import AdaptiveServicePool
+            self.dispatcher=AdaptiveServicePool(a,a['head_dispatch_min'],a['head_dispatch_max'],
+                p['max_active_queries'],'dhdgs-head-dispatch')
+        else:self.dispatcher=QueuedSender(p['head_pipeline']['dispatch_workers'],p['max_active_queries'],'dhdgs-head-dispatch')
         self.reactor=CallbackReactor(c,self.callback);self.endpoint=self.reactor.endpoint
         self.heartbeat=threading.Thread(target=self._heartbeat,name='dhdgs-head-heartbeat',daemon=True)
         self.heartbeat.start()

@@ -43,7 +43,8 @@ def serve_head(c,settings,token):
                 len(head.engine.owners)==truth.dataset.rows and all(gid==i for i,gid in enumerate(head.engine.owners)))
     if not contiguous:
         head.close();raise ValueError('Full truth requires the complete contiguous corpus ID directory')
-    pipeline=any(c['peer'].get(k,{}).get('enabled',False) for k in ('head_pipeline','head_direct','head_lanes'))
+    pipeline=(c.get('native_runtime',{}).get('head_enabled',False) or
+              any(c['peer'].get(k,{}).get('enabled',False) for k in ('head_pipeline','head_direct','head_lanes')))
     class Handler(DeferredHandler if pipeline else BaseHTTPRequestHandler):
         def log_message(self,*args):pass
         def do_GET(self):self.handle_api()
@@ -90,7 +91,8 @@ def serve_head(c,settings,token):
             self.send_header('Content-Type','application/json');self.send_header('Content-Length',str(len(raw)));self.end_headers()
             try:self.wfile.write(raw)
             except (BrokenPipeError,ConnectionResetError):pass
-    server=(PipelineHTTPServer((settings['bind_host'],settings['port']),Handler,head.engine.head_flow,c['peer']['max_active_queries'])
+    server=(PipelineHTTPServer((settings['bind_host'],settings['port']),Handler,head.engine.head_flow,c['peer']['max_active_queries'],
+                               c.get('native_runtime',{}).get('receive_threads',4))
             if pipeline else ThreadingHTTPServer((settings['bind_host'],settings['port']),Handler))
     server.daemon_threads=True
     server.request_timeout=settings['command_timeout_seconds']

@@ -29,6 +29,11 @@ class HeadLaneManagedTests(ManagedClusterTests):
         self.assertEqual(stats['node_revisit_count'],0)
         self.assertAlmostEqual(sum(stats['latency_breakdown_ms'].values()),stats['latency_ms'],places=5)
         self.assertGreaterEqual(stats['head_lane']['worker_received_ns'],stats['head_lane']['submitted_ns'])
+        t=stats['head_lane']
+        for a,b in [('worker_finished_ns','ipc_pack_enter_ns'),('ipc_pack_enter_ns','ipc_pack_done_ns'),
+                    ('ipc_pack_done_ns','ipc_write_lock_enter_ns'),('ipc_write_lock_enter_ns','ipc_write_lock_acquired_ns'),
+                    ('ipc_write_lock_acquired_ns','ipc_receive_done_ns'),('ipc_receive_done_ns','ipc_decode_done_ns')]:
+            self.assertLessEqual(t[a],t[b])
         self.assertTrue(list((Path(self.work.name)/'lane_results').glob('*.jsonl')))
         self.head.quiescent()
 

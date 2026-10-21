@@ -21,6 +21,8 @@ def rpc_exchange(endpoint, message, limit, timeout, pool=None):
         if sock is None:
             t=time.monotonic();sock=socket.create_connection(tuple(endpoint),max(.001,deadline-t))
             counts['connect_ms']=(time.monotonic()-t)*1000;counts['connections_created']=1
+            if pool is not None and getattr(pool,'tcp_nodelay',False):
+                sock.setsockopt(socket.IPPROTO_TCP,socket.TCP_NODELAY,1)
         else:counts['connections_reused']=1
         t=time.monotonic();sock.settimeout(max(.001,deadline-t))
         counts['request_bytes']=send(sock,message,limit);counts['send_ms']=(time.monotonic()-t)*1000
@@ -229,6 +231,9 @@ class FairConnectionPool(ConnectionPool):
             try:sock.close()
             except OSError:pass
 
+    def _endpoint_limit(self,endpoint):
+        return self.limit
+
     def _grant_locked(self):
         discarded=[]
         for endpoint in list(self.pending):
@@ -247,7 +252,7 @@ class FairConnectionPool(ConnectionPool):
                         old=self.entries.pop(victim);discarded.extend(old['idle']);old['idle']=[]
                     entry={'endpoint':endpoint,'borrowed':0,'idle':[]}
                     self.entries[endpoint]=entry
-                if entry['borrowed']>=self.limit:break
+                if entry['borrowed']>=self._endpoint_limit(endpoint):break
                 queue.popleft();entry['borrowed']+=1
                 self.entries.move_to_end(endpoint)
                 waiter['entry']=entry
@@ -257,7 +262,7 @@ class FairConnectionPool(ConnectionPool):
         return discarded
 
     def borrow(self,endpoint,deadline):
-        waiter=dict(event=threading.Event(),deadline=deadline,entry=None,sock=None,error=None)
+        waiter=dict(event=threading.Event(),deadline=deadline,entry=None,sock=None,error=None,queued_at=time.monotonic())
         with self.cv:
             if self.closed:raise RuntimeError('RPC pool closed')
             self.pending.setdefault(endpoint,deque()).append(waiter)

@@ -30,6 +30,10 @@ class ManagedClusterTests(unittest.TestCase):
         c['peer']['control'].update(scheduler='native',completion_fast_path=False)
         c['peer']['communication'].update(mode='optimized',reuse_connections=True)
         c['storage']['io']['backend']='sync_pread'
+        if getattr(self,'native_head',False):
+            c['native_runtime'].update(head_enabled=True,data_enabled=True)
+        if hasattr(self,'capture_limit'):
+            c['benchmark_results']['memory_limit_bytes']=self.capture_limit
         self.servers=[];self.threads=[]
         held=[]
         for n in c['cluster']['nodes']:

@@ -16,6 +16,9 @@ from .tracing import trace_lifecycle
 
 class Engine(ReferenceEngine):
     def __new__(cls,c):
+        if c.get('native_runtime',{}).get('head_enabled',False):
+            from .cpp_head import NativeEngine
+            return NativeEngine(c)
         if c['peer'].get('head_lanes',{}).get('enabled',False):
             from .head_lanes import LaneEngine
             return LaneEngine(c)

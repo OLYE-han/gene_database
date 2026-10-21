@@ -139,6 +139,9 @@ class TCPTransport:
 def create_server(c, sid):
     if not 0 <= sid < len(c["cluster"]["nodes"]):
         raise ValueError("Invalid node ID")
+    from .cpp_runtime import enabled, standalone_server
+    if enabled(c):
+        return standalone_server(c, sid)
     from .runtime import apply_process_runtime
     apply_process_runtime(c)
     worker = Shard(shard_path(c, sid), c["storage"]["cache_bytes_per_shard"])

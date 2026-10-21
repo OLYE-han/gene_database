@@ -22,6 +22,7 @@ import msgpack
 from .config import validate
 from .index import Shard, shard_path
 from .peer import PeerRuntime
+from .cpp_runtime import make_peer
 from .transport import send, receive
 from .runtime import apply_process_runtime
 from .metrics import ResourceSampler
@@ -79,6 +80,28 @@ def idle(metrics):
 
 
 class NodeControl:
+    @property
+    def accepting(self):
+        return self._accepting
+
+    @accepting.setter
+    def accepting(self, value):
+        self._accepting = value
+        transport = getattr(self, '_native_transport', None)
+        if transport is not None:
+            transport.configure(self.peer, value, self.rev)
+
+    @property
+    def peer(self):
+        return self._peer
+
+    @peer.setter
+    def peer(self, value):
+        self._peer = value
+        transport = getattr(self, '_native_transport', None)
+        if transport is not None:
+            transport.configure(value, self.accepting, self.rev)
+
     def __init__(self,c,sid,token,state_file):
         if len(token)<32:raise ValueError('Management token must have at least 32 characters')
         self.token=token;self.sid=sid;self.state_file=Path(state_file)
@@ -98,7 +121,7 @@ class NodeControl:
         self.accepting=False;self.readers=0;self.transaction=None;self.last_transaction=None
         self.snapshot_data=None;self.snapshot_id=None
         self.rev=revision(self.c)
-        self.peer=PeerRuntime(self.c,self.worker)
+        self.peer=make_peer(self.c,self.worker)
         self.sampler=ResourceSampler(self.c['metrics']['resource_sample_interval_ms'],self.c['metrics']['resource_max_samples']).start()
 
     @contextmanager
@@ -126,6 +149,9 @@ class NodeControl:
     def metrics(self):
         result=self.worker.metrics()
         result['peer_lifecycle']=self.peer.metrics()
+        transport=getattr(self,'_native_transport',None)
+        if transport is not None:
+            result['network_receiver']=transport.metrics()
         from .gc_profile import snapshot
         result['gc_profile']=snapshot();result['resource_samples']=list(self.sampler.samples)
         result['managed']=self.status()
@@ -161,7 +187,7 @@ class NodeControl:
                     was_open=self.accepting;self.accepting=False
                     try:
                         if self.readers or not idle(self.peer.metrics()):raise RuntimeError('Node still has in-flight work')
-                        new_peer=PeerRuntime(candidate,self.worker)
+                        new_peer=make_peer(candidate,self.worker)
                     except BaseException:
                         self.accepting=was_open;raise
                     self.transaction=dict(id=txid,phase='prepared',old_peer=self.peer,old_config=self.c,
@@ -214,6 +240,24 @@ class NodeControl:
 
 def create_managed_server(c,sid,token,state_file):
     owner=NodeControl(c,sid,token,state_file);limit=c['network']['max_message_bytes']
+    from .cpp_runtime import enabled, NativeServer
+    if enabled(c):
+        def admin(request):
+            if request.get('version') != 1:
+                raise ValueError('Unsupported protocol')
+            result = owner.metrics() if request.get('op') == 'metrics' else owner.command(request)
+            return dict(ok=True, request_id=request.get('request_id'), result=result)
+        try:
+            server = NativeServer(c, sid, owner.peer, admin, owner.close)
+            owner._native_transport = server
+            server.configure(owner.peer, False, owner.rev)
+        except BaseException:
+            owner.close()
+            raise
+        server.control = owner
+        # The native reactor signals shutdown after transmitting the admin ACK.
+        owner.shutdown = lambda: None
+        return server
     class Handler(socketserver.BaseRequestHandler):
         def handle(self):
             self.request.settimeout(c['network']['timeout_seconds'])

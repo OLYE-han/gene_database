@@ -28,7 +28,22 @@ StrictLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _ma
 # Types are the schema, not a second set of parameter defaults.
 SCHEMA = {
     "version": int, "seed": int,
+    "benchmark_results": {"memory_limit_bytes":int,"json_shard_bytes":int,"processor_timeout_seconds":int},
     "runtime": {"blas_threads": int,"python_switch_interval_ms":float},
+    "native_runtime": {"data_enabled":bool,"head_enabled":bool,
+                       "receive_threads":int,"receive_queue_capacity":int,
+                       "max_connections":int,"compute_queue_capacity":int,
+                       "network_queue_capacity":int,"connections_per_endpoint":int,
+                       "route_threads":int,"merge_threads":int,"early_parent_report":bool,
+                       "network_module":{"enabled":bool,"send_min_reactors":int,"send_max_reactors":int,
+                           "receive_min_reactors":int,"receive_max_reactors":int,"handlers_per_receive_reactor":int,
+                           "connections_per_endpoint_per_reactor":int,"send_queue_capacity":int,
+                           "receive_queue_capacity_per_reactor":int,"max_receive_connections":int,
+                           "send_pending_high":int,"receive_queue_high":int,"high_samples":int,
+                           "sample_interval_ms":int,"cooldown_ms":int,"idle_ms":int},
+                       "adaptive_control":{"enabled":bool,"min_lanes":int,"max_lanes":int,
+                           "command_queue_high":int,"network_pending_high":int,"high_samples":int,
+                           "sample_interval_ms":int,"cooldown_ms":int,"idle_ms":int}},
     "metrics": {"detailed_trace": bool,"trace_query_ids":list,"lifecycle_trace":bool,"gc_trace":bool, "resource_sample_interval_ms": int, "resource_max_samples": int},
     "paths": {"dataset": str, "output": str},
     "data": {"metric": str, "dimension": int, "row_limit": int, "block_rows": int, "inspection_rows": int},
@@ -63,10 +78,16 @@ SCHEMA = {
              "head_pipeline":{"enabled":bool,"receive_min":int,"receive_max":int,
                  "receive_backlog":int,"receive_idle_ms":int,"route_workers":int,"merge_workers":int,
                  "dispatch_workers":int,"callback_connections":int,"ack_inline":bool},
+             "adaptive_services": {"enabled":bool,"admission":bool,"head_dispatch":bool,"transfer":bool,"mirror_outside_lock":bool,"submit_without_state_lock":bool,"start_without_state_lock":bool,"connections":bool,"head_connections":bool,"connections_min":int,"connections_max":int,
+                 "admission_min":int,"admission_max":int,"head_dispatch_min":int,"head_dispatch_max":int,
+                 "transfer_min":int,"transfer_max":int,"sample_interval_ms":int,"target_wait_ms":int,
+                 "cooldown_ms":int,"downscale_idle_ms":int,"growth_step":int,"target_utilization":float,
+                 "ewma_weight":float,"history_size":int},
+             "locking": {"split_native_registration":bool,"native_register_release_gil":bool},
              "admission": {"mode":str,"queue_capacity":int,"queue_lock":str,"dispatch_threads":int},
              "sender": {"mode":str,"transfer_queue_capacity":int},
              "compute": {"mode":str,"queue_capacity":int},
-             "connection_pool": {"probe_mode":str,"head_scheduling":str},
+             "connection_pool": {"probe_mode":str,"head_scheduling":str,"data_scheduling":str},
              "control": {"initial_heartbeat_delay_ms":int,"scheduler":str,"max_events_per_turn":int,"completion_fast_path":bool},
              "communication": {"mode":str,"transfer_workers":int,"control_workers":int,
                  "max_pending_control":int,"reuse_connections":bool,"connections_per_endpoint":int,
@@ -75,7 +96,7 @@ SCHEMA = {
                   "local_batch_ms": float, "remote_rtt_ms": float, "bandwidth_bytes_per_ms": float,
                   "ewma_weight": float,"remote_selection": str,"remote_weight": float,
                   "probability_temperature": float},
-    "network": {"transport": str, "batch_size": int, "timeout_seconds": float,
+    "network": {"rpc_tcp_nodelay":bool,"transport": str, "batch_size": int, "timeout_seconds": float,
                 "max_message_bytes": int, "max_retries": int, "listen_backlog": int},
     "cluster": {"nodes": list},
     "query": {"vectors": str, "ids": (str, type(None)), "row": int},
@@ -88,11 +109,13 @@ SCHEMA = {
 
 
 def _check(values, schema, path=""):
-    optional={'listen_backlog'} if path=='network' else set()
-    if path=='peer.connection_pool':optional={'head_scheduling'}
+    optional={'listen_backlog','rpc_tcp_nodelay'} if path=='network' else set()
+    if path=='':optional={'native_runtime','benchmark_results'}  # Archived plans remain usable.
+    if path=='native_runtime':optional={'adaptive_control','network_module','early_parent_report'}
+    if path=='peer.connection_pool':optional={'head_scheduling','data_scheduling'}
     if path=='peer.head_pipeline':optional={'ack_inline'}
     if path=='peer.head_direct':optional={'queued_reports','result_channels','report_queue_capacity','report_connections_per_channel','completion_threads','report_backend','report_registration','completion_dispatch','result_backend'}
-    if path=='peer':optional={'head_receiver_processes','head_receiver_ipc','head_query_workers','head_entry_workers','head_pipeline','head_direct','head_lanes'}
+    if path=='peer':optional={'locking','adaptive_services','head_receiver_processes','head_receiver_ipc','head_query_workers','head_entry_workers','head_pipeline','head_direct','head_lanes'}
     if not isinstance(values, dict) or (set(values)-set(schema)) or (set(schema)-set(values)-optional):
         missing = set(schema) - set(values) if isinstance(values, dict) else set(schema)
         extra = set(values) - set(schema) if isinstance(values, dict) else set()
@@ -115,6 +138,27 @@ def _check(values, schema, path=""):
 
 def validate(c):
     _check(c, SCHEMA)
+    if any(v <= 0 for v in c.get('benchmark_results',{}).values()):
+        raise ValueError('benchmark_results limits must be positive')
+    nr = c.get('native_runtime', {})
+    nm=nr.get('network_module')
+    if nm is not None:
+        if any(v<=0 for k,v in nm.items() if k!='enabled') or any(nm[x+'_min_reactors']>nm[x+'_max_reactors'] or nm[x+'_max_reactors']>64 for x in ('send','receive')):
+            raise ValueError('Invalid network_module resource bounds')
+        if nm['enabled'] and nr.get('adaptive_control',{}).get('enabled',False):
+            raise ValueError('Enable network_module or adaptive_control separately')
+    ac=nr.get('adaptive_control')
+    if ac is not None and (any(v<=0 for k,v in ac.items() if k!='enabled') or ac['min_lanes']>ac['max_lanes'] or ac['max_lanes']>64):
+        raise ValueError('Invalid adaptive_control lane bounds or thresholds')
+    if nr.get('data_enabled', False) or nr.get('head_enabled', False):
+        if (c['peer']['execution_model'] != 'native' or c['search']['execution'] != 'peer'
+                or c['network']['transport'] != 'tcp' or c['storage']['io']['backend'] != 'sync_pread'
+                or c['peer']['control']['scheduler'] != 'native'
+                or c['peer']['communication']['mode'] != 'optimized'):
+            raise ValueError('C++ runtime requires native peer/search/control, optimized TCP and sync_pread')
+    if nr.get('head_enabled',False) and (any(c['peer'].get(key,{}).get('enabled',False) for key in ('head_lanes','head_direct','head_pipeline'))
+                               or c['peer'].get('head_receiver_processes',0) or c['peer'].get('head_query_workers',0)):
+        raise ValueError('C++ head replaces the Python head pools; disable their configuration switches')
     if c['runtime']['python_switch_interval_ms']<=0:
         raise ValueError('runtime.python_switch_interval_ms must be positive')
     if any(type(qid) is not int or not 0<=qid<2**64 for qid in c['metrics']['trace_query_ids']):
@@ -249,6 +293,31 @@ def validate(c):
         raise ValueError('Invalid peer.admission settings')
     if peer['admission']['queue_lock'] not in ('shared','independent'):
         raise ValueError('Invalid peer.admission.queue_lock')
+    if peer['connection_pool'].get('data_scheduling','broadcast') not in ('fifo','broadcast'):
+        raise ValueError('Invalid data connection scheduling')
+    locking=peer.get('locking',{})
+    if locking.get('split_native_registration',False) and (peer['control']['scheduler']!='native' or
+            peer['execution_model']!='native' or peer['admission']['mode']!='buffered'):
+        raise ValueError('Split registration requires native control/search and buffered admission')
+    adaptive=peer.get('adaptive_services')
+    if adaptive:
+        for name in ('admission','head_dispatch','transfer','connections'):
+            if not 1<=adaptive[name+'_min']<=adaptive[name+'_max']:
+                raise ValueError('Invalid adaptive service worker bounds')
+        if any(adaptive[k]<=0 for k in ('sample_interval_ms','target_wait_ms','cooldown_ms',
+                                       'downscale_idle_ms','growth_step','history_size')):
+            raise ValueError('Adaptive timing/capacity must be positive')
+        if not 0<adaptive['ewma_weight']<=1 or not 0<adaptive['target_utilization']<=1:
+            raise ValueError('Invalid adaptive EWMA/utilization')
+        if adaptive['enabled'] and adaptive['admission'] and (peer['admission']['mode']!='buffered' or
+                peer['compute']['mode']!='fixed' or peer['admission']['queue_lock']!='independent'):
+            raise ValueError('Adaptive admission requires buffered/independent admission and fixed compute')
+        if adaptive['enabled'] and adaptive['connections'] and (peer['communication']['mode']!='optimized' or not peer['communication']['reuse_connections']):
+            raise ValueError('Adaptive connections require reusable optimized communication')
+        if (adaptive['submit_without_state_lock'] or adaptive['start_without_state_lock']) and (peer['compute']['mode']!='fixed' or peer['execution_model']!='native'):
+            raise ValueError('Lock-free submission requires native fixed compute')
+        if adaptive['enabled'] and adaptive['transfer'] and peer['sender']['mode']!='queued':
+            raise ValueError('Adaptive transfer requires queued sender')
     if peer['admission']['dispatch_threads']<=0:
         raise ValueError('peer.admission.dispatch_threads must be positive')
     comm=peer['communication']
@@ -384,6 +453,11 @@ def load_config(path):
           and 'completion_fast_path' not in raw['peer']['control']):
         raw['peer']['control']['completion_fast_path']=False
         migration.append('peer.control.completion_fast_path=False (archived queued local completion)')
+    if isinstance(raw,dict) and 'native_runtime' not in raw:
+        defaults=yaml.load((Path(__file__).resolve().parents[2]/'configs/dhdgs.yaml').read_text(),Loader=StrictLoader)
+        raw['native_runtime']=copy.deepcopy(defaults['native_runtime'])
+        raw['native_runtime'].update(data_enabled=False,head_enabled=False)
+        migration.append('native_runtime disabled (archived Python runtime)')
     validate(raw)
     c = copy.deepcopy(raw)
     for section, key in (("paths","dataset"), ("paths","output"), ("query","vectors"), ("query","ids"),

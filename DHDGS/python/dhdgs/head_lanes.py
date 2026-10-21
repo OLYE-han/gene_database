@@ -9,6 +9,7 @@ import json
 import multiprocessing as mp
 from pathlib import Path
 import queue
+import struct
 import threading
 import time
 import uuid
@@ -17,6 +18,9 @@ import msgpack
 import numpy as np
 
 from .metrics import CLOCK_DOMAIN
+
+IPC_TIMING = struct.Struct('!4sQQQQ')
+IPC_MAGIC = b'DHL1'
 
 
 def resolve(future, value=None, error=None):
@@ -52,9 +56,16 @@ def lane_main(c,index,conn):
         root=Path(settings['results_directory']);root.mkdir(parents=True,exist_ok=True)
         result_path=root/f'lane-{index}.jsonl'
     def emit(message):
+        pack_enter=time.monotonic_ns()
         data=msgpack.packb(message,use_bin_type=True)
-        if len(data)>limit:raise ValueError('Head lane result exceeds IPC limit')
-        with write_lock:conn.send_bytes(data)
+        pack_done=time.monotonic_ns()
+        traced=message.get('kind')=='result' and 'worker_finished_ns' in message
+        if len(data)+(IPC_TIMING.size if traced else 0)>limit:raise ValueError('Head lane result exceeds IPC limit')
+        lock_enter=time.monotonic_ns()
+        with write_lock:
+            lock_acquired=time.monotonic_ns()
+            if traced:data=IPC_TIMING.pack(IPC_MAGIC,pack_enter,pack_done,lock_enter,lock_acquired)+data
+            conn.send_bytes(data)
     def done(key,future):
         try:
             try:
@@ -112,7 +123,13 @@ def lane_main(c,index,conn):
         try:emit(dict(kind='failed',error=f'{type(exc).__name__}: {exc}'))
         except (OSError,ValueError):pass
     finally:
-        if engine is not None:engine.close()
+        if engine is not None:
+            try:
+                a=c['peer'].get('adaptive_services',{})
+                if a.get('enabled') and (a.get('head_dispatch') or a.get('head_connections')) and result_path is not None:
+                    result_path.with_suffix('.services.json').write_text(json.dumps(
+                        dict(dispatch=engine.head_hub.dispatcher.metrics(),connections=engine.head_hub.pool.metrics() if hasattr(engine.head_hub.pool,'metrics') else None),indent=2))
+            finally:engine.close()
         conn.close()
 
 
@@ -188,7 +205,15 @@ class LaneEngine:
     def _read(self,w):
         try:
             while True:
-                message=msgpack.unpackb(w['conn'].recv_bytes(self.c['network']['max_message_bytes']),raw=False,strict_map_key=False)
+                receive_enter=time.monotonic_ns()
+                frame=w['conn'].recv_bytes(self.c['network']['max_message_bytes'])
+                receive_done=time.monotonic_ns();ipc={}
+                if frame.startswith(IPC_MAGIC):
+                    _,pack_enter,pack_done,lock_enter,lock_acquired=IPC_TIMING.unpack_from(frame)
+                    ipc=dict(ipc_pack_enter_ns=pack_enter,ipc_pack_done_ns=pack_done,
+                             ipc_write_lock_enter_ns=lock_enter,ipc_write_lock_acquired_ns=lock_acquired)
+                    frame=memoryview(frame)[IPC_TIMING.size:]
+                message=msgpack.unpackb(frame,raw=False,strict_map_key=False)
                 now=time.monotonic_ns();kind=message['kind']
                 if kind=='ready':
                     if not CLOCK_DOMAIN or message['clock_domain']!=CLOCK_DOMAIN:raise ValueError('Head lane clock domain mismatch')
@@ -211,7 +236,8 @@ class LaneEngine:
                 result=message['result'];stats=result['stats'];start=rec['start']
                 stats['head_lane']=dict(index=w['index'],submitted_ns=start,
                     worker_received_ns=stats.pop('head_lane_worker_received_ns'),
-                    worker_finished_ns=message['worker_finished_ns'],parent_received_ns=now)
+                    worker_finished_ns=message['worker_finished_ns'],parent_received_ns=now,
+                    ipc_receive_enter_ns=receive_enter,ipc_receive_done_ns=receive_done,ipc_decode_done_ns=now,**ipc)
                 t=stats['head_lane']
                 parts=dict(input_queue_ipc_ms=(t['worker_received_ns']-start)/1e6,
                            worker_pipeline_ms=(t['worker_finished_ns']-t['worker_received_ns'])/1e6,

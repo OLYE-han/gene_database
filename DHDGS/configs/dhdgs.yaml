@@ -2,9 +2,52 @@
 # 当前默认是端到端 pilot；提高 row_limit 前检查 build.memory_limit_bytes。
 version: 1
 seed: 42
+benchmark_results:
+  memory_limit_bytes: 4294967296 # 原生结果保守计费+编码缓冲的上限；不等于整个服务RSS
+  json_shard_bytes: 67108864    # 独立处理程序生成的JSON分片目标大小；单条超大记录单独成片
+  processor_timeout_seconds: 1800
 runtime:
   blas_threads: 1
   python_switch_interval_ms: 5.0 # 进程级Python线程切换间隔；同进程所有Engine必须配置一致
+native_runtime:
+  data_enabled: false       # 原生接纳/计算/子分支派发；保留旧实现作对照
+  head_enabled: false       # 原生入口、心跳/结果验证与合并
+  receive_threads: 4
+  receive_queue_capacity: 4096
+  max_connections: 4096
+  compute_queue_capacity: 4096
+  network_queue_capacity: 4096
+  connections_per_endpoint: 128 # 入口/邻居派发的每目标连接上限；按需建立
+  route_threads: 16
+  merge_threads: 4
+  early_parent_report: true # 本地完成即发布；顶层依据子分支清单等待其余报告
+  network_module:
+    enabled: false
+    send_min_reactors: 1
+    send_max_reactors: 4
+    receive_min_reactors: 1
+    receive_max_reactors: 4
+    handlers_per_receive_reactor: 4
+    connections_per_endpoint_per_reactor: 128 # 容量实验值；再增至256未改善p99
+    send_queue_capacity: 4096 # 每个逻辑发送通道总上限，同时受原协议通道上限限制
+    receive_queue_capacity_per_reactor: 4096
+    max_receive_connections: 4096 # 同一监听端口所有reactor共享总上限
+    send_pending_high: 8
+    receive_queue_high: 4
+    high_samples: 2
+    sample_interval_ms: 20
+    cooldown_ms: 100
+    idle_ms: 1000
+  adaptive_control:
+    enabled: false # 数据节点完成控制+结果网络单元；实验验证后再决定默认启用
+    min_lanes: 1
+    max_lanes: 8
+    command_queue_high: 4
+    network_pending_high: 4
+    high_samples: 2
+    sample_interval_ms: 20
+    cooldown_ms: 100
+    idle_ms: 1000 # 保留状态到期且空闲后才回收线程
 metrics:
   detailed_trace: true
   trace_query_ids: []          # 指定需要逐批次/逐读轨迹的 uint64 查询 ID
@@ -77,6 +120,7 @@ peer:
     completion_fast_path: false # event无远端派发时try-lock发布；锁忙立即退回完成队列
     initial_heartbeat_delay_ms: 0 # optimized模式；不超过heartbeat_interval_ms，仅延后无状态变化的首个心跳
   connection_pool:
+    data_scheduling: broadcast
     probe_mode: reserved     # locked: 历史对照；reserved: 预约借用名额后在锁外探测/关闭连接
     head_scheduling: fifo    # 顶层入口按目标FIFO预约/定向唤醒；broadcast保留旧实验行为
   compute:
@@ -85,6 +129,35 @@ peer:
   sender:
     mode: queued             # queued: 预启动发送线程；executor: 历史对照
     transfer_queue_capacity: 128 # 等待派发的任务上限，不含正在发送的任务
+  locking:
+    split_native_registration: false  # 身份/容量预留后，在runtime状态锁外注册native分支
+    native_register_release_gil: false # 原生注册等mutex/DNS时释放GIL；用于独立对照
+  adaptive_services:
+    enabled: false
+    mirror_outside_lock: false
+    submit_without_state_lock: false
+    start_without_state_lock: false
+    connections: false
+    head_connections: false
+    connections_min: 2
+    connections_max: 8
+    admission: true
+    head_dispatch: false
+    transfer: false
+    admission_min: 1
+    admission_max: 8
+    head_dispatch_min: 2
+    head_dispatch_max: 8
+    transfer_min: 2
+    transfer_max: 16
+    sample_interval_ms: 50
+    target_wait_ms: 2
+    cooldown_ms: 100
+    downscale_idle_ms: 1000
+    growth_step: 1
+    target_utilization: 0.8
+    ewma_weight: 0.2
+    history_size: 512
   admission:
     mode: buffered            # 接纳成功入队即确认；direct 保留同步提交对照
     queue_lock: shared        # shared: 历史对照；independent: 队列独立短锁
@@ -94,9 +167,9 @@ peer:
     mode: optimized           # legacy 保留旧通信行为，用于对照实验
     transfer_workers: 16      # 仅发送扩展函数批准的远端分支
     control_workers: 16       # 心跳/结果的有界并发发送
-    max_pending_control: 64   # 排队和在途控制任务的总上限
+    max_pending_control: 1024 # 排队和在途控制任务总上限，避免先被旧64请求上限限制
     reuse_connections: true
-    connections_per_endpoint: 8
+    connections_per_endpoint: 128 # 控制/结果通道每目标连接上限；按需建立
     max_connection_endpoints: 64
   execution_model: native    # native: C++循环、每分支固定计算线程；blocking/resumable 为 Python 对照
   max_branches: 16          # 上限；每节点至多启动一次，实际还受服务器数量限制
@@ -170,6 +243,7 @@ scheduler:
   remote_weight: 1.0        # 0 禁用非强制远端分支；越大越偏向跨机
   probability_temperature: 1.0
 network:
+  rpc_tcp_nodelay: false
   listen_backlog: 128       # 数据服务和入口回调的待接收 TCP 连接队列
   transport: local          # local | tcp；local 仍从各分片文件 pread，非网络性能测试
   batch_size: 8

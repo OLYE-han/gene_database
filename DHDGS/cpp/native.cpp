@@ -1,3 +1,4 @@
+#include "native_network.hpp"
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -383,6 +384,16 @@ class Router {
   std::unique_ptr<hnswlib::HierarchicalNSW<float>> index_;
 
 public:
+  void configure_ef(size_t ef) {
+    require(ef>0 && (query_ef_==0||query_ef_==ef),"HNSW ef is immutable while serving");
+    if(!query_ef_){index_->setEf(ef);query_ef_=ef;}
+  }
+  std::vector<uint64_t> search_native(const float* query,size_t k) const {
+    require(query_ef_>=k&&k>0,"HNSW must be configured before native search");
+    auto result=index_->searchKnn(query,k);std::vector<uint64_t> ids;
+    while(!result.empty()){ids.push_back(result.top().second);result.pop();}
+    std::reverse(ids.begin(),ids.end());return ids;
+  }
   Router(size_t dim, size_t capacity, size_t degree, size_t construction,
          size_t seed)
       : dim_(dim), space_(dim) {
@@ -432,6 +443,7 @@ public:
 };
 
 #include "search_loop.hpp"
+#include "runtime_bindings.hpp"
 
 void register_async_io(py::module_ &m);
 void register_read_metrics(py::module_ &m);
@@ -441,7 +453,9 @@ PYBIND11_MODULE(_native, m) {
   register_read_metrics(m);
   register_native_search(m);
   dhwire::bind_native_wire(m);
+  dhnet::bind_native_network(m);
   dhcontrol::register_native_control(m);
+  dhruntime::bind_runtime(m);
   m.doc() =
       "DHDGS RaBitQ core integration, Vamana construction and sample HNSW";
   py::class_<Quantizer>(m, "Quantizer")

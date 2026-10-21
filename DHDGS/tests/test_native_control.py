@@ -25,7 +25,7 @@ def head_process(pipe, stop, mode):
                     except socket.timeout:continue
                     except (OSError, ValueError):break
                     pipe.send(message)
-                    if mode == 'drop_first' and not dropped:
+                    if not dropped and (mode == 'drop_first' or mode == 'drop_first_report' and message['reports']):
                         dropped = True;break
                     if mode == 'hold_heartbeat' and not message['reports'] and not message['error']:
                         time.sleep(.03)
@@ -52,11 +52,11 @@ class NativeControllerTests(unittest.TestCase):
             if process.is_alive():process.terminate();process.join(2)
             pipe.close()
 
-    def make(self,mode='',delay=1000,capacity=4):
+    def make(self,mode='',delay=1000,capacity=4,early=False):
         context=mp.get_context('fork');parent,child=context.Pipe();stop=context.Event()
         process=context.Process(target=head_process,args=(child,stop,mode));process.start();child.close()
         self.assertTrue(parent.poll(2));port=parent.recv();self.heads.append((process,stop,parent))
-        cfg=config(delay);cfg['peer']['communication']['max_pending_control']=capacity
+        cfg=config(delay);cfg['native_runtime']={'early_parent_report':early};cfg['peer']['communication']['max_pending_control']=capacity
         c=native().NativeController(cfg);self.controllers.append(c)
         return c,port,parent
 
@@ -109,6 +109,45 @@ class NativeControllerTests(unittest.TestCase):
         ticket.transfer_done({'peer_rpc_count':1,'peer_request_bytes':123})
         self.wait(lambda:self.row(c)['acked'])
         self.assertEqual(self.row(c)['report']['peer_transfer']['peer_request_bytes'],123)
+
+    def test_early_report_is_acked_before_transfer_and_stays_immutable(self):
+        c,port,pipe=self.make(early=True);ticket,_=self.branch(c,port)
+        ticket.child({'branch_id':'child','node_id':1});ticket.complete(self.report())
+        self.wait(lambda:self.row(c)['acked'])
+        first=self.row(c)['report']
+        self.assertFalse(first['transfer_metrics_complete'])
+        self.assertEqual(self.row(c)['pending_transfers'],1)
+        time.sleep(.25) # Retention must not erase an outstanding transfer.
+        self.assertIsNotNone(self.row(c))
+        ticket.transfer_done({'peer_rpc_count':1,'peer_request_bytes':123})
+        self.wait(lambda:self.row(c)['pending_transfers']==0)
+        self.assertEqual(self.row(c)['report'],first)
+        self.assertEqual(self.row(c)['peer_request_bytes'],123)
+
+    def test_early_report_late_failure_uses_separate_notification(self):
+        c,port,pipe=self.make(early=True);ticket,_=self.branch(c,port)
+        ticket.child({'branch_id':'child','node_id':1});ticket.complete(self.report())
+        self.wait(lambda:self.row(c)['acked']);first=self.row(c)['report']
+        ticket.transfer_done({'peer_rpc_count':1},'child ACK lost')
+        self.wait(lambda:self.row(c)['late_error_acked'])
+        self.assertEqual(self.row(c)['report'],first)
+        messages=[]
+        while pipe.poll(.02):messages.append(pipe.recv())
+        notice=next(m for m in messages if m.get('transfer_failure'))
+        self.assertEqual(notice['reports'],[])
+        self.assertEqual(notice['error'],'child ACK lost')
+        self.assertEqual([u['kind'] for u in c.take_updates()],['acked'])
+
+    def test_early_report_lost_result_ack_retries_same_payload(self):
+        c,port,pipe=self.make('drop_first_report',early=True);ticket,_=self.branch(c,port)
+        ticket.child({'branch_id':'child','node_id':1});ticket.complete(self.report())
+        self.wait(lambda:self.row(c)['acked'])
+        messages=[]
+        while pipe.poll(.02):messages.append(pipe.recv())
+        reports=[m['reports'] for m in messages if m['reports']]
+        self.assertTrue(reports)
+        self.assertTrue(all(r==reports[0] for r in reports))
+        ticket.transfer_done({})
 
     def test_transfer_before_completion_and_transfer_error(self):
         c,port,pipe=self.make();ticket,_=self.branch(c,port)
@@ -185,3 +224,71 @@ class NativeControllerTests(unittest.TestCase):
         self.wait(lambda:self.row(c)['acked']);self.assertEqual(c.take_updates()[0]['kind'],'acked')
         self.wait(lambda:not c.snapshot()['branches'])
         self.assertEqual([u['kind'] for u in c.take_updates()],['expired'])
+
+
+def parallel_head(pipe, stop):
+    import threading
+    listener=socket.socket();listener.bind(('127.0.0.1',0));listener.listen();listener.settimeout(.05)
+    pipe.send(listener.getsockname()[1])
+    def serve(sock):
+        with sock:
+            sock.settimeout(.05)
+            while not stop.is_set():
+                try:message,_=receive(sock,1 << 20)
+                except socket.timeout:continue
+                except (OSError,ValueError):break
+                time.sleep(.02) # Deliberately occupy the outbound lane.
+                try:send(sock,{'ok':True,'cancelled':False,'lease_ms':1000,'involved_nodes':[0]},1 << 20)
+                except OSError:break
+    try:
+        while not stop.is_set():
+            try:sock,_=listener.accept()
+            except socket.timeout:continue
+            threading.Thread(target=serve,args=(sock,),daemon=True).start()
+    finally:listener.close();pipe.close()
+
+
+class AdaptiveControllerTests(unittest.TestCase):
+    branch=NativeControllerTests.branch
+    report=NativeControllerTests.report
+    wait=NativeControllerTests.wait
+    def setUp(self):
+        ctx=mp.get_context('fork');self.pipe,child=ctx.Pipe();self.stop=ctx.Event()
+        self.process=ctx.Process(target=parallel_head,args=(child,self.stop));self.process.start();child.close()
+        self.assertTrue(self.pipe.poll(2));self.port=self.pipe.recv()
+        cfg=config(0);cfg['peer']['retention_seconds']=.15
+        cfg['native_runtime']={'adaptive_control':dict(enabled=True,min_lanes=1,max_lanes=3,
+            command_queue_high=1,network_pending_high=1,high_samples=1,
+            sample_interval_ms=2,cooldown_ms=2,idle_ms=10)}
+        self.c=native().NativeController(cfg)
+    def tearDown(self):
+        self.c.close();self.stop.set();self.process.join(2)
+        if self.process.is_alive():self.process.terminate();self.process.join(2)
+        self.pipe.close()
+    def test_scale_preserves_identity_completion_and_reclaims_threads(self):
+        tickets=[]
+        for i in range(12):
+            t,_=self.branch(self.c,self.port,f'q{i}');tickets.append(t)
+            time.sleep(.003)
+        self.wait(lambda:self.c.snapshot()['adaptive_control']['scale_ups']>0)
+        with self.assertRaises(ValueError):self.branch(self.c,self.port,'q0')
+        for i,t in enumerate(tickets):t.complete(self.report(f'q{i}'))
+        seen=set();expired=set()
+        def drained():
+            for u in self.c.take_updates():
+                if u['kind']=='acked':
+                    self.assertNotIn(u['branch_id'],seen);seen.add(u['branch_id'])
+                if u['kind']=='expired':expired.add(u['branch_id'])
+            return len(seen)==12 and len(expired)==12
+        self.wait(drained)
+        self.wait(lambda:self.c.snapshot()['adaptive_control']['lanes']==1)
+        snap=self.c.snapshot();self.assertGreater(snap['adaptive_control']['scale_downs'],0)
+        self.assertFalse(snap['branches']);self.assertGreaterEqual(snap['control_totals']['sent'],12)
+        self.c.close();self.c.close()
+        with self.assertRaises(RuntimeError):self.branch(self.c,self.port,'late')
+    def test_transfer_ack_still_gates_parent_report(self):
+        t,_=self.branch(self.c,self.port);t.child({'branch_id':'child','node_id':1});t.complete(self.report())
+        self.wait(lambda:self.c.snapshot()['branches'][0]['status']=='waiting_transfer')
+        self.assertFalse(self.c.snapshot()['branches'][0]['acked'])
+        t.transfer_done({'peer_rpc_count':1})
+        self.wait(lambda:any(r['acked'] for r in self.c.snapshot()['branches']))

@@ -2,6 +2,8 @@
 #include "read_metrics.hpp"
 #include "search_control.hpp"
 #include "native_control.hpp"
+#include "value_utils.hpp"
+#include <functional>
 #include <cerrno>
 #include <chrono>
 #include <cstring>
@@ -28,22 +30,25 @@ struct Candidate {
   size_t depth=0, cross=0;
   int64_t queued=0;
 };
-inline Candidate candidate(py::handle row) {
-  auto x=py::reinterpret_borrow<py::sequence>(row);
-  require(x.size()==9,"Invalid native seed");
-  Candidate c;
-  c.id=x[0].cast<Id>();c.distance=x[1].cast<double>();c.uncertainty=x[2].cast<double>();
-  c.owners=x[3].cast<std::vector<int>>();
-  if(!x[4].is_none())c.parent=x[4].cast<Id>();
-  c.depth=x[5].cast<size_t>();c.cross=x[6].cast<size_t>();c.root=x[7].cast<Id>();c.age=x[8].cast<double>();
+using V = dhwire::Value;
+inline Candidate candidate(const V& value) {
+  const auto& x=dhvalue::array(value);require(x.size()==9,"Invalid native seed");
+  Candidate c;c.id=dhvalue::cast<Id>(x[0]);c.distance=dhvalue::number(x[1]);
+  c.uncertainty=dhvalue::number(x[2]);c.owners=dhvalue::cast<std::vector<int>>(x[3]);
+  if(!dhvalue::null(x[4]))c.parent=dhvalue::cast<Id>(x[4]);
+  c.depth=dhvalue::cast<size_t>(x[5]);c.cross=dhvalue::cast<size_t>(x[6]);
+  c.root=dhvalue::cast<Id>(x[7]);c.age=dhvalue::number(x[8]);
   require(std::isfinite(c.distance)&&std::isfinite(c.uncertainty)&&c.uncertainty>=0&&!c.owners.empty(),"Invalid native candidate values");
   c.queued=now_ns();return c;
 }
-inline py::list row(const Candidate& c) {
-  py::list x;x.append(c.id);x.append(c.distance);x.append(c.uncertainty);x.append(py::cast(c.owners));
-  if(c.parent)x.append(*c.parent);else x.append(py::none());
-  x.append(c.depth);x.append(c.cross);x.append(c.root);x.append(c.age);return x;
+inline V row(const Candidate& c) {
+  return V::Array{V(c.id),V(c.distance),V(c.uncertainty),dhvalue::vector(c.owners),
+    c.parent?V(*c.parent):V(),V(uint64_t(c.depth)),V(uint64_t(c.cross)),V(c.root),V(c.age)};
 }
+struct ReadReply { std::vector<std::vector<uint8_t>> records; Stats stats; };
+using Read = std::function<ReadReply(const std::vector<Id>&)>;
+using Release = std::function<void()>;
+using Spawn = std::function<V(V)>;
 inline bool closer(const Candidate& a,const Candidate& b) {
   return a.distance<b.distance || (a.distance==b.distance && a.id<b.id);
 }
@@ -69,6 +74,7 @@ class Shard {
   std::string epoch_;
   bool cosine_=false;
   py::object quantizer_owner_,counter_owner_,clock_domain_;
+  V native_clock_;
   py::list arrays_;
   Quantizer* quantizer_=nullptr;
   ExpansionCounters* counters_=nullptr;
@@ -79,6 +85,7 @@ class Shard {
   std::vector<std::vector<int>> owners_;
 public:
   Shard(py::object shard, Array<uint8_t> membership, py::object clock_domain):clock_domain_(clock_domain) {
+    native_clock_=dhwire::from_python(clock_domain);
     py::dict meta=shard.attr("meta");
     sid_=meta["shard_id"].cast<int>();dim_=meta["dimension"].cast<size_t>();
     stride_=meta["record_bytes"].cast<size_t>();header_=meta["header_bytes"].cast<size_t>();
@@ -115,62 +122,92 @@ public:
                std::shared_ptr<Control> control,py::object read_batch,
                py::object release_batch,py::function spawn,
                std::shared_ptr<dhcontrol::Ticket> completion=nullptr) {
+    V input=dhwire::from_python(state),cfg=dhwire::from_python(config),output;
+    std::vector<double> randoms(draws.data(),draws.data()+draws.size());
+    Read read;
+    if(!read_batch.is_none())read=[&](const std::vector<Id>& ids){
+      py::gil_scoped_acquire gil;
+      auto reply=read_batch(py::cast(ids)).cast<py::tuple>();
+      ReadReply out;out.stats=reply[1].cast<Stats>();
+      for(auto item:reply[0]){auto bytes=py::cast<std::string>(item);out.records.emplace_back(bytes.begin(),bytes.end());}
+      return out;
+    };
+    Release release=[&]{py::gil_scoped_acquire gil;release_batch();};
+    Spawn forward=[&](V payload){py::gil_scoped_acquire gil;return dhwire::from_python(spawn(dhwire::to_python(payload)));};
+    int64_t gil_wait;
+    {py::gil_scoped_release gil;output=run_value(input,cfg,randoms,control,read,release,forward,completion);gil_wait=now_ns();}
+    const auto acquired=now_ns();
+    if(dhvalue::has(output,"native_timestamps")){
+      auto& t=output.map().at("native_timestamps").map();
+      t["native_gil_wait_start_ns"]=V(gil_wait);t["native_gil_reacquired_ns"]=V(acquired);
+    }
+    auto converted=dhwire::to_python(output).cast<py::dict>();
+    if(!completion&&converted.contains("native_timestamps")){
+      auto t=converted["native_timestamps"].cast<py::dict>();
+      t["native_wire_report_ready_ns"]=t["native_report_ready_ns"];
+      t["native_report_ready_ns"]=now_ns();
+    }
+    return converted;
+  }
+
+  V run_value(const V& state,const V& config,const std::vector<double>& draws,
+               std::shared_ptr<Control> control,const Read& read_batch,
+               const Release& release_batch,const Spawn& spawn,
+               std::shared_ptr<dhcontrol::Ticket> completion=nullptr) {
     const int64_t native_entry_ns=now_ns();
     int64_t native_search_start_ns=0,native_loop_done_ns=0;
-    int64_t native_gil_wait_start_ns=0,native_completion_enqueued_ns=0;
+    int64_t native_completion_enqueued_ns=0;
     require(fd_>=0,"Native search shard closed");
-    require(state["epoch"].cast<std::string>()==epoch_,"Native epoch mismatch");
-    auto visited=state["visited_nodes"].cast<std::vector<int>>();
+    require(dhvalue::get<std::string>(state,"epoch")==epoch_,"Native epoch mismatch");
+    auto visited=dhvalue::get<std::vector<int>>(state,"visited_nodes");
     std::unordered_set<int> visited_set(visited.begin(),visited.end());
     require(!visited.empty()&&visited.back()==sid_&&visited.size()==visited_set.size(),"Invalid visited-node path");
-    const std::string bytes=state["query_f32"].cast<std::string>();
+    const auto& bytes=std::get<V::Bytes>(dhvalue::at(state,"query_f32").data);
     require(bytes.size()==dim_*sizeof(float),"Native query dimension mismatch");
     std::vector<float> query(dim_);std::memcpy(query.data(),bytes.data(),bytes.size());finite(query.data(),dim_);
     if(cosine_) {double norm=0;for(float v:query)norm+=double(v)*v;require(std::abs(std::sqrt(norm)-1)<=1.001e-5,"Cosine query must be normalized");}
-    const auto cfg=config["search"].cast<py::dict>();const auto policy=config["scheduler"].cast<py::dict>();
-    const auto peer=config["peer"].cast<py::dict>();const auto net=config["network"].cast<py::dict>();
-    const size_t topk=cfg["top_k"].cast<size_t>(),frontier_limit=cfg["frontier_size"].cast<size_t>();
-    const size_t beam=cfg["local_beam"].cast<size_t>(),remote_batch=net["batch_size"].cast<size_t>();
-    const size_t stagnation_limit=cfg["stagnation_batches"].cast<size_t>();
-    const bool exclude_self=cfg["exclude_self"].cast<bool>(),fallback_enabled=cfg["fallback_enabled"].cast<bool>();
-    const size_t fallback_limit=state.contains("fallback_remaining")?state["fallback_remaining"].cast<size_t>():cfg["max_fallback_entries"].cast<size_t>();
-    const size_t grant_total=state["work_grant"].cast<size_t>(),slots_total=state["branch_slots"].cast<size_t>();
+    const auto& cfg=dhvalue::at(config,"search");const auto& policy=dhvalue::at(config,"scheduler");
+    const auto& peer=dhvalue::at(config,"peer");const auto& net=dhvalue::at(config,"network");
+    const size_t topk=dhvalue::get<size_t>(cfg,"top_k"),frontier_limit=dhvalue::get<size_t>(cfg,"frontier_size");
+    const size_t beam=dhvalue::get<size_t>(cfg,"local_beam"),remote_batch=dhvalue::get<size_t>(net,"batch_size");
+    const size_t stagnation_limit=dhvalue::get<size_t>(cfg,"stagnation_batches");
+    const bool exclude_self=dhvalue::get<bool>(cfg,"exclude_self"),fallback_enabled=dhvalue::get<bool>(cfg,"fallback_enabled");
+    const size_t fallback_limit=dhvalue::has(state,"fallback_remaining")?dhvalue::get<size_t>(state,"fallback_remaining"):dhvalue::get<size_t>(cfg,"max_fallback_entries");
+    const size_t grant_total=dhvalue::get<size_t>(state,"work_grant"),slots_total=dhvalue::get<size_t>(state,"branch_slots");
     size_t remaining=grant_total,slots=slots_total,stagnation=0,fallback_used=0,draw_index=0;
     require(topk&&beam&&frontier_limit&&remote_batch&&grant_total,"Invalid native search budget");
-    const double scale=state["scale"].cast<double>(),kappa=policy["kappa"].cast<double>();
-    const double exploration=policy["exploration"].cast<double>(),max_wait=policy["max_wait_ms"].cast<double>();
-    const double rtt=policy["remote_rtt_ms"].cast<double>(),bandwidth=policy["bandwidth_bytes_per_ms"].cast<double>();
-    const double ewma=policy["ewma_weight"].cast<double>(),weight=policy["remote_weight"].cast<double>();
-    const double temperature=policy["probability_temperature"].cast<double>(),child_fraction=peer["child_budget_fraction"].cast<double>();
-    double service_per_node=policy["local_batch_ms"].cast<double>()/beam;
+    const double scale=dhvalue::get<double>(state,"scale"),kappa=dhvalue::get<double>(policy,"kappa");
+    const double exploration=dhvalue::get<double>(policy,"exploration"),max_wait=dhvalue::get<double>(policy,"max_wait_ms");
+    const double rtt=dhvalue::get<double>(policy,"remote_rtt_ms"),bandwidth=dhvalue::get<double>(policy,"bandwidth_bytes_per_ms");
+    const double ewma=dhvalue::get<double>(policy,"ewma_weight"),weight=dhvalue::get<double>(policy,"remote_weight");
+    const double temperature=dhvalue::get<double>(policy,"probability_temperature"),child_fraction=dhvalue::get<double>(peer,"child_budget_fraction");
+    double service_per_node=dhvalue::get<double>(policy,"local_batch_ms")/beam;
     require(std::isfinite(scale)&&scale>0&&max_wait>0&&bandwidth>0&&temperature>0,"Invalid native policy scale");
-    const std::string mode=policy["mode"].cast<std::string>(),selection=policy["remote_selection"].cast<std::string>();
-    const bool detailed=state.contains("trace_enabled")?state["trace_enabled"].cast<bool>():
-        config["metrics"].cast<py::dict>()["detailed_trace"].cast<bool>();
-    const bool lifecycle=detailed||(state.contains("lifecycle_trace_enabled")&&state["lifecycle_trace_enabled"].cast<bool>());
-    std::optional<Id> query_id;if(!state["query_id"].is_none())query_id=state["query_id"].cast<Id>();
-    const std::string branch_id=state["branch_id"].cast<std::string>();
+    const std::string mode=dhvalue::get<std::string>(policy,"mode"),selection=dhvalue::get<std::string>(policy,"remote_selection");
+    const bool detailed=dhvalue::has(state,"trace_enabled")?dhvalue::get<bool>(state,"trace_enabled"):
+        dhvalue::get<bool>(dhvalue::at(config,"metrics"),"detailed_trace");
+    const bool lifecycle=detailed||(dhvalue::has(state,"lifecycle_trace_enabled")&&dhvalue::get<bool>(state,"lifecycle_trace_enabled"));
+    std::optional<Id> query_id;if(!dhvalue::null(dhvalue::at(state,"query_id")))query_id=dhvalue::get<Id>(state,"query_id");
+    const std::string branch_id=dhvalue::get<std::string>(state,"branch_id");
     std::vector<Candidate> frontier,fallbacks,paths;
-    for(auto key:{"seeds","remote_frontier"})if(state.contains(key))
-      for(auto item:state[key])frontier.push_back(candidate(item));
-    if(state.contains("fallback_entries"))for(auto item:state["fallback_entries"])fallbacks.push_back(candidate(item));
-    auto initial_seen=state["seen"].cast<std::vector<Id>>();
+    for(auto key:{"seeds","remote_frontier"})if(dhvalue::has(state,key))
+      for(const auto& item:dhvalue::array(dhvalue::at(state,key)))frontier.push_back(candidate(item));
+    if(dhvalue::has(state,"fallback_entries"))for(const auto& item:dhvalue::array(dhvalue::at(state,"fallback_entries")))fallbacks.push_back(candidate(item));
+    auto initial_seen=dhvalue::get<std::vector<Id>>(state,"seen");
     std::unordered_set<Id> seen(initial_seen.begin(),initial_seen.end());
     std::unordered_map<Id,double> results;
     std::vector<Id> expanded;
     std::vector<Decision> decisions;std::vector<Trace> traces;
     Stats stats;std::string stop_reason="frontier_exhausted";
-    py::list children,events;
-    bool can_forward=true;const bool async=!read_batch.is_none();
+    bool can_forward=true;const bool async=bool(read_batch);
     require(!completion||!async,"Native control currently requires sync_pread");
-    using V=dhwire::Value;
     V::Map native_report;
     V::Array native_children,native_events;
     V native_clock;
-    if(completion) {
+    {
       for(auto key:{"branch_id","parent_branch_id","visited_nodes","work_grant","branch_slots"})
-        native_report[key]=dhwire::from_python(state[key]);
-      native_clock=dhwire::from_python(clock_domain_);
+        native_report[key]=dhvalue::at(state,key);
+      native_clock=native_clock_;
     }
     const int64_t started=now_ns();const double cpu_started=cpu_ms();
     const auto owner_thread=static_cast<uint64_t>(syscall(SYS_gettid));
@@ -199,7 +236,6 @@ public:
     };
     auto dropped=[&]() -> const char* {return can_forward?"visited_node_candidates_dropped":"remote_candidates_dropped_after_forward";};
     {
-      py::gil_scoped_release unlock;
       native_search_start_ns=now_ns();
       control->check();
       auto prep_start=now_ns();auto prepared=quantizer_->prepare_native(query.data());
@@ -276,25 +312,21 @@ public:
           for(auto& seed:seeds)frontier.erase(std::remove_if(frontier.begin(),frontier.end(),[&](const Candidate& x){return x.id==seed.id;}),frontier.end());
           for(auto& c:frontier)if(std::find(c.owners.begin(),c.owners.end(),sid_)==c.owners.end()&&owner(c.owners)>=0)carried.push_back(c);
           {
-            py::gil_scoped_acquire lock;
-            py::dict payload;py::list seed_rows,carry_rows;
-            for(auto& c:seeds)seed_rows.append(row(c));
-            for(auto& c:carried)carry_rows.append(row(c));
+            V::Array seed_rows,carry_rows;
+            for(auto& c:seeds)seed_rows.push_back(row(c));
+            for(auto& c:carried)carry_rows.push_back(row(c));
             std::vector<Id> seen_sorted(seen.begin(),seen.end());std::sort(seen_sorted.begin(),seen_sorted.end());
-            payload["seeds"]=seed_rows;payload["remote_frontier"]=carry_rows;payload["seen"]=py::cast(seen_sorted);
-            payload["target_node"]=action.node;payload["work_grant"]=grant;payload["branch_slots"]=child_slots;
-            payload["fallback_remaining"]=fallback_limit-fallback_used;payload["dispatch_decision_id"]=decision_id;
-            payload["draws_used"]=draw_index;
-            // The protocol adapter constructs UUID/ancestry and enqueues only
-            // this approved dispatch. No local frontier returns to the head.
-            py::dict descriptor=spawn(payload).cast<py::dict>();children.append(descriptor);
-            py::dict event;event["decision_id"]=decision_id;event["target"]=action.node;event["child_branch_id"]=descriptor["branch_id"];
-            event["work_grant"]=grant;event["local_expansions_before"]=expanded.size();event["candidate_count"]=seeds.size();
-            event["carried_candidate_count"]=carried.size();event["elapsed_ms"]=ms_since(started);events.append(event);
-            if(completion) {
-              native_children.push_back(dhwire::from_python(descriptor));
-              native_events.push_back(dhwire::from_python(event));
-            }
+            V payload=V::Map{{"seeds",V(std::move(seed_rows))},{"remote_frontier",V(std::move(carry_rows))},
+              {"seen",dhvalue::vector(seen_sorted)},{"target_node",V(int64_t(action.node))},
+              {"work_grant",V(uint64_t(grant))},{"branch_slots",V(uint64_t(child_slots))},
+              {"fallback_remaining",V(uint64_t(fallback_limit-fallback_used))},
+              {"dispatch_decision_id",V(decision_id)},{"draws_used",V(uint64_t(draw_index))}};
+            V descriptor=spawn(std::move(payload));
+            native_events.emplace_back(V::Map{{"decision_id",V(decision_id)},{"target",V(int64_t(action.node))},
+              {"child_branch_id",dhvalue::at(descriptor,"branch_id")},{"work_grant",V(uint64_t(grant))},
+              {"local_expansions_before",V(uint64_t(expanded.size()))},{"candidate_count",V(uint64_t(seeds.size()))},
+              {"carried_candidate_count",V(uint64_t(carried.size()))},{"elapsed_ms",V(ms_since(started))}});
+            native_children.push_back(std::move(descriptor));
           }
           can_forward=false;continue;
         }
@@ -307,16 +339,12 @@ public:
         try {
           if(async) {
             const auto wait_start=now_ns();
-            {py::gil_scoped_acquire lock;
-              auto reply=read_batch(py::cast(batch)).cast<py::tuple>();held=true;
-              auto records=reply[0].cast<py::list>();require(records.size()==batch.size(),"Wrong native I/O batch size");
-              // Allocate the second copy only after admission, and free it
-              // before releasing the I/O reservation (2x record bytes).
+            {auto reply=read_batch(batch);held=true;
+              require(reply.records.size()==batch.size(),"Wrong native I/O batch size");
               raw.resize(batch.size()*stride_);
-              for(size_t i=0;i<batch.size();++i){py::bytes bytes=records[i].cast<py::bytes>();char* ptr=nullptr;Py_ssize_t len=0;
-                if(PyBytes_AsStringAndSize(bytes.ptr(),&ptr,&len)<0)throw py::error_already_set();
-                require(size_t(len)==stride_,"Short native async record");std::memcpy(raw.data()+i*stride_,ptr,stride_);}
-              work=reply[1].cast<Stats>();
+              for(size_t i=0;i<batch.size();++i){require(reply.records[i].size()==stride_,"Short native async record");
+                std::memcpy(raw.data()+i*stride_,reply.records[i].data(),stride_);}
+              work=std::move(reply.stats);
             }
             stats["query_io_wait_ms"]+=ms_since(wait_start);
           }
@@ -358,7 +386,7 @@ public:
           if(detailed)trace.spans.emplace_back("rabitq",quant_start,quant_end);
           trace.end=now_ns();trace.cpu=cpu_ms()-service_cpu;work["service_ms"]=(trace.end-trace.start)/1e6;
           work["server_thread_cpu_ms"]=trace.cpu;
-          if(held){std::vector<char>().swap(raw);py::gil_scoped_acquire lock;release_batch();held=false;}
+          if(held){std::vector<char>().swap(raw);release_batch();held=false;}
           control->check();remaining-=batch.size();expanded.insert(expanded.end(),batch.begin(),batch.end());stats["batches"]++;
           for(auto [name,value]:work)if(name!="server_thread_cpu_ms")stats[name]+=value;
           const double measured=(work["service_ms"]+work["io_batch_wall_ms"])/batch.size();
@@ -378,7 +406,7 @@ public:
           accounted=true;
           if(detailed){trace.stats=std::move(work);traces.push_back(std::move(trace));}
         } catch(...) {
-          if(held){std::vector<char>().swap(raw);py::gil_scoped_acquire lock;try{release_batch();}catch(...){}}
+          if(held){std::vector<char>().swap(raw);try{release_batch();}catch(...){}}
           if(!accounted)counters_->finish_native(false,{});
           throw;
         }
@@ -387,9 +415,8 @@ public:
       native_loop_done_ns=now_ns();
       stats["server_thread_cpu_ms"]=cpu_ms()-cpu_started;
       stats["branch_wall_ms"]=ms_since(started);
-      if(completion) {
-        // Build the complete wire report before reacquiring the GIL. The
-        // controller takes native ownership; Python never serializes it.
+      {
+        // Produce a native report for either transport without Python APIs.
         std::vector<std::pair<Id,double>> ranked(results.begin(),results.end());
         std::sort(ranked.begin(),ranked.end(),[](auto a,auto b){return a.second<b.second||(a.second==b.second&&a.first<b.first);});
         if(ranked.size()>topk)ranked.resize(topk);
@@ -446,55 +473,19 @@ public:
         if(lifecycle)native_report["native_timestamps"]=V(V::Map{{"clock_domain",native_clock},
           {"native_entry_ns",V(native_entry_ns)},{"native_search_start_ns",V(native_search_start_ns)},
           {"native_loop_done_ns",V(native_loop_done_ns)},{"native_report_ready_ns",V(now_ns())}});
-        completion->complete(V(std::move(native_report)));
-        native_completion_enqueued_ns=now_ns();
+        if(completion){
+          V::Map timestamps;
+          if(lifecycle)timestamps=native_report.at("native_timestamps").map();
+          completion->complete(V(std::move(native_report)));native_completion_enqueued_ns=now_ns();
+          V::Map out{{"native_control_submitted",V(true)}};
+          if(lifecycle){timestamps["native_completion_enqueued_ns"]=V(native_completion_enqueued_ns);out["native_timestamps"]=V(std::move(timestamps));}
+          return out;
+        }
+        return V(std::move(native_report));
       }
-      native_gil_wait_start_ns=now_ns();
     }
-    const int64_t native_gil_reacquired_ns=now_ns();
-    if(completion) {
-      py::dict report,timestamps;report["native_control_submitted"]=true;
-      if(lifecycle){timestamps["clock_domain"]=clock_domain_;timestamps["native_entry_ns"]=native_entry_ns;
-        timestamps["native_search_start_ns"]=native_search_start_ns;timestamps["native_loop_done_ns"]=native_loop_done_ns;
-        timestamps["native_gil_wait_start_ns"]=native_gil_wait_start_ns;
-        timestamps["native_completion_enqueued_ns"]=native_completion_enqueued_ns;
-        timestamps["native_gil_reacquired_ns"]=native_gil_reacquired_ns;report["native_timestamps"]=timestamps;}
-      return report;
-    }
-    std::vector<std::pair<Id,double>> ranked(results.begin(),results.end());
-    std::sort(ranked.begin(),ranked.end(),[](auto a,auto b){return a.second<b.second||(a.second==b.second&&a.first<b.first);});
-    if(ranked.size()>topk)ranked.resize(topk);
-    py::dict report;for(auto key:{"branch_id","parent_branch_id","visited_nodes","work_grant","branch_slots"})report[key]=state[key];
-    report["node_id"]=sid_;report["work_spent"]=expanded.size();report["work_unused"]=remaining;report["children"]=children;
-    py::list ids,distances,result_paths;std::unordered_set<Id> returned;
-    for(auto [id,distance]:ranked){ids.append(id);distances.append(distance);returned.insert(id);}
-    size_t max_depth=0,max_cross=0;
-    for(auto& c:paths) {
-      max_depth=std::max(max_depth,c.depth);max_cross=std::max(max_cross,c.cross);
-      if(returned.count(c.id)){py::dict p;p["id"]=c.id;p["parent"]=c.parent?py::cast(*c.parent):py::none();p["depth"]=c.depth;p["cross_shard_depth"]=c.cross;p["root"]=c.root;p["shard"]=sid_;result_paths.append(p);}
-    }
-    report["ids"]=ids;report["squared_distances"]=distances;report["expanded_ids"]=py::cast(expanded);report["result_paths"]=result_paths;
-    py::dict all_stats=py::cast(stats);all_stats["expanded"]=expanded.size();all_stats["fallback_entries"]=fallback_used;
-    all_stats["max_expanded_depth"]=max_depth;all_stats["max_cross_shard_depth"]=max_cross;
-    all_stats["pending_at_stop"]=frontier.size();all_stats["stop_reason"]=stop_reason;report["stats"]=all_stats;
-    report["fork_events"]=events;py::list decision_rows;
-    for(size_t i=0;i<decisions.size();++i){auto& d=decisions[i];py::dict r;r["decision_id"]=branch_id+":"+std::to_string(i);
-      r["reason"]=d.reason;r["probability"]=d.probability;r["draw"]=d.draw?py::cast(*d.draw):py::none();r["selected_node"]=d.target;
-      r["remote"]=d.remote;r["remote_utility"]=d.ur?py::cast(*d.ur):py::none();r["local_utility"]=d.ul?py::cast(*d.ul):py::none();r["selected_wait_ms"]=d.wait;decision_rows.append(r);}
-    report["decisions"]=decision_rows;
-    if(detailed){py::list batches;for(auto& t:traces){py::dict r,service;
-      service["clock_domain"]=clock_domain_;service["start_ns"]=t.start;service["end_ns"]=t.end;service["spans"]=py::cast(t.spans);service["thread_cpu_ms"]=t.cpu;
-      r["ids"]=py::cast(t.ids);r["shard_id"]=sid_;r["service_trace"]=service;r["stats"]=py::cast(t.stats);r["io_trace"]=py::none();batches.append(r);}report["local_batch_trace"]=batches;}
-    report["compute_thread_id"]=owner_thread;report["compute_thread_migrations"]=0;
-    report["native_search_loop"]=true;report["decision_rng"]="numpy_pcg64_precomputed_v1";
-    if(lifecycle){py::dict timestamps;timestamps["clock_domain"]=clock_domain_;
-      timestamps["native_entry_ns"]=native_entry_ns;timestamps["native_search_start_ns"]=native_search_start_ns;
-      timestamps["native_loop_done_ns"]=native_loop_done_ns;
-      timestamps["native_gil_reacquired_ns"]=native_gil_reacquired_ns;
-      timestamps["native_report_ready_ns"]=now_ns();
-      report["native_timestamps"]=timestamps;}
-    return report;
   }
+
 };
 } // namespace dhsearch
 
@@ -503,7 +494,7 @@ inline void register_native_search(py::module_& m) {
   py::class_<dhsearch::Control,std::shared_ptr<dhsearch::Control>>(m,"SearchControl")
     .def(py::init<double,double>()).def("renew",&dhsearch::Control::renew)
     .def("cancel",&dhsearch::Control::cancel).def("cancelled",&dhsearch::Control::cancelled);
-  py::class_<dhsearch::Shard>(m,"SearchShard")
+  py::class_<dhsearch::Shard,std::shared_ptr<dhsearch::Shard>>(m,"SearchShard")
     .def(py::init<py::object,Array<uint8_t>,py::object>())
     .def("run",&dhsearch::Shard::run,py::arg("state"),py::arg("config"),py::arg("draws"),
          py::arg("control"),py::arg("read_batch"),py::arg("release_batch"),py::arg("spawn"),py::arg("completion")=nullptr)

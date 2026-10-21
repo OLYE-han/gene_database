@@ -6,6 +6,7 @@ namespace pybind11 { class dict; }
 namespace dhsearch { class Control; }
 namespace dhcontrol {
 struct Engine;
+struct Fleet;
 struct Branch;
 class Ticket {
   std::weak_ptr<Engine> engine_;
@@ -23,11 +24,15 @@ public:
 };
 class Controller {
   std::shared_ptr<Engine> engine_;
+  std::shared_ptr<Fleet> fleet_;
 public:
   explicit Controller(pybind11::dict config);
+  explicit Controller(const dhwire::Value& config);
   ~Controller();
   std::shared_ptr<Ticket> register_branch(pybind11::dict metadata,
                                         std::shared_ptr<dhsearch::Control> control);
+  std::shared_ptr<Ticket> register_value(dhwire::Value metadata,
+                                       std::shared_ptr<dhsearch::Control> control);
   dhwire::Value snapshot(bool include_reports = false) const;
   dhwire::Value take_updates();
   void close();

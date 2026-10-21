@@ -45,7 +45,7 @@ class ClusterHead:
         if self.state_file.exists():self.c=patched(self.c,json.loads(self.state_file.read_text())['settings'])
         self.c['_cluster_revision']=revision(self.c)
         self.engine=Engine(self.c)
-        self.op_lock=threading.Lock();self.cv=threading.Condition();self.active=0
+        self.op_lock=threading.Lock();self.benchmark_lock=threading.Lock();self.cv=threading.Condition();self.active=0
         self.busy=None;self.ready=False;self.error=None
 
     def rpc(self,node,op,**fields):
@@ -62,7 +62,9 @@ class ClusterHead:
         hub=self.engine.head_hub
         receivers=hub.status() if hasattr(hub,'status') else []
         return dict(ready=self.ready,busy=self.busy,active_queries=self.active,revision=revision(self.c),
+                    benchmark_active=self.benchmark_lock.locked(),
                     head_receivers=receivers,
+                    native_head=(self.engine.runtime.metrics() if self.c.get('native_runtime',{}).get('head_enabled',False) else None),
                     head_pipeline=(self.engine.head_flow.ingress.status() if hasattr(self.engine.head_flow,'ingress') else None),
                     error=self.error,settings=hot_values(self.c),nodes=nodes)
 
@@ -198,125 +200,138 @@ class ClusterHead:
         if any(type(v)is not int for v in (count,concurrency,warmup)) or not 1<=count<=self.settings['max_queries'] or not 1<=concurrency<=self.settings['max_client_threads'] or not 0<=warmup<=self.settings['max_queries']:
             raise ValueError('Invalid benchmark limits')
         if self.truth is None:raise RuntimeError('No validated ground truth configured')
-        with self.exclusive('benchmark'):
-            path=self.new_run('benchmark');save_json(path/'benchmark_options.json',opts)
-            try:
-                selection=json.loads(Path(self.settings['query_selection']).read_text())['validation'][:count]
-                if len(selection)!=count:raise ValueError('Not enough validation queries')
-                vectors=np.load(self.c['query']['vectors'],mmap_mode='r');ids=np.load(self.c['query']['ids'],mmap_mode='r')
-                truth=[self.truth(int(row),self.c['search']['top_k']) for row in selection]
-                for i in range(warmup):
-                    row=selection[i%count];self.engine.search(vectors[row],int(ids[row]))
-                self.quiescent();before=self.pull();gate=threading.Event();results=[];result_lock=threading.Lock()
-                def worker(i):
-                    local=[];gate.wait()
-                    for job in range(i,count,concurrency):
-                        row=selection[job];start=time.monotonic_ns()
-                        try:found=self.engine.search(vectors[row],int(ids[row]))
-                        except Exception as exc:
-                            context=getattr(exc,'dhdgs_metrics',{})
-                            found=dict(status='error',ids=[],error=str(exc),request_id=context.get('request_id',uuid.uuid4().hex),stats=context.get('stats',{'metrics_complete':False}))
-                        end=time.monotonic_ns();expected=truth[job]
-                        found.update(job=job,query_id=int(ids[row]),query_row=int(row),client_start_ns=start,client_end_ns=end,
-                            client_wall_ms=(end-start)/1e6,offered_ns=offered,client_backlog_ms=(start-offered)/1e6,
-                            offered_to_complete_ms=(end-offered)/1e6,truth_ids=expected,
-                            recall=len(set(found['ids'])&set(expected))/len(expected),config_revision=revision(self.c))
-                        local.append(found)
-                    with result_lock:results.extend(local)
-                pipeline=any(self.c['peer'].get(k,{}).get('enabled',False) for k in ('head_pipeline','head_direct','head_lanes'))
-                threads=[] if pipeline else [threading.Thread(target=worker,args=(i,),name=f'head-query-{i}') for i in range(min(concurrency,count))]
-                for t in threads:t.start()
-                from .metrics import process_snapshot
-                hub=self.engine.head_hub
-                receiver_rows=hub.status() if hasattr(hub,'status') else []
-                receiver_pids=[w['pid'] for w in receiver_rows]
-                receiver_roles={w['pid']:w.get('role','report_receiver') for w in receiver_rows}
-                report_receiver_pids=set(receiver_pids)
-                if self.c['peer'].get('head_direct',{}).get('enabled',False):
-                    receiver_pids+=self.engine.head_flow.status()['result_processes']
-                head_before=[process_snapshot(pid) for pid in [None,*receiver_pids]]
-                offered=time.monotonic_ns();gate.set()
-                if pipeline:
-                    completed=queue.Queue();next_job=0;inflight=0
-                    def submit(job):
-                        row=selection[job];start=time.monotonic_ns()
-                        future=self.engine.search_async(vectors[row],int(ids[row]))
-                        future.add_done_callback(lambda f:completed.put((job,start,time.monotonic_ns(),f)))
-                    while next_job<count and inflight<concurrency:
-                        submit(next_job);next_job+=1;inflight+=1
-                    while inflight:
-                        job,start,end,future=completed.get();row=selection[job];expected=truth[job]
-                        try:found=future.result()
-                        except Exception as exc:
-                            context=getattr(exc,'dhdgs_metrics',{})
-                            found=dict(status='error',ids=[],error=str(exc),request_id=context.get('request_id',uuid.uuid4().hex),stats=context.get('stats',{'metrics_complete':False}))
-                        # Include benchmark consumer scheduling as API-return overhead;
-                        # do not stop the clock at the merge thread's completion.
-                        end=time.monotonic_ns()
-                        found.update(job=job,query_id=int(ids[row]),query_row=int(row),client_start_ns=start,client_end_ns=end,
-                            client_wall_ms=(end-start)/1e6,offered_ns=offered,client_backlog_ms=(start-offered)/1e6,
-                            offered_to_complete_ms=(end-offered)/1e6,truth_ids=expected,
-                            recall=len(set(found['ids'])&set(expected))/len(expected),config_revision=revision(self.c))
-                        results.append(found);inflight-=1
-                        if next_job<count:submit(next_job);next_job+=1;inflight+=1
-                for t in threads:t.join()
-                head_after=[process_snapshot(p['pid']) for p in head_before]
-                self.quiescent();after=self.pull();results.sort(key=lambda q:q['job'])
-                if len(results)!=count:raise RuntimeError('Missing benchmark results')
-                end=max(q['client_end_ns'] for q in results);ok=[q for q in results if q['status']=='ok']
-                events=sorted([(q['client_start_ns'],1) for q in results]+[(q['client_end_ns'],-1) for q in results]);active=peak=0
-                for _,delta in events:active+=delta;peak=max(peak,active)
-                summary=dict(query_count=count,successful_queries=len(ok),failed_queries=count-len(ok),
-                    qps=len(ok)/((end-offered)/1e9),measured_wall_seconds=(end-offered)/1e9,
-                    actual_peak_inflight=peak,configured_concurrency=concurrency,
-                    latency_ms=distribution([q['client_wall_ms'] for q in ok]),
-                    client_backlog_ms=distribution([q['client_backlog_ms'] for q in results]),
-                    offered_to_complete_ms=distribution([q['offered_to_complete_ms'] for q in results]),
-                    recall_at_k_all_requests=sum(q['recall'] for q in results)/count,
-                    config_revision=revision(self.c),clock_domain='per-host monotonic; never subtract across hosts',
-                    node_pids={str(k):v['process']['pid'] for k,v in after.items()})
-                # Host-local counter differences only. Snapshot windows include
-                # collection overhead, and are distinct from the QPS interval.
-                loads=[];totals={n['id']:{} for n in self.nodes()}
-                for sid,current in after.items():
-                    proc,old=current['process'],before[sid]['process']
-                    if proc['pid']!=old['pid']:raise RuntimeError('Data process restarted during benchmark')
-                    span=(proc['monotonic_ns']-old['monotonic_ns'])/1e9
-                    deltas={key:None if proc[key] is None or old[key] is None else proc[key]-old[key]
-                        for key in ('cpu_seconds','storage_read_bytes','storage_write_bytes')}
-                    loads.append(dict(shard_id=sid,worker=sid,process=proc,process_deltas=deltas,
-                        process_window_seconds=span,mean_cpu_cores=None if deltas['cpu_seconds'] is None else deltas['cpu_seconds']/span))
-                for q in results:
-                    for sid,values in q['stats'].get('per_shard',{}).items():
-                        for key,value in values.items():totals[int(sid)][key]=totals[int(sid)].get(key,0)+value
-                summary['node_process_load']=loads
-                summary['head_process_load']=[]
-                for i,(old,proc) in enumerate(zip(head_before,head_after)):
-                    span=(proc['monotonic_ns']-old['monotonic_ns'])/1e9
-                    cpu=None if proc['cpu_seconds'] is None or old['cpu_seconds'] is None else proc['cpu_seconds']-old['cpu_seconds']
-                    summary['head_process_load'].append(dict(role='hnsw_head' if i==0 else
-                        (receiver_roles[proc['pid']] if proc['pid'] in report_receiver_pids else 'result_process'),
-                        process=proc,process_window_seconds=span,cpu_seconds=cpu,
-                        mean_cpu_cores=None if cpu is None else cpu/span))
-                summary['query_metric_distributions']={key:distribution([q['stats'][key] for q in ok if isinstance(q['stats'].get(key),(int,float))])
-                    for key in ('query_ready_queue_ms','pread_ms','exact_distance_ms','rabitq_ms','expanded',
-                        'max_expanded_depth','max_cross_shard_depth','peer_branch_rpc_count','control_rpc_count',
-                        'all_protocol_rpc_count','all_protocol_bytes','file_read_bytes','server_thread_cpu_ms')}
-                summary['audit']=dict(metrics_complete=all(q['stats'].get('metrics_complete',False) for q in ok),
-                    no_node_revisit=all(q['stats'].get('node_revisit_count',0)==0 for q in ok),
-                    budget_respected=all(q['stats']['expanded']<=self.c['search']['max_expansions'] for q in ok),
-                    no_router_expansion=all(q['stats'].get('router_expand_rpc_count',0)==0 for q in ok))
-                for name,value in [('nodes_before',before),('nodes_after',after)]:
-                    with gzip.open(path/(name+'.json.gz'),'wt') as f:json.dump(value,f,allow_nan=False)
-                with gzip.open(path/'queries.jsonl.gz','wt') as f:
-                    for q in results:f.write(json.dumps(q,allow_nan=False)+'\n')
-                export_query_csv(path/'queries.csv',results)
-                export_resource_csvs(path,dict(per_node_query_totals=totals,node_process_load=loads,
-                    query_timing_summary=summarize_query_timings(results),per_query_timing_means=summarize_per_query_timings(results),
-                    build_profile=self.engine.manifest.get('build_profile')))
-                save_json(path/'summary.json',summary)
-                return dict(directory=str(path),**summary)
-            except BaseException as exc:
-                save_json(path/'failed.json',dict(error=str(exc),revision=revision(self.c)));raise
+        if not self.benchmark_lock.acquire(blocking=False):
+            raise RuntimeError('A benchmark capture or report is already running')
+        try:
+            with self.exclusive('benchmark'):
+                captured=self._capture_benchmark(opts)
+            # All query/snapshot work is complete. Ordinary queries and safe
+            # configuration transactions can proceed while this report runs.
+            return self._finish_benchmark(captured)
+        finally:
+            self.benchmark_lock.release()
 
-    def close(self):self.engine.close()
+    def _capture_benchmark(self,opts):
+        count,concurrency,warmup=[opts[k] for k in ('queries','concurrency','warmup')]
+        path=self.new_run('benchmark');save_json(path/'benchmark_options.json',opts)
+        spool=None
+        try:
+            selection=json.loads(Path(self.settings['query_selection']).read_text())['validation'][:count]
+            if len(selection)!=count:raise ValueError('Not enough validation queries')
+            vectors=np.load(self.c['query']['vectors'],mmap_mode='r');ids=np.load(self.c['query']['ids'],mmap_mode='r')
+            truth=[self.truth(int(row),self.c['search']['top_k']) for row in selection]
+            benchmark_revision=revision(self.c)
+            for i in range(warmup):
+                row=selection[i%count];self.engine.search(vectors[row],int(ids[row]))
+            from .benchmark_archive import CaptureArchive
+            import yaml
+            settings=self.c.get('benchmark_results')
+            if settings is None:
+                defaults=Path(__file__).resolve().parents[2]/'configs/dhdgs.yaml'
+                settings=yaml.safe_load(defaults.read_text())['benchmark_results']
+            capture_context=dict(settings=settings,selection=selection,truth=truth,
+                query_ids=[int(ids[row]) for row in selection],config_revision=benchmark_revision,
+                max_message_bytes=self.c['network']['max_message_bytes'])
+            self.quiescent();before=self.pull();gate=threading.Event()
+            spool=CaptureArchive(path,settings,capture_context);result_lock=threading.Lock()
+            def failure(exc):
+                context=getattr(exc,'dhdgs_metrics',{})
+                if context.get('status')=='error' and 'ids' in context:return context
+                return dict(status='error',ids=[],error=str(exc),request_id=context.get('request_id',uuid.uuid4().hex),
+                            stats=context.get('stats',{'metrics_complete':False}))
+            def capture(found,job,start,done,observed,native_capture=False):
+                if native_capture:
+                    record,api_offered,api_delivered=found
+                    spool.append_native(record,dict(job=job,start_ns=start,service_done_ns=done,
+                        observed_ns=observed,native_capture=True,api_offered_ns=api_offered,
+                        api_delivered_ns=api_delivered,result_encoding_deferred=True))
+                    return
+                else:
+                    encode_start=time.monotonic_ns();payload=msgpack.packb(found,use_bin_type=True)
+                    encoding=dict(start_ns=encode_start,end_ns=time.monotonic_ns());api_offered=start;api_delivered=done
+                spool.append(payload,dict(job=job,start_ns=start,service_done_ns=done,observed_ns=observed,
+                    native_capture=native_capture,api_offered_ns=api_offered,api_delivered_ns=api_delivered,
+                    result_encoding=encoding))
+            def worker(i):
+                gate.wait()
+                for job in range(i,count,concurrency):
+                    row=selection[job];start=time.monotonic_ns()
+                    try:found=self.engine.search(vectors[row],int(ids[row]))
+                    except Exception as exc:found=failure(exc)
+                    done=time.monotonic_ns()
+                    with result_lock:capture(found,job,start,done,time.monotonic_ns())
+            pipeline=(self.c.get('native_runtime',{}).get('head_enabled',False) or
+                      any(self.c['peer'].get(k,{}).get('enabled',False) for k in ('head_pipeline','head_direct','head_lanes')))
+            threads=[] if pipeline else [threading.Thread(target=worker,args=(i,),name=f'head-query-{i}') for i in range(min(concurrency,count))]
+            for t in threads:t.start()
+            from .metrics import process_snapshot
+            hub=self.engine.head_hub
+            receiver_rows=hub.status() if hasattr(hub,'status') else []
+            receiver_pids=[w['pid'] for w in receiver_rows]
+            receiver_roles={w['pid']:w.get('role','report_receiver') for w in receiver_rows}
+            report_receiver_pids=set(receiver_pids)
+            if self.c['peer'].get('head_direct',{}).get('enabled',False):
+                receiver_pids+=self.engine.head_flow.status()['result_processes']
+            head_before=[process_snapshot(pid) for pid in [None,*receiver_pids]]
+            from .gc_profile import snapshot as gc_snapshot
+            head_gc_before=gc_snapshot()
+            offered=time.monotonic_ns();capture_context['offered_ns']=offered;gate.set()
+            if pipeline:
+                completed=queue.Queue();next_job=0;inflight=0
+                native_capture=hasattr(self.engine,'search_capture_async')
+                search_async=self.engine.search_capture_async if native_capture else self.engine.search_async
+                def submit(job):
+                    row=selection[job];start=time.monotonic_ns()
+                    try:future=search_async(vectors[row],int(ids[row]))
+                    except Exception as exc:
+                        from concurrent.futures import Future
+                        future=Future();future.set_exception(exc)
+                    future.add_done_callback(lambda f:completed.put((job,start,time.monotonic_ns(),f)))
+                while next_job<count and inflight<concurrency:
+                    submit(next_job);next_job+=1;inflight+=1
+                while inflight:
+                    job,start,done,future=completed.get()
+                    packed=native_capture
+                    try:found=future.result()
+                    except Exception as exc:found=failure(exc);packed=False
+                    observed=time.monotonic_ns();inflight-=1
+                    # Refill search before storing a result. No recall, result
+                    # decoding, JSON or full Python object graph on native path.
+                    if next_job<count:submit(next_job);next_job+=1;inflight+=1
+                    capture(found,job,start,done,observed,packed)
+            for t in threads:t.join()
+            if spool.count!=count:raise RuntimeError('Missing benchmark capture records')
+            head_gc_after=gc_snapshot()
+            head_after=[process_snapshot(p['pid']) for p in head_before]
+            save_json(path/'head_gc.json',dict(before=head_gc_before,after=head_gc_after))
+            self.quiescent();after=self.pull()
+            context=dict(count=count,concurrency=concurrency,offered_ns=offered,
+                config_revision=benchmark_revision,max_expansions=self.c['search']['max_expansions'],
+                before=before,after=after,head_before=head_before,head_after=head_after,
+                receiver_roles=receiver_roles,report_receiver_pids=list(report_receiver_pids),
+                build_profile=self.engine.manifest.get('build_profile'),capture=None)
+            return path,spool,settings,context
+        except BaseException as exc:
+            save_json(path/'failed.json',dict(error=str(exc),revision=revision(self.c)))
+            if spool is not None:spool.close()
+            raise
+
+    def _finish_benchmark(self,captured):
+        from .benchmark_archive import processor_command,processor_env
+        import subprocess
+        path,spool,settings,context=captured
+        try:
+            spool.flush()
+            context['capture']=dict(spool.stats);spool.close();spool=None
+            save_json(path/'report_context.json',context)
+            with (path/'processor.log').open('ab') as errors:
+                report=subprocess.run(processor_command(path),stdout=subprocess.PIPE,stderr=errors,
+                    env=processor_env(),timeout=settings['processor_timeout_seconds'],check=True)
+            return json.loads(report.stdout)
+        except BaseException as exc:
+            save_json(path/'failed.json',dict(error=str(exc),revision=context['config_revision']));raise
+        finally:
+            if spool is not None:spool.close()
+
+    def close(self):
+        with self.benchmark_lock:self.engine.close()
