@@ -1,0 +1,9 @@
+data_handlers_per_rx: 4
+data_rx: 4
+data_tx: 1
+head_handlers_per_rx: 4
+head_rx: 4
+head_tx: 4
+merge: 4
+route: 16
+search: 32
