@@ -1,0 +1,27 @@
+count: 20000
+concurrency: 256
+warmup: 200
+search_budget: 200
+top_k: 10
+orders:
+  - [64, 32]
+  - [32, 64]
+  - [64, 32]
+  - [32, 64]
+practical_qps_decrease_threshold_percent: 5
+layout:
+  route: 16
+  merge: 4
+  data_tx: 4
+  data_rx: 8
+  data_handlers_per_rx: 1
+  head_tx: 4
+  head_rx: 4
+  head_handlers_per_rx: 4
+  queued_registration: true
+  move_head_reports: true
+connections: 128
+control_capacity: 1024
+head_source: test/control_registration_20261022/source_head_v2
+scratch: /tmp/dhdgs_search_threads_32_64_20261022
+archive: /var/tmp/dhdgs_search_threads_32_64_20261022

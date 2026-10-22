@@ -1,0 +1,224 @@
+{
+  "head": [
+    {
+      "label": "API submission",
+      "start_ms": 0.0,
+      "ms": 0.034303,
+      "fraction": 0.00025150062909616447
+    },
+    {
+      "label": "Route queue",
+      "start_ms": 0.034303,
+      "ms": 0.010507,
+      "fraction": 7.703457743968166e-05
+    },
+    {
+      "label": "HNSW routing",
+      "start_ms": 0.04481,
+      "ms": 1.038794,
+      "fraction": 0.007616166064231148
+    },
+    {
+      "label": "Entry dispatch incl. queue",
+      "start_ms": 1.083604,
+      "ms": 0.074699,
+      "fraction": 0.0005476735414644314
+    },
+    {
+      "label": "Data / RPC / control",
+      "start_ms": 1.158303,
+      "ms": 134.407445,
+      "fraction": 0.9854402522434809
+    },
+    {
+      "label": "Report validation / completion gating",
+      "start_ms": 135.565748,
+      "ms": 0.549515,
+      "fraction": 0.004028900335182894
+    },
+    {
+      "label": "Merge queue",
+      "start_ms": 136.115263,
+      "ms": 0.010304,
+      "fraction": 7.554623450447129e-05
+    },
+    {
+      "label": "Merge",
+      "start_ms": 136.125567,
+      "ms": 0.172875,
+      "fraction": 0.001267474309972872
+    },
+    {
+      "label": "API result handoff",
+      "start_ms": 136.298442,
+      "ms": 0.094855,
+      "fraction": 0.0006954520646274868
+    }
+  ],
+  "branches": [
+    {
+      "node_id": 1,
+      "role": "PARENT",
+      "worker_release_ms": 15.813014,
+      "stages": [
+        {
+          "lane": 0,
+          "label": "Receive queue / validation",
+          "start_ms": 0.0,
+          "ms": 0.163185
+        },
+        {
+          "lane": 0,
+          "label": "Admission + registration",
+          "start_ms": 0.163185,
+          "ms": 0.060428
+        },
+        {
+          "lane": 0,
+          "label": "Compute queue + setup",
+          "start_ms": 0.223613,
+          "ms": 0.119093
+        },
+        {
+          "lane": 1,
+          "label": "Search loop",
+          "start_ms": 0.342706,
+          "ms": 15.278085
+        },
+        {
+          "lane": 1,
+          "label": "Report build / worker release",
+          "start_ms": 15.620791,
+          "ms": 0.192223
+        },
+        {
+          "lane": 2,
+          "label": "Registration command queue (overlaps search)",
+          "start_ms": 0.222265,
+          "ms": 44.333077
+        },
+        {
+          "lane": 3,
+          "label": "Completion command wait",
+          "start_ms": 15.739992,
+          "ms": 65.570072
+        },
+        {
+          "lane": 3,
+          "label": "Completion to report publication",
+          "start_ms": 81.310064,
+          "ms": 0.763331
+        },
+        {
+          "lane": 3,
+          "label": "Schedule + encode / submit",
+          "start_ms": 82.073395,
+          "ms": 52.221115
+        },
+        {
+          "lane": 3,
+          "label": "Result outbound queue / event loop",
+          "start_ms": 134.29451,
+          "ms": 0.023521
+        },
+        {
+          "lane": 3,
+          "label": "Result send incl. connect",
+          "start_ms": 134.318031,
+          "ms": 0.013995
+        },
+        {
+          "lane": 3,
+          "label": "Result response / ACK wait",
+          "start_ms": 134.332026,
+          "ms": 0.606027
+        },
+        {
+          "lane": 4,
+          "label": "Cross-node submit to ACK callback",
+          "start_ms": 3.60242,
+          "ms": 0.65422
+        }
+      ]
+    },
+    {
+      "node_id": 0,
+      "role": "CHILD",
+      "worker_release_ms": 5.883181,
+      "stages": [
+        {
+          "lane": 0,
+          "label": "Receive queue / validation",
+          "start_ms": 0.0,
+          "ms": 0.354065
+        },
+        {
+          "lane": 0,
+          "label": "Admission + registration",
+          "start_ms": 0.354065,
+          "ms": 0.031128
+        },
+        {
+          "lane": 0,
+          "label": "Compute queue + setup",
+          "start_ms": 0.385193,
+          "ms": 0.093552
+        },
+        {
+          "lane": 1,
+          "label": "Search loop",
+          "start_ms": 0.478745,
+          "ms": 5.172339
+        },
+        {
+          "lane": 1,
+          "label": "Report build / worker release",
+          "start_ms": 5.651084,
+          "ms": 0.232097
+        },
+        {
+          "lane": 2,
+          "label": "Registration command queue (overlaps search)",
+          "start_ms": 0.381293,
+          "ms": 0.00771
+        },
+        {
+          "lane": 3,
+          "label": "Completion command wait",
+          "start_ms": 5.732995,
+          "ms": 0.014523
+        },
+        {
+          "lane": 3,
+          "label": "Completion to report publication",
+          "start_ms": 5.747518,
+          "ms": 0.007145
+        },
+        {
+          "lane": 3,
+          "label": "Schedule + encode / submit",
+          "start_ms": 5.754663,
+          "ms": 0.134465
+        },
+        {
+          "lane": 3,
+          "label": "Result outbound queue / event loop",
+          "start_ms": 5.889128,
+          "ms": 0.007642
+        },
+        {
+          "lane": 3,
+          "label": "Result send incl. connect",
+          "start_ms": 5.89677,
+          "ms": 0.013332
+        },
+        {
+          "lane": 3,
+          "label": "Result response / ACK wait",
+          "start_ms": 5.910102,
+          "ms": 0.317098
+        }
+      ]
+    }
+  ]
+}

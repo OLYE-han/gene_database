@@ -1,0 +1,11 @@
+data_handlers_per_rx: 1
+data_rx: 8
+data_tx: 4
+head_handlers_per_rx: 4
+head_rx: 4
+head_tx: 4
+merge: 4
+move_head_reports: false
+queued_registration: false
+route: 16
+search: 64

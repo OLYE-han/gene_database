@@ -95,3 +95,10 @@ GitHub 保存实验脚本、完整 YAML、汇总结果、来源哈希和回归�
 2026-10-21清理：按要求删除早于10月20日的40个本地实验目录，释放约12.84GiB。在用全量索引和ground truth验证文件迁至`artifacts/seq2m_runtime`，旧服务配置/认证迁至`artifacts/runtime_assets`；三个旧路径仅为兼容运行服务的链接。历史条目仍描述原实验，可从Git历史查看已删除的紧凑报告；本地原始数据已清理。清理清单和后续三机线程扫描见[thread_layout_20261021](thread_layout_20261021/STATUS.md)。
 
 - 2026-10-21三机线程布局：45轮/81万请求，配置、性能取舍与p99时序图见[thread_layout_20261021/REPORT.md](thread_layout_20261021/REPORT.md)。
+
+- 2026-10-21网络4/8/16与搜索32/64/128同步扩容：19轮28万请求及阶段等待比较见[network_scale_20261021/REPORT.md](network_scale_20261021/REPORT.md)。
+
+- 2026-10-21接收/接纳线程4+4、8+8、16+16比较：9轮18万请求，三组p99时序图见[receive_admission_20261021/REPORT.md](receive_admission_20261021/REPORT.md)。
+
+- 2026-10-22三节点接纳前排队时序及intel-32样例锁等待定位：[receive_queue_timeline_20261022/REPORT.md](receive_queue_timeline_20261022/REPORT.md)。
+- 2026-10-22固定64搜索线程的控制注册/报告所有权优化与三机对照：[control_registration_20261022/REPORT.md](control_registration_20261022/REPORT.md)。

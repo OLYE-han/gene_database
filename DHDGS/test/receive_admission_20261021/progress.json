@@ -1,0 +1,200 @@
+[
+  {
+    "name": "confirm_r0_rx4_accept4",
+    "stage": "confirm",
+    "layout": {
+      "search": 64,
+      "route": 16,
+      "merge": 4,
+      "data_tx": 4,
+      "data_rx": 4,
+      "data_handlers_per_rx": 1,
+      "head_tx": 4,
+      "head_rx": 4,
+      "head_handlers_per_rx": 4
+    },
+    "queries": 20000,
+    "qps": 5930.261240330719,
+    "p99": 128.3000953499999,
+    "mean": 42.504214943600005,
+    "recall": 0.970295,
+    "wall_seconds": 3.372532708,
+    "metrics_complete": true
+  },
+  {
+    "name": "confirm_r0_rx8_accept8",
+    "stage": "confirm",
+    "layout": {
+      "search": 64,
+      "route": 16,
+      "merge": 4,
+      "data_tx": 4,
+      "data_rx": 8,
+      "data_handlers_per_rx": 1,
+      "head_tx": 4,
+      "head_rx": 4,
+      "head_handlers_per_rx": 4
+    },
+    "queries": 20000,
+    "qps": 5896.290808430633,
+    "p99": 127.48570118999999,
+    "mean": 42.54319773625,
+    "recall": 0.970255,
+    "wall_seconds": 3.391962956,
+    "metrics_complete": true
+  },
+  {
+    "name": "confirm_r0_rx16_accept16",
+    "stage": "confirm",
+    "layout": {
+      "search": 64,
+      "route": 16,
+      "merge": 4,
+      "data_tx": 4,
+      "data_rx": 16,
+      "data_handlers_per_rx": 1,
+      "head_tx": 4,
+      "head_rx": 4,
+      "head_handlers_per_rx": 4
+    },
+    "queries": 20000,
+    "qps": 6116.308301546387,
+    "p99": 137.34815938999986,
+    "mean": 41.05906166255,
+    "recall": 0.9702649999999999,
+    "wall_seconds": 3.269946349,
+    "metrics_complete": true
+  },
+  {
+    "name": "confirm_r1_rx8_accept8",
+    "stage": "confirm",
+    "layout": {
+      "search": 64,
+      "route": 16,
+      "merge": 4,
+      "data_tx": 4,
+      "data_rx": 8,
+      "data_handlers_per_rx": 1,
+      "head_tx": 4,
+      "head_rx": 4,
+      "head_handlers_per_rx": 4
+    },
+    "queries": 20000,
+    "qps": 6310.682483470531,
+    "p99": 119.62841478999994,
+    "mean": 39.751205035599995,
+    "recall": 0.9703350000000001,
+    "wall_seconds": 3.169229327,
+    "metrics_complete": true
+  },
+  {
+    "name": "confirm_r1_rx16_accept16",
+    "stage": "confirm",
+    "layout": {
+      "search": 64,
+      "route": 16,
+      "merge": 4,
+      "data_tx": 4,
+      "data_rx": 16,
+      "data_handlers_per_rx": 1,
+      "head_tx": 4,
+      "head_rx": 4,
+      "head_handlers_per_rx": 4
+    },
+    "queries": 20000,
+    "qps": 6313.37480652588,
+    "p99": 127.84666628,
+    "mean": 39.692479257049996,
+    "recall": 0.9703149999999999,
+    "wall_seconds": 3.167877817,
+    "metrics_complete": true
+  },
+  {
+    "name": "confirm_r1_rx4_accept4",
+    "stage": "confirm",
+    "layout": {
+      "search": 64,
+      "route": 16,
+      "merge": 4,
+      "data_tx": 4,
+      "data_rx": 4,
+      "data_handlers_per_rx": 1,
+      "head_tx": 4,
+      "head_rx": 4,
+      "head_handlers_per_rx": 4
+    },
+    "queries": 20000,
+    "qps": 6082.244968587764,
+    "p99": 125.96739630999996,
+    "mean": 41.266228135249996,
+    "recall": 0.9702350000000001,
+    "wall_seconds": 3.288259533,
+    "metrics_complete": true
+  },
+  {
+    "name": "confirm_r2_rx16_accept16",
+    "stage": "confirm",
+    "layout": {
+      "search": 64,
+      "route": 16,
+      "merge": 4,
+      "data_tx": 4,
+      "data_rx": 16,
+      "data_handlers_per_rx": 1,
+      "head_tx": 4,
+      "head_rx": 4,
+      "head_handlers_per_rx": 4
+    },
+    "queries": 20000,
+    "qps": 5787.089094046804,
+    "p99": 136.32598205999977,
+    "mean": 43.36718586505,
+    "recall": 0.9703,
+    "wall_seconds": 3.455968912,
+    "metrics_complete": true
+  },
+  {
+    "name": "confirm_r2_rx4_accept4",
+    "stage": "confirm",
+    "layout": {
+      "search": 64,
+      "route": 16,
+      "merge": 4,
+      "data_tx": 4,
+      "data_rx": 4,
+      "data_handlers_per_rx": 1,
+      "head_tx": 4,
+      "head_rx": 4,
+      "head_handlers_per_rx": 4
+    },
+    "queries": 20000,
+    "qps": 5985.9834486240725,
+    "p99": 123.31311688999999,
+    "mean": 41.9439332908,
+    "recall": 0.9703950000000001,
+    "wall_seconds": 3.34113854,
+    "metrics_complete": true
+  },
+  {
+    "name": "confirm_r2_rx8_accept8",
+    "stage": "confirm",
+    "layout": {
+      "search": 64,
+      "route": 16,
+      "merge": 4,
+      "data_tx": 4,
+      "data_rx": 8,
+      "data_handlers_per_rx": 1,
+      "head_tx": 4,
+      "head_rx": 4,
+      "head_handlers_per_rx": 4
+    },
+    "queries": 20000,
+    "qps": 6333.275254665938,
+    "p99": 118.49856895999976,
+    "mean": 39.5114803982,
+    "recall": 0.970255,
+    "wall_seconds": 3.157923696,
+    "metrics_complete": true
+  }
+]

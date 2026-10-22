@@ -57,11 +57,15 @@ struct Timer {
   bool operator>(const Timer& other)const{return std::tie(due,serial)>std::tie(other.due,other.serial);}
 };
 struct Engine : std::enable_shared_from_this<Engine> {
-  std::mutex queue_mu,state_mu,close_mu,updates_mu;
+  std::mutex queue_mu,state_mu,close_mu,updates_mu,registration_mu;
+  // Only identity reservation and immutable endpoint caching use this mutex.
+  // Never hold it while acquiring queue_mu/state_mu or performing DNS.
+  std::set<std::string> registered_keys;
+  std::map<std::string,std::weak_ptr<dhwire::Endpoint>> registration_endpoints;
   std::condition_variable wake;
   std::deque<std::function<void()>> commands;
   std::atomic<uint64_t> command_depth{0},command_peak{0};
-  bool stopping=false,closed=false,register_release_gil=false,early_report=false;
+  bool stopping=false,closed=false,register_release_gil=false,early_report=false,queued_registration=false;
   std::thread thread;
   std::map<std::string,std::shared_ptr<Branch>> branches;
   std::map<std::string,std::weak_ptr<dhwire::Endpoint>> endpoints;
@@ -217,7 +221,9 @@ struct Engine : std::enable_shared_from_this<Engine> {
       if(b->done&&!b->inflight) {
         if(b->transfers){timer(b,now+interval);ready(b);continue;}
         double expiry=b->touched+retention;if(!b->acked||(b->late_error&&!b->late_error_acked))expiry=std::max(expiry,b->deadline);
-        if(now>=expiry){b->expired=true;branches.erase(b->key);update(b,"expired");continue;}
+        if(now>=expiry){b->expired=true;branches.erase(b->key);
+          if(queued_registration){std::lock_guard<std::mutex> l(registration_mu);registered_keys.erase(b->key);}
+          update(b,"expired");continue;}
         if(b->acked&&(!b->late_error||b->late_error_acked)){timer(b,expiry);continue;}
       }
       ready(b);
@@ -296,6 +302,7 @@ static std::shared_ptr<Engine> make_engine(const V& c) {
   const auto& cfg=c.map();const auto& p=cfg.at("peer").map();const auto& comm=p.at("communication").map();
   const auto& net=cfg.at("network").map();auto e=std::make_shared<Engine>();
   auto nc=cfg.find("native_runtime");if(nc!=cfg.end()){auto x=nc->second.map().find("early_parent_report");if(x!=nc->second.map().end())e->early_report=boolean(x->second);}
+  if(nc!=cfg.end()){auto x=nc->second.map().find("queued_control_registration");if(x!=nc->second.map().end())e->queued_registration=boolean(x->second);}
   auto locking=p.find("locking");
   if(locking!=p.end())e->register_release_gil=boolean(locking->second.map().at("native_register_release_gil"));
   e->capacity=size_t(getnum(comm,"max_pending_control"));e->interval=getnum(p,"heartbeat_interval_ms")/1000.;
@@ -423,6 +430,55 @@ std::shared_ptr<Ticket> Controller::register_value(V metadata,std::shared_ptr<dh
   b->peer={{"peer_rpc_count",uint64_t(0)},{"peer_request_bytes",uint64_t(0)},{"peer_response_bytes",uint64_t(0)},{"peer_transfer_errors",uint64_t(0)}};
   auto endpoint=std::get<A>(b->metadata.at("head_endpoint").data);const auto host=str(endpoint.at(0));const auto port=uint16_t(number(endpoint.at(1)));
   const auto key=host+":"+std::to_string(port);
+  if(e->queued_registration) {
+    // Reserve synchronously (duplicates remain immediate errors), then publish
+    // a registration command before returning the Ticket. All Ticket commands
+    // therefore follow registration in the same FIFO, without waiting for the
+    // controller's state mutex on the data admission path.
+    {
+      std::lock_guard<std::mutex> l(e->registration_mu);
+      auto it=e->registration_endpoints.find(key);
+      if(it!=e->registration_endpoints.end())b->endpoint=it->second.lock();
+    }
+    if(!b->endpoint)b->endpoint=std::make_shared<dhwire::Endpoint>(host,port);
+    auto ticket=std::make_shared<Ticket>(e,b);
+    {
+      std::lock_guard<std::mutex> l(e->registration_mu);
+      if(!e->registered_keys.insert(b->key).second)
+        throw std::invalid_argument("Duplicate native control branch");
+    }
+    try {
+      {
+        std::lock_guard<std::mutex> l(e->registration_mu);
+        for(auto it=e->registration_endpoints.begin();it!=e->registration_endpoints.end();)
+          if(it->second.expired())it=e->registration_endpoints.erase(it);else ++it;
+        if(e->registration_endpoints.count(key)||e->registration_endpoints.size()<e->max_endpoints)
+          e->registration_endpoints[key]=b->endpoint;
+      }
+      const auto enter=ns();std::lock_guard<std::mutex> queue(e->queue_mu);
+      const auto acquired=ns();
+      if(e->stopping)throw std::runtime_error("Native controller is closed");
+      if(b->traced) {
+        b->trace["native_register_start_ns"]=register_started;
+        b->trace["native_register_end_ns"]=acquired;
+        b->trace["native_register_state_wait_ns"]=uint64_t(0);
+        b->trace["native_register_queue_wait_ns"]=acquired-enter;
+        b->trace["native_register_lock_held_ns"]=uint64_t(0);
+        b->trace["native_register_enqueued_ns"]=ns();
+      }
+      e->commands.push_back([e,b]{
+        if(b->traced)b->trace["native_register_consumed_ns"]=ns();
+        e->branches.emplace(b->key,b);
+        if(e->initial_delay>0)e->timer(b,seconds()+e->initial_delay);else e->ready(b);
+      });
+      e->queued_command();
+    } catch(...) {
+      std::lock_guard<std::mutex> l(e->registration_mu);e->registered_keys.erase(b->key);throw;
+    }
+    if(fleet_)fleet_->directory[b->key]=b;
+    e->wake.notify_one();
+    return ticket;
+  }
   {const auto enter=ns();std::lock_guard<std::mutex> state(e->state_mu);const auto acquired=ns();state_wait+=acquired-enter;
     auto it=e->endpoints.find(key);if(it!=e->endpoints.end())b->endpoint=it->second.lock();held+=ns()-acquired;}
   // DNS is configuration work. It must never hold the control state mutex.

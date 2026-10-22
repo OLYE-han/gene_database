@@ -1,0 +1,14 @@
+# 配置覆盖片段；与完整DHDGS YAML合并使用，不是独立部署计划。
+# 原生runtime构造级开关，变更后重建对应runtime。
+data:
+  peer:
+    worker_threads: 64
+  native_runtime:
+    queued_control_registration: true
+head:
+  native_runtime:
+    move_head_reports: true
+    route_threads: 16
+    merge_threads: 4
+# 网络布局保持原8+8实验值；完整配置以recommended_plan.yaml与
+# recommended_head_effective.yaml为准。

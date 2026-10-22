@@ -56,7 +56,8 @@ class NativeControllerTests(unittest.TestCase):
         context=mp.get_context('fork');parent,child=context.Pipe();stop=context.Event()
         process=context.Process(target=head_process,args=(child,stop,mode));process.start();child.close()
         self.assertTrue(parent.poll(2));port=parent.recv();self.heads.append((process,stop,parent))
-        cfg=config(delay);cfg['native_runtime']={'early_parent_report':early};cfg['peer']['communication']['max_pending_control']=capacity
+        cfg=config(delay);cfg['native_runtime']={'early_parent_report':early,
+            'queued_control_registration':getattr(self,'queued_registration',False)};cfg['peer']['communication']['max_pending_control']=capacity
         c=native().NativeController(cfg);self.controllers.append(c)
         return c,port,parent
 
@@ -224,6 +225,47 @@ class NativeControllerTests(unittest.TestCase):
         self.wait(lambda:self.row(c)['acked']);self.assertEqual(c.take_updates()[0]['kind'],'acked')
         self.wait(lambda:not c.snapshot()['branches'])
         self.assertEqual([u['kind'] for u in c.take_updates()],['expired'])
+
+
+class QueuedRegistrationTests(NativeControllerTests):
+    queued_registration=True
+
+    def branch(self,c,port,name='q',lease=None):
+        ticket,control=super().branch(c,port,name,lease)
+        self.wait(lambda:any(r['query_request_id']==name for r in c.snapshot()['branches']))
+        return ticket,control
+
+    def test_immediate_commands_follow_queued_registration(self):
+        c,port,_=self.make(early=True)
+        # Do not use the snapshot barrier in branch(): these operations must
+        # remain ordered even if registration has not been consumed yet.
+        ticket,_=NativeControllerTests.branch(self,c,port)
+        ticket.child({'branch_id':'child','node_id':1})
+        ticket.transfer_done({'peer_rpc_count':1})
+        ticket.complete(self.report())
+        self.wait(lambda:self.row(c) and self.row(c)['acked'])
+        row=self.row(c)
+        self.assertEqual(row['report']['peer_transfer']['peer_rpc_count'],1)
+        trace=row['execution_timestamps']
+        self.assertLessEqual(trace['native_register_enqueued_ns'],trace['native_register_consumed_ns'])
+        self.assertLessEqual(trace['native_register_consumed_ns'],trace['local_done_dequeued_ns'])
+
+    def test_concurrent_identity_reservation_accepts_exactly_once(self):
+        from concurrent.futures import ThreadPoolExecutor
+        c,port,_=self.make()
+        def attempt(_):
+            try:return NativeControllerTests.branch(self,c,port)[0]
+            except ValueError:return None
+        with ThreadPoolExecutor(8) as pool:
+            tickets=[t for t in pool.map(attempt,range(32)) if t is not None]
+        self.assertEqual(len(tickets),1)
+        tickets[0].complete(self.report())
+        self.wait(lambda:self.row(c) and self.row(c)['acked'])
+        self.wait(lambda:not c.snapshot()['branches'])
+        # Expiry releases the identity reservation even if the old ticket lives.
+        again,_=NativeControllerTests.branch(self,c,port)
+        again.cancel();c.close()
+        with self.assertRaises(RuntimeError):NativeControllerTests.branch(self,c,port,'after-close')
 
 
 def parallel_head(pipe, stop):

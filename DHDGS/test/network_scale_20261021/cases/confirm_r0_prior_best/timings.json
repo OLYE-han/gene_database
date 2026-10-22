@@ -1,0 +1,249 @@
+{
+  "head": {
+    "route_queue": {
+      "count": 20000,
+      "mean": 0.052111365,
+      "p99": 1.660459919999978
+    },
+    "routing": {
+      "count": 20000,
+      "mean": 0.9149593713,
+      "p99": 1.8340472199999986
+    },
+    "entry_dispatch": {
+      "count": 20000,
+      "mean": 0.37942067775000005,
+      "p99": 9.106907419999944
+    },
+    "data_rpc_control": {
+      "count": 20000,
+      "mean": 37.0782466806,
+      "p99": 96.76596369999994
+    },
+    "completion_gating": {
+      "count": 20000,
+      "mean": 0.68709311755,
+      "p99": 2.5919993799999665
+    },
+    "merge_queue": {
+      "count": 20000,
+      "mean": 0.99627344565,
+      "p99": 9.329419469999971
+    },
+    "merge": {
+      "count": 20000,
+      "mean": 0.3471544714,
+      "p99": 0.7742486999999962
+    }
+  },
+  "branch": {
+    "receive_queue_validation": {
+      "count": 27001,
+      "mean": 9.380612096107551,
+      "p99": 63.475463
+    },
+    "admission_registration": {
+      "count": 27001,
+      "mean": 2.7748975714603166,
+      "p99": 19.492789
+    },
+    "admission_state_lock_wait": {
+      "count": 27001,
+      "mean": 2.5265532944335396,
+      "p99": 18.796756
+    },
+    "compute_queue_setup": {
+      "count": 27001,
+      "mean": 6.625743596051999,
+      "p99": 35.83285
+    },
+    "search_loop": {
+      "count": 27001,
+      "mean": 7.852069451909189,
+      "p99": 16.207641
+    },
+    "report_build_worker_release": {
+      "count": 27001,
+      "mean": 0.24794354805377578,
+      "p99": 0.677349
+    },
+    "completion_command_queue": {
+      "count": 27001,
+      "mean": 1.2422010844783529,
+      "p99": 7.711121
+    },
+    "completion_to_report": {
+      "count": 27001,
+      "mean": 0.00789669460390356,
+      "p99": 0.024023
+    },
+    "native_registration_state_lock_wait": {
+      "count": 27001,
+      "mean": 0.21115053764675382,
+      "p99": 2.82096
+    },
+    "result_outbound_queue": {
+      "count": 27001,
+      "mean": 0.14678363264323543,
+      "p99": 0.17407
+    }
+  },
+  "nodes": {
+    "0": {
+      "receive_queue_validation": {
+        "count": 10373,
+        "mean": 2.8477688976188182,
+        "p99": 29.640997680000055
+      },
+      "admission_registration": {
+        "count": 10373,
+        "mean": 1.6357824978309072,
+        "p99": 15.948326960000017
+      },
+      "admission_state_lock_wait": {
+        "count": 10373,
+        "mean": 1.4429475414055721,
+        "p99": 15.106880040000007
+      },
+      "compute_queue_setup": {
+        "count": 10373,
+        "mean": 9.09007344837559,
+        "p99": 34.951248080000035
+      },
+      "search_loop": {
+        "count": 10373,
+        "mean": 8.11829621893377,
+        "p99": 13.637075080000013
+      },
+      "report_build_worker_release": {
+        "count": 10373,
+        "mean": 0.22077402342620264,
+        "p99": 0.45328232000000035
+      },
+      "completion_command_queue": {
+        "count": 10373,
+        "mean": 0.7013864808637809,
+        "p99": 5.263988800000006
+      },
+      "completion_to_report": {
+        "count": 10373,
+        "mean": 0.0070241511616697195,
+        "p99": 0.020641040000000013
+      },
+      "native_registration_state_lock_wait": {
+        "count": 10373,
+        "mean": 0.1684532080401041,
+        "p99": 2.2272546800000166
+      },
+      "result_outbound_queue": {
+        "count": 10373,
+        "mean": 0.24707489752241396,
+        "p99": 0.16700840000003053
+      }
+    },
+    "1": {
+      "receive_queue_validation": {
+        "count": 9818,
+        "mean": 20.92442296761051,
+        "p99": 71.80606715999998
+      },
+      "admission_registration": {
+        "count": 9818,
+        "mean": 3.95782814330821,
+        "p99": 21.340889119999986
+      },
+      "admission_state_lock_wait": {
+        "count": 9818,
+        "mean": 3.6692048337746996,
+        "p99": 20.437429289999997
+      },
+      "compute_queue_setup": {
+        "count": 9818,
+        "mean": 7.83426195966592,
+        "p99": 59.60731661
+      },
+      "search_loop": {
+        "count": 9818,
+        "mean": 8.415872733143207,
+        "p99": 18.263310999999998
+      },
+      "report_build_worker_release": {
+        "count": 9818,
+        "mean": 0.27647381615400285,
+        "p99": 0.9444833699999999
+      },
+      "completion_command_queue": {
+        "count": 9818,
+        "mean": 1.6263121660215931,
+        "p99": 8.295340489999997
+      },
+      "completion_to_report": {
+        "count": 9818,
+        "mean": 0.00904194459156651,
+        "p99": 0.023331869999999994
+      },
+      "native_registration_state_lock_wait": {
+        "count": 9818,
+        "mean": 0.24501833295986963,
+        "p99": 2.631744049999999
+      },
+      "result_outbound_queue": {
+        "count": 9818,
+        "mean": 0.1267819193318395,
+        "p99": 0.07468324
+      }
+    },
+    "2": {
+      "receive_queue_validation": {
+        "count": 6810,
+        "mean": 2.6886954091042585,
+        "p99": 23.33450775999999
+      },
+      "admission_registration": {
+        "count": 6810,
+        "mean": 2.804563989133627,
+        "p99": 19.203714669999997
+      },
+      "admission_state_lock_wait": {
+        "count": 6810,
+        "mean": 2.5297382669603525,
+        "p99": 18.87289357
+      },
+      "compute_queue_setup": {
+        "count": 6810,
+        "mean": 1.1297484635829664,
+        "p99": 8.177650969999998
+      },
+      "search_loop": {
+        "count": 6810,
+        "mean": 6.633715432892805,
+        "p99": 12.58750442
+      },
+      "report_build_worker_release": {
+        "count": 6810,
+        "mean": 0.2481960160058737,
+        "p99": 0.7518050099999997
+      },
+      "completion_command_queue": {
+        "count": 6810,
+        "mean": 1.5121962804698974,
+        "p99": 8.781283219999997
+      },
+      "completion_to_report": {
+        "count": 6810,
+        "mean": 0.00757464302496329,
+        "p99": 0.027046779999999992
+      },
+      "native_registration_state_lock_wait": {
+        "count": 6810,
+        "mean": 0.22735984537444934,
+        "p99": 4.107602549999987
+      },
+      "result_outbound_queue": {
+        "count": 6810,
+        "mean": 0.02285639779735683,
+        "p99": 0.22263818999999982
+      }
+    }
+  }
+}

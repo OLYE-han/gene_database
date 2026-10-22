@@ -1,0 +1,21 @@
+count: 20000
+concurrency: 256
+search_budget: 200
+top_k: 10
+orders:
+- - sync
+  - queued
+- - queued
+  - sync
+- - sync
+  - queued
+layout:
+  search: 64
+  route: 16
+  merge: 4
+  data_tx: 4
+  data_rx: 8
+  data_handlers_per_rx: 1
+  head_tx: 4
+  head_rx: 4
+  head_handlers_per_rx: 4

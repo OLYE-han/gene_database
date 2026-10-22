@@ -1,0 +1,29 @@
+{
+  "prior_best": {
+    "receive_queue_validation": 9.380612096107551,
+    "admission_registration": 2.6952422697348934,
+    "admission_state_lock_wait": 2.4517809047689574,
+    "compute_queue_setup": 4.671369250888626,
+    "search_loop": 7.852069451909189,
+    "completion_command_queue": 1.1595103774437203,
+    "result_outbound_queue": 0.14678363264323543
+  },
+  "expanded": {
+    "receive_queue_validation": 3.9290489860576927,
+    "admission_registration": 8.250528199408285,
+    "admission_state_lock_wait": 7.997529625924557,
+    "compute_queue_setup": 1.4648306303350842,
+    "search_loop": 8.904047083431953,
+    "completion_command_queue": 3.236424727847633,
+    "result_outbound_queue": 0.0239797518677417
+  },
+  "matched_net4": {
+    "receive_queue_validation": 10.684050553891108,
+    "admission_registration": 2.945662747715417,
+    "admission_state_lock_wait": 2.698674669577121,
+    "compute_queue_setup": 1.2467910419810622,
+    "search_loop": 9.089786902586113,
+    "completion_command_queue": 2.9382884341988458,
+    "result_outbound_queue": 0.11594075167412778
+  }
+}

@@ -1,0 +1,332 @@
+deployment:
+  hosts:
+  - id: 0
+    ssh: null
+    root: /tmp/dhdgs_search_threads_32_64_20261022/cases/r0_threads64
+    python: /sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python
+    token_file: /sharenvme/usershome/xulihan/gene_database/DHDGS/artifacts/runtime_assets/legacy_service/cluster.token
+    state_file: /tmp/dhdgs_search_threads_32_64_20261022/cases/r0_threads64/state.json
+    project: /sharenvme/usershome/xulihan/gene_database/DHDGS/test/control_registration_20261022/source
+  - id: 1
+    ssh: intel-32
+    root: /tmp/dhdgs_search_threads_32_64_20261022/cases/r0_threads64
+    python: /sharenvme/userhome/xulihan/dhdgs_deploy/seq2m_full_20261017/gene_database/DHDGS/.venv/bin/python
+    token_file: /sharenvme/userhome/xulihan/dhdgs_deploy/managed_continuation_three_20261019/cluster.token
+    state_file: /tmp/dhdgs_search_threads_32_64_20261022/cases/r0_threads64/state.json
+    project: /tmp/dhdgs_control_registration_20261022/source
+  - id: 2
+    ssh: intel-30
+    root: /tmp/dhdgs_search_threads_32_64_20261022/cases/r0_threads64
+    python: /sharenvme/xulihan_dhdgs/seq2m_full_20261017/gene_database/DHDGS/.venv/bin/python
+    token_file: /sharenvme/xulihan_dhdgs/managed_continuation_three_20261019/cluster.token
+    state_file: /tmp/dhdgs_search_threads_32_64_20261022/cases/r0_threads64/state.json
+    project: /tmp/dhdgs_control_registration_20261022/source
+  connect_timeout_seconds: 8
+  command_timeout_seconds: 180
+  build_timeout_seconds: 1800
+  build_jobs: 4
+  start_timeout_seconds: 240
+control:
+  results_directory: /tmp/dhdgs_search_threads_32_64_20261022/cases/r0_threads64
+  token_file: /sharenvme/usershome/xulihan/gene_database/DHDGS/artifacts/runtime_assets/legacy_service/cluster.token
+  bind_host: 127.0.0.1
+  advertise_host: 127.0.0.1
+  port: 28191
+  command_timeout_seconds: 15
+  benchmark_timeout_seconds: 1800
+  drain_timeout_seconds: 180
+  max_api_bytes: 1048576
+  max_queries: 20000
+  max_client_threads: 256
+  benchmark:
+    queries: 20000
+    concurrency: 256
+    warmup: 200
+  query_selection: /tmp/dhdgs_search_threads_32_64_20261022/cases/r0_threads64/selection.json
+  truth_plan: /sharenvme/usershome/xulihan/gene_database/DHDGS/artifacts/seq2m_runtime/backlog128/deployment.selected.yaml
+dhdgs:
+  assignment:
+    model: /sharenvme/usershome/xulihan/gene_database/DHDGS/artifacts/yaml_run/partition/seed_42/model_l2.npz
+    threshold: /sharenvme/usershome/xulihan/gene_database/DHDGS/artifacts/yaml_run/partition/seed_42/threshold_l2_margin_0.1.json
+  build:
+    candidate_list_size: 96
+    degree: 32
+    memory_limit_bytes: 549755813888
+    prune_alphas:
+    - 1.0
+    - 1.2
+  cluster:
+    nodes:
+    - host: 192.168.33.35
+      id: 0
+      index_directory: /sharenvme/usershome/xulihan/gene_database/DHDGS/artifacts/seq2m_runtime/build/index/shard_0
+      port: 37751
+    - host: 192.168.33.32
+      id: 1
+      index_directory: /sharenvme/userhome/xulihan/dhdgs_deploy/seq2m_full_20261017/index/shard_1
+      port: 37752
+    - host: 192.168.33.30
+      id: 2
+      index_directory: /sharenvme/xulihan_dhdgs/seq2m_full_20261017/index/shard_2
+      port: 37753
+  data:
+    block_rows: 4096
+    dimension: 2560
+    inspection_rows: 128
+    metric: l2
+    row_limit: 0
+  experiment:
+    benchmark_concurrency: 128
+    benchmark_queries: 2000
+    benchmark_repetitions: 1
+    calibration_rows: 2048
+    evaluation_rows: 4096
+    exact_block_rows: 8192
+    metrics:
+    - l2
+    - cosine
+    overlap_fractions:
+    - 0.0
+    - 0.05
+    - 0.1
+    - 0.2
+    - 0.3
+    seeds:
+    - 42
+    - 43
+    - 44
+    target_recall: 0.95
+    train_rows: 2048
+    warmup_queries: 2
+  metrics:
+    detailed_trace: false
+    gc_trace: true
+    lifecycle_trace: true
+    resource_max_samples: 1024
+    resource_sample_interval_ms: 100
+    trace_query_ids:
+    - 734744
+  network:
+    batch_size: 8
+    listen_backlog: 4096
+    max_message_bytes: 134217728
+    max_retries: 1
+    timeout_seconds: 120.0
+    transport: tcp
+  partition:
+    calibration_rows: 16384
+    kmeans_iterations: 100
+    kmeans_tolerance: 1.0e-06
+    max_copies: 3
+    method: margin
+    overlap_fraction: 0.1
+    train_rows: 16384
+  paths:
+    dataset: /sharenvme/usershome/xulihan/gene_database/Data/seq_2M
+    output: /sharenvme/usershome/xulihan/gene_database/DHDGS/artifacts/seq2m_runtime/build
+  peer:
+    admission:
+      dispatch_threads: 1
+      mode: buffered
+      queue_capacity: 2048
+      queue_lock: shared
+    child_budget_fraction: 0.5
+    communication:
+      connections_per_endpoint: 128
+      control_workers: 16
+      max_connection_endpoints: 64
+      max_pending_control: 1024
+      mode: optimized
+      reuse_connections: true
+      transfer_workers: 16
+    compute:
+      mode: fixed
+      queue_capacity: 2048
+    connection_pool:
+      head_scheduling: fifo
+      probe_mode: reserved
+    control:
+      completion_fast_path: false
+      initial_heartbeat_delay_ms: 1000
+      max_events_per_turn: 0
+      scheduler: native
+    control_timeout_seconds: 5.0
+    execution_model: native
+    handoff_timeout_seconds: 30.0
+    head_advertise_host: 192.168.33.35
+    head_bind_host: 0.0.0.0
+    head_direct:
+      ack_timeout_ms: 1000
+      completion_dispatch: queued
+      completion_threads: 2
+      confirmation_threads: 2
+      distribution_threads: 16
+      enabled: false
+      queued_reports: true
+      report_backend: process
+      report_connections_per_channel: 64
+      report_queue_capacity: 64
+      report_registration: shared
+      result_backend: process
+      result_channels: 4
+      result_processes: 16
+      result_queue_capacity: 2048
+      results_directory: /sharenvme/usershome/xulihan/gene_database/DHDGS/test/control_capacity_20261020/service/unused_direct_results
+      save_results: false
+      startup_timeout_seconds: 60.0
+      submit_retries: 1
+    head_entry_workers: 4
+    head_lanes:
+      callback_connections: 128
+      dispatch_threads: 4
+      enabled: false
+      processes: 4
+      results_directory: /tmp/dhdgs_search_threads_32_64_20261022/cases/r0_threads64/worker_results
+      route_threads: 1
+      save_results: false
+      startup_timeout_seconds: 180.0
+    head_port: 37810
+    head_query_workers: 0
+    head_receiver_ipc: split
+    head_receiver_processes: 0
+    heartbeat_interval_ms: 1000
+    lease_timeout_ms: 30000
+    max_active_queries: 2048
+    max_branches: 16
+    max_tombstones: 131072
+    query_timeout_seconds: 120.0
+    retention_seconds: 60.0
+    sender:
+      mode: queued
+      transfer_queue_capacity: 2048
+    worker_threads: 64
+    locking:
+      split_native_registration: false
+      native_register_release_gil: false
+    adaptive_services:
+      enabled: false
+      mirror_outside_lock: false
+      submit_without_state_lock: false
+      start_without_state_lock: false
+      connections: false
+      head_connections: false
+      connections_min: 2
+      connections_max: 8
+      admission: true
+      head_dispatch: false
+      transfer: false
+      admission_min: 1
+      admission_max: 8
+      head_dispatch_min: 2
+      head_dispatch_max: 8
+      transfer_min: 2
+      transfer_max: 16
+      sample_interval_ms: 50
+      target_wait_ms: 2
+      cooldown_ms: 100
+      downscale_idle_ms: 1000
+      growth_step: 1
+      target_utilization: 0.8
+      ewma_weight: 0.2
+      history_size: 512
+  quantization:
+    bits: 1
+  query:
+    ids: /sharenvme/usershome/xulihan/gene_database/Data/seq_2M/seq_2M/queries200K/query_ids.npy
+    row: 8192
+    vectors: /sharenvme/usershome/xulihan/gene_database/Data/seq_2M/seq_2M/queries200K/queries.npy
+  routing:
+    ef_construction: 100
+    ef_search: 64
+    entry_candidates: 16
+    hnsw_m: 16
+    max_samples: 20000
+    min_samples: 64
+    sample_ratio: 0.05
+  runtime:
+    blas_threads: 1
+    python_switch_interval_ms: 0.1
+  scheduler:
+    bandwidth_bytes_per_ms: 100000.0
+    ewma_weight: 0.2
+    exploration: 0.02
+    kappa: 1.0
+    local_batch_ms: 0.15
+    max_wait_ms: 1.0
+    mode: adaptive
+    probability_temperature: 1.0
+    remote_rtt_ms: 0.5
+    remote_selection: probabilistic
+    remote_weight: 1.0
+  search:
+    exclude_self: true
+    execution: peer
+    fallback_enabled: true
+    frontier_size: 64
+    local_beam: 4
+    max_expansions: 200
+    max_fallback_entries: 2
+    max_inflight: 3
+    stagnation_batches: 8
+    top_k: 10
+  seed: 42
+  storage:
+    cache_bytes_per_shard: 0
+    io:
+      backend: sync_pread
+      buffer_pool_bytes_per_device: 4194304
+      completion_poll_ms: 1
+      fallback_backend: error
+      max_completion_events_per_poll: 64
+      max_inflight_bytes_per_device: 98304
+      max_inflight_per_device: 8
+      max_inflight_per_query: 4
+      max_pending_batches: 128
+      max_submit_requests: 8
+      worker_threads: 2
+    page_bytes: 4096
+  version: 1
+  native_runtime:
+    data_enabled: true
+    head_enabled: true
+    receive_threads: 4
+    receive_queue_capacity: 4096
+    max_connections: 4096
+    compute_queue_capacity: 4096
+    network_queue_capacity: 4096
+    connections_per_endpoint: 128
+    route_threads: 16
+    merge_threads: 4
+    early_parent_report: true
+    queued_control_registration: true
+    network_module:
+      enabled: true
+      send_min_reactors: 4
+      send_max_reactors: 4
+      receive_min_reactors: 8
+      receive_max_reactors: 8
+      handlers_per_receive_reactor: 1
+      connections_per_endpoint_per_reactor: 32
+      send_queue_capacity: 4096
+      receive_queue_capacity_per_reactor: 512
+      max_receive_connections: 4096
+      send_pending_high: 8
+      receive_queue_high: 4
+      high_samples: 2
+      sample_interval_ms: 20
+      cooldown_ms: 100
+      idle_ms: 1000
+    adaptive_control:
+      enabled: false
+      min_lanes: 1
+      max_lanes: 8
+      command_queue_high: 4
+      network_pending_high: 4
+      high_samples: 2
+      sample_interval_ms: 20
+      cooldown_ms: 100
+      idle_ms: 1000
+  benchmark_results:
+    memory_limit_bytes: 34359738368
+    json_shard_bytes: 67108864
+    processor_timeout_seconds: 1800

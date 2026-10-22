@@ -1,0 +1,45 @@
+clock,lane,stage,start_ms,duration_ms
+head,0,API submission,0.0,0.02814
+head,0,Route queue,0.02814,0.01544
+head,0,HNSW routing,0.04358,0.867108
+head,0,Entry dispatch incl. queue,0.910688,0.063489
+head,0,Data / RPC / control,0.974177,143.345091
+head,0,Report validation / completion gating,144.319268,0.76752
+head,0,Merge queue,145.086788,0.012984
+head,0,Merge,145.099772,0.454175
+head,0,API result handoff,145.553947,0.373648
+node_0,0,Receive queue / validation,0.0,0.79109
+node_0,0,Admission + registration,0.79109,0.019782
+node_0,0,Compute queue + setup,0.810872,0.160255
+node_0,1,Search loop,0.971127,5.690219
+node_0,1,Report build / worker release,6.661346,0.146971
+node_0,2,Completion command wait,6.747255,0.11565
+node_0,2,Completion to report publication,6.862905,0.010656
+node_0,2,Schedule + encode / submit,6.873561,0.16374
+node_0,2,Result outbound queue / event loop,7.037301,0.011052
+node_0,2,Result send incl. connect,7.048353,0.011511
+node_0,2,Result response / ACK wait,7.059864,0.726973
+node_0,3,Cross-node submit to ACK callback,2.592094,71.218586
+node_1,0,Receive queue / validation,0.0,70.95176
+node_1,0,Admission + registration,70.95176,0.044046
+node_1,0,Compute queue + setup,70.995806,0.322216
+node_1,1,Search loop,71.318022,63.719663
+node_1,1,Report build / worker release,135.037685,0.266619
+node_1,2,Completion command wait,135.171794,5.066032
+node_1,2,Completion to report publication,140.237826,0.015091
+node_1,2,Schedule + encode / submit,140.252917,0.283408
+node_1,2,Result outbound queue / event loop,140.536325,0.023234
+node_1,2,Result send incl. connect,140.559559,0.01788
+node_1,2,Result response / ACK wait,140.577439,0.836076
+node_1,3,Cross-node submit to ACK callback,132.494965,1.932759
+node_2,0,Receive queue / validation,0.0,1.17593
+node_2,0,Admission + registration,1.17593,0.036366
+node_2,0,Compute queue + setup,1.212296,0.495757
+node_2,1,Search loop,1.708053,2.496897
+node_2,1,Report build / worker release,4.20495,0.380418
+node_2,2,Completion command wait,4.337485,0.028854
+node_2,2,Completion to report publication,4.366339,0.021416
+node_2,2,Schedule + encode / submit,4.387755,0.222256
+node_2,2,Result outbound queue / event loop,4.610011,0.019826
+node_2,2,Result send incl. connect,4.629837,0.031555
+node_2,2,Result response / ACK wait,4.661392,0.784876

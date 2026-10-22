@@ -21,6 +21,8 @@ native_runtime:
   route_threads: 16
   merge_threads: 4
   early_parent_report: true # 本地完成即发布；顶层依据子分支清单等待其余报告
+  queued_control_registration: true # 接纳只预留身份并排队注册；对照结果见DESIGN第33节
+  move_head_reports: true # 顶层收报告及最终合并时转移所有权，避免重复深拷贝
   network_module:
     enabled: false
     send_min_reactors: 1

@@ -1,0 +1,88 @@
+{
+  "groups": [
+    {
+      "label": "prior_best",
+      "layout": {
+        "data_handlers_per_rx": 4,
+        "data_rx": 4,
+        "data_tx": 1,
+        "head_handlers_per_rx": 4,
+        "head_rx": 4,
+        "head_tx": 4,
+        "merge": 4,
+        "route": 16,
+        "search": 32
+      },
+      "cases": [
+        "confirm_r0_prior_best",
+        "confirm_r1_prior_best",
+        "confirm_r2_prior_best"
+      ],
+      "median_qps": 6145.260797180511,
+      "min_qps": 2458.3483976160087,
+      "max_qps": 6195.540052887992,
+      "median_run_p99_ms": 110.14327039999999,
+      "recall_range": [
+        0.97025,
+        0.9704
+      ]
+    },
+    {
+      "label": "expanded",
+      "layout": {
+        "search": 64,
+        "route": 16,
+        "merge": 4,
+        "data_tx": 16,
+        "data_rx": 16,
+        "data_handlers_per_rx": 4,
+        "head_tx": 16,
+        "head_rx": 16,
+        "head_handlers_per_rx": 4
+      },
+      "cases": [
+        "confirm_r0_expanded",
+        "confirm_r1_expanded",
+        "confirm_r2_expanded"
+      ],
+      "median_qps": 6688.875861589668,
+      "min_qps": 5947.460434275615,
+      "max_qps": 7012.1591734117255,
+      "median_run_p99_ms": 126.26534021999974,
+      "recall_range": [
+        0.9702700000000001,
+        0.970295
+      ]
+    },
+    {
+      "label": "matched_net4",
+      "layout": {
+        "search": 64,
+        "route": 16,
+        "merge": 4,
+        "data_tx": 4,
+        "data_rx": 4,
+        "data_handlers_per_rx": 4,
+        "head_tx": 4,
+        "head_rx": 4,
+        "head_handlers_per_rx": 4
+      },
+      "cases": [
+        "confirm_r0_matched_net4",
+        "confirm_r1_matched_net4",
+        "confirm_r2_matched_net4"
+      ],
+      "median_qps": 6300.606090079151,
+      "min_qps": 5238.5696081598835,
+      "max_qps": 6382.0674585443,
+      "median_run_p99_ms": 111.42035630999999,
+      "recall_range": [
+        0.97019,
+        0.970245
+      ]
+    }
+  ],
+  "expanded_vs_matched_qps_change": 0.06162419392030882,
+  "cases": 19,
+  "queries": 280000
+}

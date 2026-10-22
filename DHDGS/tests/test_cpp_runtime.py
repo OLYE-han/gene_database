@@ -35,7 +35,8 @@ class NativeRuntimeTests(unittest.TestCase):
     def config(self, native_data=True, native_head=False):
         c = copy.deepcopy(self.base)
         c['native_runtime'].update(data_enabled=native_data, head_enabled=native_head,
-                                  receive_threads=2, route_threads=2, merge_threads=2)
+                                  receive_threads=2, route_threads=2, merge_threads=2,
+                                  queued_control_registration=True,move_head_reports=True)
         c['peer'].update(execution_model='native', worker_threads=2, head_port=0)
         c['peer']['communication']['mode'] = 'optimized'
         c['peer']['control']['scheduler'] = 'native'

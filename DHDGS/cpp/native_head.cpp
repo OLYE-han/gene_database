@@ -323,6 +323,7 @@ struct HeadRuntime::Impl {
   V config, manifest;
   RouteFunction route;
   size_t node_count, capacity, max_retries, budget, slots;
+  bool move_head_reports = false;
   double lease_ms;
   uint64_t timeout_ns, heartbeat_ns, retention_ns;
   std::unique_ptr<Pool> routes, merges;
@@ -344,6 +345,7 @@ struct HeadRuntime::Impl {
       : config(std::move(c)), manifest(std::move(m)), route(std::move(fn)) {
     const auto &p = at(config, "peer");
     const auto &nc = at(config, "native_runtime");
+    move_head_reports = optional<bool>(nc, "move_head_reports", false);
     const auto &net = at(config, "network");
     capacity = get<size_t>(p, "max_active_queries");
     budget = get<size_t>(at(config, "search"), "max_expansions");
@@ -533,7 +535,7 @@ struct HeadRuntime::Impl {
     }
     const auto node = get<size_t>(message, "node_id");
     check(node < node_count, "Invalid control node");
-    const auto &incoming = array(at(message, "reports"));
+    auto &incoming = std::get<A>(message.map().at("reports").data);
     const bool error = has(message, "error") && !null(at(message, "error"));
     const std::string kind =
         (!incoming.empty() || error) ? "result" : "heartbeat";
@@ -558,7 +560,7 @@ struct HeadRuntime::Impl {
       q->nodes.insert(get<size_t>(child,"node_id"));
       if(!q->reports.count(bid))q->all_reports=false;
     }
-    for (const auto &r : incoming) {
+    for (auto &r : incoming) {
       check(get<size_t>(r, "node_id") == node, "Report origin mismatch");
       auto bid = get<std::string>(r, "branch_id");
       auto hash = digest(r);
@@ -568,7 +570,10 @@ struct HeadRuntime::Impl {
       else {
         check(!q->finished && !q->merging, "Late unknown branch result");
         q->digests.emplace(bid, std::move(hash));
-        q->reports.emplace(bid, r);
+        // message owns this payload; validation above has already consumed it.
+        // Keep the digest for retries, but transfer the large report only once.
+        if(move_head_reports)q->reports.emplace(bid, std::move(r));
+        else q->reports.emplace(bid, r);
       }
     }
     if (!q->finished && !q->merging) {
@@ -699,7 +704,14 @@ struct HeadRuntime::Impl {
       try {
         if (!q->error.empty())
           throw std::runtime_error(q->error);
-        auto rs = reports(*q);
+        V rs;
+        if(move_head_reports) {
+          // merging fences new reports; duplicate RPCs are checked by digest.
+          // The final result becomes the sole owner of the report buffers.
+          A owned;owned.reserve(q->reports.size());
+          for(auto& [id,report]:q->reports)owned.push_back(std::move(report));
+          q->reports.clear();rs=std::move(owned);
+        } else rs = reports(*q);
         result = aggregate_native(
             config, rs, q->entry,
             vector(std::vector<size_t>(q->nodes.begin(), q->nodes.end())));

@@ -1,0 +1,41 @@
+[
+  {
+    "host": {
+      "id": 0,
+      "ssh": null,
+      "root": "/tmp/dhdgs_control_registration_20261022/cases/r2_sync",
+      "python": "/sharenvme/usershome/xulihan/gene_database/DHDGS/.venv/bin/python",
+      "token_file": "/sharenvme/usershome/xulihan/gene_database/DHDGS/artifacts/runtime_assets/legacy_service/cluster.token",
+      "state_file": "/tmp/dhdgs_control_registration_20261022/cases/r2_sync/state.json",
+      "project": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/control_registration_20261022/source"
+    },
+    "pid": 738169,
+    "root": "/tmp/dhdgs_control_registration_20261022/cases/r2_sync"
+  },
+  {
+    "host": {
+      "id": 1,
+      "ssh": "intel-32",
+      "root": "/tmp/dhdgs_control_registration_20261022/cases/r2_sync",
+      "python": "/sharenvme/userhome/xulihan/dhdgs_deploy/seq2m_full_20261017/gene_database/DHDGS/.venv/bin/python",
+      "token_file": "/sharenvme/userhome/xulihan/dhdgs_deploy/managed_continuation_three_20261019/cluster.token",
+      "state_file": "/tmp/dhdgs_control_registration_20261022/cases/r2_sync/state.json",
+      "project": "/tmp/dhdgs_control_registration_20261022/source"
+    },
+    "pid": 145639,
+    "root": "/tmp/dhdgs_control_registration_20261022/cases/r2_sync"
+  },
+  {
+    "host": {
+      "id": 2,
+      "ssh": "intel-30",
+      "root": "/tmp/dhdgs_control_registration_20261022/cases/r2_sync",
+      "python": "/sharenvme/xulihan_dhdgs/seq2m_full_20261017/gene_database/DHDGS/.venv/bin/python",
+      "token_file": "/sharenvme/xulihan_dhdgs/managed_continuation_three_20261019/cluster.token",
+      "state_file": "/tmp/dhdgs_control_registration_20261022/cases/r2_sync/state.json",
+      "project": "/tmp/dhdgs_control_registration_20261022/source"
+    },
+    "pid": 1628673,
+    "root": "/tmp/dhdgs_control_registration_20261022/cases/r2_sync"
+  }
+]

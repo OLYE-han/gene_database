@@ -1,0 +1,44 @@
+[
+  {
+    "label": "rx4_accept4",
+    "layout": {
+      "search": 64,
+      "route": 16,
+      "merge": 4,
+      "data_tx": 4,
+      "data_rx": 4,
+      "data_handlers_per_rx": 1,
+      "head_tx": 4,
+      "head_rx": 4,
+      "head_handlers_per_rx": 4
+    }
+  },
+  {
+    "label": "rx8_accept8",
+    "layout": {
+      "search": 64,
+      "route": 16,
+      "merge": 4,
+      "data_tx": 4,
+      "data_rx": 8,
+      "data_handlers_per_rx": 1,
+      "head_tx": 4,
+      "head_rx": 4,
+      "head_handlers_per_rx": 4
+    }
+  },
+  {
+    "label": "rx16_accept16",
+    "layout": {
+      "search": 64,
+      "route": 16,
+      "merge": 4,
+      "data_tx": 4,
+      "data_rx": 16,
+      "data_handlers_per_rx": 1,
+      "head_tx": 4,
+      "head_rx": 4,
+      "head_handlers_per_rx": 4
+    }
+  }
+]

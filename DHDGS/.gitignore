@@ -92,3 +92,11 @@ artifacts/
 /test/cpp_runtime_20261020/pcg64.h
 /test/cpp_runtime_20261020/seedseq.pyx
 /test/early_parent_report_20261021/native_control_before.cpp
+
+# Network/search scaling experiment: retain compact reports, not runtime data.
+/test/network_scale_20261021/source
+/test/network_scale_20261021/cases/**/runs/
+/test/network_scale_20261021/data/
+/test/receive_admission_20261021/source
+/test/receive_admission_20261021/data/
+/test/control_registration_20261022/cases/**/runs

@@ -34,7 +34,7 @@ SCHEMA = {
                        "receive_threads":int,"receive_queue_capacity":int,
                        "max_connections":int,"compute_queue_capacity":int,
                        "network_queue_capacity":int,"connections_per_endpoint":int,
-                       "route_threads":int,"merge_threads":int,"early_parent_report":bool,
+                       "route_threads":int,"merge_threads":int,"early_parent_report":bool,"queued_control_registration":bool,"move_head_reports":bool,
                        "network_module":{"enabled":bool,"send_min_reactors":int,"send_max_reactors":int,
                            "receive_min_reactors":int,"receive_max_reactors":int,"handlers_per_receive_reactor":int,
                            "connections_per_endpoint_per_reactor":int,"send_queue_capacity":int,
@@ -111,7 +111,7 @@ SCHEMA = {
 def _check(values, schema, path=""):
     optional={'listen_backlog','rpc_tcp_nodelay'} if path=='network' else set()
     if path=='':optional={'native_runtime','benchmark_results'}  # Archived plans remain usable.
-    if path=='native_runtime':optional={'adaptive_control','network_module','early_parent_report'}
+    if path=='native_runtime':optional={'adaptive_control','network_module','early_parent_report','queued_control_registration','move_head_reports'}
     if path=='peer.connection_pool':optional={'head_scheduling','data_scheduling'}
     if path=='peer.head_pipeline':optional={'ack_inline'}
     if path=='peer.head_direct':optional={'queued_reports','result_channels','report_queue_capacity','report_connections_per_channel','completion_threads','report_backend','report_registration','completion_dispatch','result_backend'}

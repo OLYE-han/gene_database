@@ -1,0 +1,20 @@
+{
+  "0": {
+    "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "native_path": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/control_registration_20261022/source/python/dhdgs/_native.cpython-312-x86_64-linux-gnu.so",
+    "native_sha256": "72046309f9b537fd5e83328b1c58104ee72d98e012037e7d0f3f8dc9ee64c77c",
+    "control_sha256": "a3e481cdf09b2c72df62896f9a3c1505df0949dae50cb2b101dd7c1d26997a24"
+  },
+  "1": {
+    "python": "3.10.12 (main, Aug 31 2026, 10:18:17) [GCC 11.4.0]",
+    "native_path": "/tmp/dhdgs_control_registration_20261022/source/python/dhdgs/_native.cpython-310-x86_64-linux-gnu.so",
+    "native_sha256": "193bcaea6449e1e2626e6ac9de5e7361499f05da4052bf79dd071d293fe4d2da",
+    "control_sha256": "a3e481cdf09b2c72df62896f9a3c1505df0949dae50cb2b101dd7c1d26997a24"
+  },
+  "2": {
+    "python": "3.10.12 (main, Nov  4 2025, 08:48:33) [GCC 11.4.0]",
+    "native_path": "/tmp/dhdgs_control_registration_20261022/source/python/dhdgs/_native.cpython-310-x86_64-linux-gnu.so",
+    "native_sha256": "0e299086d07d4c71a51307b008e4ef08c26659d24ce4a8eb16633800197068da",
+    "control_sha256": "a3e481cdf09b2c72df62896f9a3c1505df0949dae50cb2b101dd7c1d26997a24"
+  }
+}

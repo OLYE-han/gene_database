@@ -1,4 +1,4 @@
-status: running
+status: completed
 application_commit: 40933805ab6fbe5fc860c54bb3f9eab6877771bc
 hypothesis: More network reactors/handlers may enable more search workers to improve
   throughput.

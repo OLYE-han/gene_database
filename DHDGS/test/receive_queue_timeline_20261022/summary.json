@@ -1,0 +1,286 @@
+{
+  "source_run": "/sharenvme/usershome/xulihan/gene_database/DHDGS/test/receive_admission_20261021/cases/confirm_r1_rx8_accept8/runs/20261021T232937_benchmark_ba9701bb",
+  "sample_request_id": "5f7ddbc1-0917-4846-aa56-2e30ec4c264d",
+  "nodes": {
+    "0": {
+      "mean_ms": 5.477777355050116,
+      "p50_ms": 2.6526215,
+      "p95_ms": 19.55651,
+      "p99_ms": 25.39112775,
+      "max_ms": 34.000402,
+      "host": "intel-35",
+      "branches": 10376,
+      "pending_before_accept_peak": 136,
+      "over_50ms": 0,
+      "receiver_threads": 8,
+      "origin_ns": 2809308368261305,
+      "sample": {
+        "same_handler_state_lock_overlap_ms": 0.0,
+        "wait_ms": 0.096898,
+        "thread": 685248,
+        "earlier_same_handler_admissions": 0,
+        "same_handler_admission_overlap_ms": 0.0,
+        "earlier_admissions": []
+      }
+    },
+    "1": {
+      "mean_ms": 22.231063597483,
+      "p50_ms": 14.243657,
+      "p95_ms": 77.31379779999997,
+      "p99_ms": 100.08875832,
+      "max_ms": 120.719867,
+      "host": "intel-32",
+      "branches": 9853,
+      "pending_before_accept_peak": 212,
+      "over_50ms": 1308,
+      "receiver_threads": 8,
+      "origin_ns": 43742536339068,
+      "sample": {
+        "same_handler_state_lock_overlap_ms": 80.059206,
+        "wait_ms": 97.77284,
+        "thread": 131095,
+        "earlier_same_handler_admissions": 32,
+        "same_handler_admission_overlap_ms": 86.619297,
+        "earlier_admissions": [
+          {
+            "request_id": "3cf2a628-88ef-4181-85c0-37588235fd9f",
+            "start_relative_ms": -14.808856,
+            "end_relative_ms": 1.39747,
+            "lock_wait_ms": 16.025201,
+            "native_state_wait_ms": 0.003405
+          },
+          {
+            "request_id": "55b36f38-8b8b-4867-8150-d939d419d5e7",
+            "start_relative_ms": 1.67374,
+            "end_relative_ms": 3.624848,
+            "lock_wait_ms": 1.604766,
+            "native_state_wait_ms": 0.023274
+          },
+          {
+            "request_id": "6b00a31a-6127-4399-bf76-cc14c545e20b",
+            "start_relative_ms": 4.154527,
+            "end_relative_ms": 5.168669,
+            "lock_wait_ms": 0.868565,
+            "native_state_wait_ms": 0.000639
+          },
+          {
+            "request_id": "dccd8248-cde0-40bd-855e-9b3a32c3003d",
+            "start_relative_ms": 5.322457,
+            "end_relative_ms": 5.972537,
+            "lock_wait_ms": 0.540537,
+            "native_state_wait_ms": 0.003481
+          },
+          {
+            "request_id": "ce31cd82-c693-4f63-b6d2-2c8f47f956ad",
+            "start_relative_ms": 6.139647,
+            "end_relative_ms": 7.296097,
+            "lock_wait_ms": 1.060425,
+            "native_state_wait_ms": 0.000523
+          },
+          {
+            "request_id": "e2cb879a-ef9e-48ce-8443-0e465666f8dd",
+            "start_relative_ms": 8.227427,
+            "end_relative_ms": 10.146517,
+            "lock_wait_ms": 1.80297,
+            "native_state_wait_ms": 0.000536
+          },
+          {
+            "request_id": "08bbe821-18c6-4843-b47b-9468d7275767",
+            "start_relative_ms": 10.394107,
+            "end_relative_ms": 10.478942,
+            "lock_wait_ms": 0.019,
+            "native_state_wait_ms": 0.000993
+          },
+          {
+            "request_id": "3fb0cb35-83c2-4f71-ab6b-faec15805aa5",
+            "start_relative_ms": 10.682804,
+            "end_relative_ms": 27.01681,
+            "lock_wait_ms": 16.247021,
+            "native_state_wait_ms": 0.000499
+          },
+          {
+            "request_id": "ca1cf37f-4eb2-412f-8c1e-625761209c03",
+            "start_relative_ms": 27.184036,
+            "end_relative_ms": 28.644688,
+            "lock_wait_ms": 1.331941,
+            "native_state_wait_ms": 0.000528
+          },
+          {
+            "request_id": "712f8e67-2b2d-4812-b32b-285348604e26",
+            "start_relative_ms": 28.805876,
+            "end_relative_ms": 29.587721,
+            "lock_wait_ms": 0.67306,
+            "native_state_wait_ms": 0.000592
+          },
+          {
+            "request_id": "d725b639-ff17-4b17-8dc8-d1882fafb5e1",
+            "start_relative_ms": 29.791581,
+            "end_relative_ms": 30.343665,
+            "lock_wait_ms": 0.403405,
+            "native_state_wait_ms": 0.014635
+          },
+          {
+            "request_id": "51707664-2e39-4e4c-9cb4-a0369098a1be",
+            "start_relative_ms": 30.631815,
+            "end_relative_ms": 31.841558,
+            "lock_wait_ms": 1.042945,
+            "native_state_wait_ms": 0.00054
+          },
+          {
+            "request_id": "49d5cc5f-955c-4518-bd43-3a63ce08680a",
+            "start_relative_ms": 32.210645,
+            "end_relative_ms": 32.810683,
+            "lock_wait_ms": 0.400075,
+            "native_state_wait_ms": 0.037951
+          },
+          {
+            "request_id": "ae7043b7-9de9-472f-8cb7-cdd7555200a3",
+            "start_relative_ms": 33.132732,
+            "end_relative_ms": 33.786126,
+            "lock_wait_ms": 0.547976,
+            "native_state_wait_ms": 0.000513
+          },
+          {
+            "request_id": "12fd9ffc-5d2c-45ef-8759-8674d1cf5269",
+            "start_relative_ms": 34.541538,
+            "end_relative_ms": 36.260362,
+            "lock_wait_ms": 1.17155,
+            "native_state_wait_ms": 0.426974
+          },
+          {
+            "request_id": "c9863f79-3a73-46f7-946b-84f4f8e54550",
+            "start_relative_ms": 36.537683,
+            "end_relative_ms": 54.809028,
+            "lock_wait_ms": 17.245897,
+            "native_state_wait_ms": 0.918494
+          },
+          {
+            "request_id": "f294efa2-2a2e-490c-8cde-07a63eafdcf1",
+            "start_relative_ms": 54.976983,
+            "end_relative_ms": 57.832255,
+            "lock_wait_ms": 2.422516,
+            "native_state_wait_ms": 0.35347
+          },
+          {
+            "request_id": "17c8241f-71ce-4c1e-b227-512c9901649f",
+            "start_relative_ms": 58.282353,
+            "end_relative_ms": 59.751294,
+            "lock_wait_ms": 1.41187,
+            "native_state_wait_ms": 0.000839
+          },
+          {
+            "request_id": "ee6c438e-e6f1-438e-af15-b7ff65621ce2",
+            "start_relative_ms": 60.344729,
+            "end_relative_ms": 61.164933,
+            "lock_wait_ms": 0.76515,
+            "native_state_wait_ms": 0.000516
+          },
+          {
+            "request_id": "fd8e6039-fafc-45f3-9b92-9298726ea458",
+            "start_relative_ms": 61.32522,
+            "end_relative_ms": 62.87906,
+            "lock_wait_ms": 1.124134,
+            "native_state_wait_ms": 0.31967
+          },
+          {
+            "request_id": "3386ed4b-2efa-4909-8598-1addf25e7a83",
+            "start_relative_ms": 63.018454,
+            "end_relative_ms": 63.661096,
+            "lock_wait_ms": 0.588405,
+            "native_state_wait_ms": 0.000517
+          },
+          {
+            "request_id": "31d2448e-5006-4e35-8bab-9d7e189818bc",
+            "start_relative_ms": 64.949073,
+            "end_relative_ms": 65.189633,
+            "lock_wait_ms": 0.184146,
+            "native_state_wait_ms": 0.001295
+          },
+          {
+            "request_id": "f1e42bdd-1a5c-48d0-9ff0-c62f2d4008f2",
+            "start_relative_ms": 65.343503,
+            "end_relative_ms": 66.592841,
+            "lock_wait_ms": 1.145379,
+            "native_state_wait_ms": 0.0006
+          },
+          {
+            "request_id": "0a25d98c-f8f7-4ee4-9d03-9e7f3e6e7730",
+            "start_relative_ms": 66.963612,
+            "end_relative_ms": 77.716012,
+            "lock_wait_ms": 10.265968,
+            "native_state_wait_ms": 0.427444
+          },
+          {
+            "request_id": "8bc605c7-e93d-44c5-bfd6-43b78eaaf037",
+            "start_relative_ms": 77.899357,
+            "end_relative_ms": 89.342246,
+            "lock_wait_ms": 11.342266,
+            "native_state_wait_ms": 0.000558
+          },
+          {
+            "request_id": "9de00db6-8377-4a53-8f7a-d9ed5d263795",
+            "start_relative_ms": 89.513056,
+            "end_relative_ms": 90.751126,
+            "lock_wait_ms": 1.146683,
+            "native_state_wait_ms": 0.00061
+          },
+          {
+            "request_id": "1d6e716d-2407-4ce1-b054-6209612cb1b4",
+            "start_relative_ms": 90.926854,
+            "end_relative_ms": 92.267981,
+            "lock_wait_ms": 1.14076,
+            "native_state_wait_ms": 0.000581
+          },
+          {
+            "request_id": "e13ebd3f-57d2-4602-a302-e965e10736de",
+            "start_relative_ms": 92.504476,
+            "end_relative_ms": 93.128541,
+            "lock_wait_ms": 0.539325,
+            "native_state_wait_ms": 0.000528
+          },
+          {
+            "request_id": "cb8afe84-640f-4f56-bfe2-9e89aaa95670",
+            "start_relative_ms": 93.877004,
+            "end_relative_ms": 94.517101,
+            "lock_wait_ms": 0.527217,
+            "native_state_wait_ms": 0.00053
+          },
+          {
+            "request_id": "04c9ddfb-fc5e-4381-af1a-3befb6862666",
+            "start_relative_ms": 94.695676,
+            "end_relative_ms": 95.367936,
+            "lock_wait_ms": 0.534459,
+            "native_state_wait_ms": 0.003943
+          },
+          {
+            "request_id": "e1269f12-44a4-4e27-93b2-6207b5f3cb48",
+            "start_relative_ms": 95.861221,
+            "end_relative_ms": 96.266141,
+            "lock_wait_ms": 0.352324,
+            "native_state_wait_ms": 0.000556
+          },
+          {
+            "request_id": "f0467342-f7be-4fd6-840e-eaaedfd81a88",
+            "start_relative_ms": 96.44309,
+            "end_relative_ms": 97.360656,
+            "lock_wait_ms": 0.381099,
+            "native_state_wait_ms": 0.48152
+          }
+        ]
+      }
+    },
+    "2": {
+      "mean_ms": 3.6161081541623847,
+      "p50_ms": 0.65936,
+      "p95_ms": 14.757763,
+      "p99_ms": 21.01059789999998,
+      "max_ms": 29.06563,
+      "host": "intel-30",
+      "branches": 6811,
+      "pending_before_accept_peak": 72,
+      "over_50ms": 0,
+      "receiver_threads": 8,
+      "origin_ns": 24796841624574364
+    }
+  }
+}
