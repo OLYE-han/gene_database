@@ -180,7 +180,13 @@ def finalize(path, output=None):
     head_before, head_after = context['head_before'], context['head_after']
     receiver_roles = {int(k):v for k,v in context['receiver_roles'].items()}
     report_receiver_pids = set(context['report_receiver_pids'])
-    records = ReconciledRecords(JsonRecords(path), after)
+    disk_mode=(path/'disk_manifest.json').exists()
+    if disk_mode:
+        from .disk_results import DiskRecords
+        source=DiskRecords(path)
+    else:
+        source=JsonRecords(path)
+    records = ReconciledRecords(source, after)
     if output is not None:
         output.mkdir(parents=True, exist_ok=False)
         path = output
@@ -232,7 +238,9 @@ def finalize(path, output=None):
         summary['head_process_load'].append(dict(role='hnsw_head' if i==0 else
             (receiver_roles[proc['pid']] if proc['pid'] in report_receiver_pids else 'result_process'),
             process=proc,process_window_seconds=span,cpu_seconds=cpu,
-            mean_cpu_cores=None if cpu is None else cpu/span))
+            mean_cpu_cores=None if cpu is None else cpu/span,
+            storage_write_bytes=None if proc['storage_write_bytes'] is None or old['storage_write_bytes'] is None else proc['storage_write_bytes']-old['storage_write_bytes'],
+            storage_read_bytes=None if proc['storage_read_bytes'] is None or old['storage_read_bytes'] is None else proc['storage_read_bytes']-old['storage_read_bytes']))
     summary['query_metric_distributions']={key:distribution([q['stats'][key] for q in ok if isinstance(q['stats'].get(key),(int,float))])
         for key in ('query_ready_queue_ms','pread_ms','exact_distance_ms','rabitq_ms','expanded',
             'max_expanded_depth','max_cross_shard_depth','peer_branch_rpc_count','control_rpc_count',
@@ -249,11 +257,27 @@ def finalize(path, output=None):
     export_resource_csvs(path,dict(per_node_query_totals=totals,node_process_load=loads,
         query_timing_summary=summarize_query_timings(results),per_query_timing_means=summarize_per_query_timings(results),
         build_profile=context.get('build_profile')))
-    summary.update(latency_definition='submit_to_api_future_done; archive consumption excluded',
+    summary.update(latency_definition=(('native_submit_to_native_ready; retention_output_sync_and_offline_analysis_excluded' if context['capture'].get('output_mode')=='deferred' else 'native_submit_to_'+context['capture']['completion']+'_done; final_sync_and_offline_analysis_excluded') if disk_mode else 'submit_to_api_future_done; archive consumption excluded'),
         benchmark_observed_latency_ms=distribution([q['benchmark_observed_wall_ms'] for q in results]),
         capture_queue_ms=distribution([q['benchmark_consumer_wait_ms'] for q in results]),
         result_capture=context['capture'], report_processor_pid=os.getpid(),
         report_started_ns=report_started, report_finished_ns=time.monotonic_ns())
+    if disk_mode:
+        keys=['result_publish_ms','result_queue_ms','result_writer_wait_ms','result_encoding_ms',
+              'result_batch_wait_ms','result_write_ms','result_batch_sync_ms','result_delivery_ms','native_submit_ms']
+        summary['result_stage_distributions']={k:distribution([q['stats'][k] for q in ok]) for k in keys}
+        summary['result_sink']=context['capture']
+        sink=context['capture']
+        output_end=sink.get('last_output_completion_ns',end)
+        summary['final_sync_tail_ms']=(sink['all_synced_ns']-output_end)/1e6
+        if sink.get('output_mode')=='deferred':
+            summary['output_duration_ms']=(output_end-sink['output_started_ns'])/1e6
+            summary['post_retrieval_duration_ms']=(sink['all_synced_ns']-end)/1e6
+            summary['retention_tail_ms']=(sink['all_retained_ns']-end)/1e6
+            summary['output_records_per_second']=sink['count']/((output_end-sink['output_started_ns'])/1e9)
+            summary['resource_snapshot_scope']='retrieval_plus_deferred_output_and_sync'
+            summary['qps_scope']='retrieval_only'
+            summary['full_run_qps_including_output_and_sync']=len(ok)/((sink['all_synced_ns']-sink['offered_ns'])/1e9)
     save_json(path/'summary.json',summary)
     return dict(directory=str(path), **summary)
 

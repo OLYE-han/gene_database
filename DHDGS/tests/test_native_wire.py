@@ -177,7 +177,7 @@ class NativeWireTests(unittest.TestCase):
                 self.assertTrue(result['connection_created'])
 
     def test_limits_and_configuration(self):
-        for kwargs in ({'max_pending': 0}, {'connections': 0}, {'max_message_bytes': 0},
+        for kwargs in ({'max_pending': 0}, {'max_message_bytes': 0},
                        {'timeout_ms': 0}, {'max_endpoints': 0}):
             with self.assertRaises(ValueError):
                 _native.NativeWireClient(**kwargs)

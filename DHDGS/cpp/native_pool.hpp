@@ -1,5 +1,6 @@
 #pragma once
 #include "value_utils.hpp"
+#include "native_affinity.hpp"
 #include <algorithm>
 #include <condition_variable>
 #include <deque>
@@ -50,12 +51,14 @@ class Pool {
   }
 
 public:
-  Pool(size_t workers, size_t capacity) : capacity_(capacity) {
+  Pool(size_t workers, size_t capacity, const std::vector<int>& cpus = {}, bool individual_cpu = true) : capacity_(capacity) {
     if (!workers || !capacity)
       throw std::invalid_argument("Invalid native worker pool limits");
     try {
-      for (size_t i = 0; i < workers; ++i)
+      for (size_t i = 0; i < workers; ++i) {
         threads_.emplace_back([this] { run(); });
+        if(!cpus.empty())bind_thread(threads_.back(),individual_cpu ? std::vector<int>{cpus[i%cpus.size()]} : cpus);
+      }
       std::unique_lock<std::mutex> l(mu_);
       idle_.wait(l, [&] { return ready_ == workers; });
     } catch (...) {

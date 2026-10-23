@@ -1,0 +1,49 @@
+import tempfile,unittest,socket
+from pathlib import Path
+import numpy as np
+import test_cpp_runtime as fixtures
+from dhdgs.cpp_head import NativeEngine
+from dhdgs.index import native
+from dhdgs.network_api import api_options,records
+from dhdgs.transport import send,receive
+
+class NetworkSearchApiTests(unittest.TestCase):
+    setUpClass=classmethod(fixtures.NativeRuntimeTests.setUpClass.__func__)
+    tearDownClass=classmethod(fixtures.NativeRuntimeTests.tearDownClass.__func__)
+    config=fixtures.NativeRuntimeTests.config
+    start=fixtures.NativeRuntimeTests.start
+    def setup_api(self):
+        c=self.config(True,True);self.start(c);engine=NativeEngine(c,external_completion=True);self.addCleanup(engine.close)
+        settings={'api':dict(host='127.0.0.1',port=0,handlers=2,queue_capacity=64,max_connections=128,max_message_bytes=1048576,reactors=1)}
+        port=engine.runtime.start_api(api_options(c,settings));return engine,dict(host='127.0.0.1',port=port,lanes=2,connections=16,timeout_ms=10000,max_message_bytes=1048576,consumer_queue_records=64,consumer_queue_bytes=64<<20)
+    def test_stream_consumption_and_no_head_retention(self):
+        engine,opts=self.setup_api();root=Path(tempfile.mkdtemp(dir=self.root))
+        m=native().run_network_load(self.x[:48],np.arange(48,dtype=np.uint64),16,opts,str(root/'results'))
+        self.assertFalse(m['error']);rows=list(records(root/'results'));self.assertEqual({q['job'] for q in rows},set(range(48)))
+        for q in rows:
+            self.assertTrue(q['transport_ok']);self.assertEqual(q['result']['status'],'ok');self.assertLessEqual(q['client_done_ns'],q['consume_started_ns'])
+            self.assertLessEqual(q['result']['stats']['expanded'],engine.c['search']['max_expansions'])
+        self.assertEqual(engine.runtime.metrics()['completed_pending'],0);self.assertEqual(engine.runtime.metrics()['active'],0)
+        self.assertEqual(sum(v['consumed'] for v in m['lanes']),48)
+        for lane in m['lanes']:
+            self.assertGreaterEqual(lane['output_sync_started_ns'],m['last_received_ns'])
+            self.assertGreaterEqual(lane['output_sync_barrier_ms'],0)
+    def test_consumer_capacity_failure_is_explicit(self):
+        engine,opts=self.setup_api();opts['consumer_queue_bytes']=1
+        root=Path(tempfile.mkdtemp(dir=self.root));m=native().run_network_load(self.x[:32],np.arange(32,dtype=np.uint64),16,opts,str(root/'results'))
+        self.assertIn('capacity',m['error']);self.assertEqual(engine.runtime.metrics()['active'],0)
+    def test_bad_dimensions_do_not_poison_connection(self):
+        engine,opts=self.setup_api()
+        with socket.create_connection((opts['host'],opts['port'])) as s:
+            send(s,dict(version=1,op='search',encoding='float64_le',vector=b'x',query_id=0),1048576)
+            reply,_=receive(s,1048576);self.assertFalse(reply['ok'])
+            send(s,dict(version=1,op='search',encoding='float64_le',vector=self.x[0].astype('<f8').tobytes(),query_id=0),1048576)
+            reply,_=receive(s,1048576);self.assertEqual(reply['status'],'ok')
+
+    def test_disconnect_and_close_with_outstanding_queries(self):
+        engine,opts=self.setup_api()
+        for i in range(8):
+            with socket.create_connection((opts['host'],opts['port'])) as sock:
+                send(sock,dict(version=1,op='search',encoding='float64_le',vector=self.x[i].astype('<f8').tobytes(),query_id=i),1048576)
+        engine.runtime.close()
+        self.assertEqual(engine.runtime.metrics()['active'],0)

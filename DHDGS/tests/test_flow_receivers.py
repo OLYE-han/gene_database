@@ -11,7 +11,7 @@ from dhdgs.transport import send,receive
 
 class AsyncReceiverTests(unittest.TestCase):
     def setUp(self):
-        c=yaml.safe_load((Path(__file__).parents[1]/'configs/dhdgs.yaml').read_text())
+        c=yaml.safe_load((Path(__file__).parents[1]/'configs/dhdgs_pilot.yaml').read_text())
         c['peer'].update(head_receiver_processes=1,head_receiver_ipc='split',head_query_workers=2,
             head_entry_workers=2,head_port=0,head_bind_host='127.0.0.1',head_advertise_host='127.0.0.1')
         c['peer']['communication']['mode']='optimized'

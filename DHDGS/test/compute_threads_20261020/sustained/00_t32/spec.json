@@ -1,7 +1,0 @@
-{
-  "phase": "sustained",
-  "threads": 32,
-  "queries": 100000,
-  "concurrency": 256,
-  "warmup": 32
-}

@@ -37,6 +37,17 @@ static bool boolean(const V& v) { return std::get<bool>(v.data); }
 static uint64_t tid() { return uint64_t(syscall(SYS_gettid)); }
 
 struct Branch {
+  // Direct publication shares only this branch with callbacks/heartbeats.
+  // Search workers never acquire the controller-wide state mutex.
+  std::mutex publication_mu;
+  bool direct=false,direct_inflight=false,retry_queued=false;
+  double retry_at=0.;
+  std::shared_ptr<const V> direct_message;
+  std::shared_ptr<void> report_credit;
+  std::unique_lock<std::mutex> guard() {
+    if(direct)return std::unique_lock<std::mutex>(publication_mu);
+    return {};
+  }
   std::weak_ptr<Engine> owner;
   M metadata, trace, peer;
   A children, events;
@@ -74,12 +85,44 @@ struct Engine : std::enable_shared_from_this<Engine> {
   A updates;
   size_t capacity=0,active=0,max_endpoints=0;
   uint64_t serial=0;
-  double interval=0.,retention=0.,lease_seconds=0.,initial_delay=0.;
+  double capacity_retry=0.,interval=0.,retention=0.,lease_seconds=0.,initial_delay=0.;
   M totals{{"sent",uint64_t(0)},{"errors",uint64_t(0)},{"queue_ms",0.},{"wall_ms",0.},
            {"connections_created",uint64_t(0)},{"connections_reused",uint64_t(0)}};
   M scheduler{{"iterations",uint64_t(0)},{"records_scanned",uint64_t(0)},{"selected",uint64_t(0)},
               {"no_capacity_iterations",uint64_t(0)},{"cpu_ms",0.},{"lock_wait_ms",0.},{"lock_held_ms",0.}};
   std::unique_ptr<dhnet::Client> client;
+  bool worker_reports=false;
+  std::atomic<bool> closing{false};
+  size_t report_limit=0;
+  std::shared_ptr<std::atomic<size_t>> report_slots=std::make_shared<std::atomic<size_t>>(0);
+  std::mutex retry_mu,direct_metrics_mu;
+  std::deque<std::shared_ptr<Branch>> report_retries;
+  std::atomic<size_t> direct_active{0};
+  M direct_totals;
+  void submit_direct(const std::shared_ptr<Branch>&);
+  void received_direct(const std::shared_ptr<Branch>&,dhwire::Result,size_t,double);
+  void complete_direct(const std::shared_ptr<Branch>&,V,std::string error="");
+  void poll_reports();
+
+  void retry_direct(const std::shared_ptr<Branch>& b,double due) { // branch lock held
+    b->retry_at=due;
+    if(b->retry_queued||closing)return;
+    b->retry_queued=true;
+    std::lock_guard<std::mutex> lock(retry_mu);
+    report_retries.push_back(b); // <= one entry per admitted branch credit
+  }
+  V message(const std::shared_ptr<Branch>& b,A reports,bool late=false) {
+    std::set<uint64_t> nodes;
+    nodes.insert(uint64_t(getnum(b->metadata,"entry_node")));
+    nodes.insert(uint64_t(getnum(b->metadata,"target_node")));
+    for(const auto& ch:b->children)nodes.insert(uint64_t(getnum(ch.map(),"node_id")));
+    for(const auto& v:std::get<A>(b->metadata.at("visited_nodes").data))nodes.insert(uint64_t(number(v)));
+    A involved;for(auto n:nodes)involved.emplace_back(n);
+    return M{{"query_request_id",b->metadata.at("query_request_id")},{"token",b->metadata.at("token")},
+      {"branch_id",b->metadata.at("branch_id")},{"node_id",b->metadata.at("target_node")},
+      {"status",b->status},{"involved_nodes",std::move(involved)},{"reports",std::move(reports)},
+      {"children",b->children},{"transfer_failure",late},{"error",b->error.empty()?V():V(b->error)}};
+  }
 
   static void add(M& m,const std::string& key,double value) { auto i=m.find(key);m[key]=(i==m.end()?0.:number(i->second))+value; }
   void queued_command() {
@@ -94,6 +137,7 @@ struct Engine : std::enable_shared_from_this<Engine> {
     timers.push({due,++serial,++b->generation,b});
   }
   void ready(const std::shared_ptr<Branch>& b) {
+    if(worker_reports&&b->done&&(!b->late_error||b->late_error_acked))return;
     if(b->expired||b->inflight||(b->acked&&(!b->late_error||b->late_error_acked)))return;
     if(!b->ready){b->ready=true;b->ready_result=b->done;(b->done?results:regular).push_back(b);}
     else if(b->done&&!b->ready_result){b->ready_result=true;results.push_back(b);}
@@ -107,6 +151,10 @@ struct Engine : std::enable_shared_from_this<Engine> {
     if(b->expired||b->done)return;
     b->error=std::move(error);b->status="failed";b->done=true;b->pending_report=V();
     b->touched=seconds();ready(b);
+    if(worker_reports) {
+      b->direct_message=std::make_shared<const V>(message(b,A{}));
+      retry_direct(b,seconds());
+    }
   }
   void publish(const std::shared_ptr<Branch>& b) {
     if(b->done||b->expired||std::holds_alternative<std::monostate>(b->pending_report.data)||(!early_report&&b->transfers))return;
@@ -126,9 +174,10 @@ struct Engine : std::enable_shared_from_this<Engine> {
     r["pending_transfers_at_publication"]=uint64_t(b->transfers);
     b->report=std::move(report);b->status="complete";b->done=true;b->touched=now;
     if(b->traced)b->trace["report_ready_ns"]=ns();
-    ready(b);
+    if(!worker_reports)ready(b);
   }
   void received(const std::shared_ptr<Branch>& b,dhwire::Result result,bool terminal_message,size_t event_index,double selected,bool late_notification) {
+    auto branch_lock=b->guard();
     if(!b->inflight)return;
     b->inflight=false;--active;
     bool success=false;
@@ -171,9 +220,11 @@ struct Engine : std::enable_shared_from_this<Engine> {
     while(active<capacity&&(!results.empty()||!regular.empty())) {
       const bool from_result=!results.empty();auto& queue=from_result?results:regular;
       auto b=queue.front();queue.pop_front();
+      auto branch_lock=b->guard();
       if(!b->ready||(!from_result&&b->ready_result))continue;
       b->ready=false;b->ready_result=false;
       if(b->expired||b->inflight||(b->acked&&(!b->late_error||b->late_error_acked)))continue;
+      if(worker_reports&&b->done&&(!b->late_error||b->late_error_acked))continue;
       const bool late_notification=b->late_error&&!b->late_error_acked;
       const bool terminal_message=b->done;
       A reports;if(!late_notification&&!std::holds_alternative<std::monostate>(b->report.data))reports.push_back(b->report);
@@ -217,11 +268,13 @@ struct Engine : std::enable_shared_from_this<Engine> {
     const double now=seconds();
     while(!timers.empty()&&timers.top().due<=now) {
       auto item=timers.top();timers.pop();auto b=item.branch.lock();
-      if(!b||b->expired||item.generation!=b->generation)continue;
-      if(b->done&&!b->inflight) {
+      if(!b)continue;
+      auto branch_lock=b->guard();
+      if(b->expired||item.generation!=b->generation)continue;
+      if(b->done&&!b->inflight&&!b->direct_inflight) {
         if(b->transfers){timer(b,now+interval);ready(b);continue;}
         double expiry=b->touched+retention;if(!b->acked||(b->late_error&&!b->late_error_acked))expiry=std::max(expiry,b->deadline);
-        if(now>=expiry){b->expired=true;branches.erase(b->key);
+        if(now>=expiry){b->expired=true;b->report_credit.reset();branches.erase(b->key);
           if(queued_registration){std::lock_guard<std::mutex> l(registration_mu);registered_keys.erase(b->key);}
           update(b,"expired");continue;}
         if(b->acked&&(!b->late_error||b->late_error_acked)){timer(b,expiry);continue;}
@@ -255,36 +308,200 @@ struct Engine : std::enable_shared_from_this<Engine> {
   }
   void close() {
     std::lock_guard<std::mutex> closing(close_mu);
+    this->closing=true;
     {std::lock_guard<std::mutex> lock(queue_mu);if(closed)return;stopping=true;}wake.notify_all();
     if(thread.joinable())thread.join();
     client->close();
     std::lock_guard<std::mutex> state(state_mu);
     // Stop network first; drain ownership events without dispatching new RPCs.
     // Fence publication before consuming a completion queued just before close.
-    for(auto& item:branches){item.second->control->cancel();item.second->cancelled=true;}
+    for(auto& item:branches){auto lock=item.second->guard();item.second->control->cancel();item.second->cancelled=true;}
     while(!commands.empty()){auto f=std::move(commands.front());commands.pop_front();command_depth.fetch_sub(1,std::memory_order_relaxed);try{f();}catch(...) {}}
-    for(auto& item:branches){auto& b=item.second;b->control->cancel();b->cancelled=true;
+    for(auto& item:branches){auto& b=item.second;auto lock=b->guard();b->control->cancel();b->cancelled=true;
       if(!b->done)terminal(b,"RuntimeError: Native controller closed");
-      b->inflight=false;}
+      b->inflight=false;b->report_credit.reset();}
+    {std::lock_guard<std::mutex> lock(retry_mu);report_retries.clear();}
     active=0;closed=true;
   }
 };
 
+void Engine::complete_direct(const std::shared_ptr<Branch>& b,V report,std::string error) {
+  const auto started=ns();const auto cpu=cpu_ms();
+  {
+    auto lock=b->guard();
+    if(b->done||b->expired||closing)return;
+    b->done_at=started/1e9;
+    if(b->traced) {
+      b->trace["report_prepare_start_ns"]=started;
+      b->trace["report_prepare_thread_id"]=tid();
+      b->trace["local_search_done_ns"]=started;
+      b->trace["completion_publish_path"]="search_thread";
+    }
+    try {
+      if(error.empty()) {
+        b->pending_report=std::move(report);
+        if(b->traced) {
+          auto t=b->pending_report.map().find("native_timestamps");
+          if(t!=b->pending_report.map().end())for(const auto& entry:t->second.map())b->trace[entry.first]=entry.second;
+        }
+        publish(b);
+      } else terminal(b,std::move(error));
+    } catch(const std::exception& exc) {
+      terminal(b,std::string("Native completion error: ")+exc.what());
+    }
+    if(!b->done)throw std::logic_error("Direct report requires early publication");
+    if(!b->direct_message) {
+      auto& st=b->report.map().at("stats").map();
+      st["query_report_prepare_ms"]=(ns()-started)/1e6;
+      st["query_report_prepare_cpu_ms"]=cpu_ms()-cpu;
+      st["query_completion_queue_ms"]=0.;
+      A reports;reports.push_back(std::move(b->report));
+      b->direct_message=std::make_shared<const V>(message(b,std::move(reports)));
+    }
+    if(b->traced)b->trace["report_prepare_end_ns"]=ns();
+  }
+  submit_direct(b);
+}
+
+void Engine::submit_direct(const std::shared_ptr<Branch>& b) {
+  std::shared_ptr<const V> payload;
+  size_t index=0;double selected=seconds();
+  {
+    auto lock=b->guard();
+    if(closing||b->expired||b->acked||b->direct_inflight||!b->direct_message)return;
+    payload=b->direct_message;b->direct_inflight=true;++direct_active;
+    index=b->events.size();
+    if(b->traced) {
+      b->trace["report_submit_start_ns"]=ns();
+      b->trace["report_submit_thread_id"]=tid();
+      b->events.emplace_back(M{{"queued_ns",ns()},{"message_ready_ns",ns()},
+        {"report_submit_thread_id",tid()},{"kind","result"},{"publication_path","search_thread"}});
+    }
+  }
+  bool accepted=false;std::string encode_error;
+  const double submit_cpu=cpu_ms();
+  try {
+    std::weak_ptr<Engine> weak=shared_from_this();
+    accepted=client->submit(*b->endpoint,*payload,[weak,b,index,selected](dhwire::Result result) {
+      if(auto e=weak.lock())e->received_direct(b,std::move(result),index,selected);
+    });
+  } catch(const std::exception& exc){encode_error=exc.what();}
+  {
+    auto lock=b->guard();
+    if(b->traced){b->trace["report_submit_end_ns"]=ns();b->trace["report_submit_cpu_ms"]=cpu_ms()-submit_cpu;}
+    if(accepted) {b->submitted_result=true;return;}
+    b->direct_inflight=false;--direct_active;
+    // Only never-sent messages can be replaced. Retries preserve the exact
+    // immutable application message, including the child manifest.
+    if(!encode_error.empty()&&!b->submitted_result) {
+      b->status="failed";b->error=("Native control encode error: "+encode_error).substr(0,256);
+      b->direct_message=std::make_shared<const V>(message(b,A{}));
+    }
+    if(b->traced) {
+      b->events.at(index).map()["submitted"]=false;
+      b->events.at(index).map()["succeeded"]=false;
+      b->trace["report_deferred_count"]=uint64_t(getnum(b->trace,"report_deferred_count")+1);
+    }
+    retry_direct(b,seconds()+(encode_error.empty()?capacity_retry:interval));
+  }
+}
+
+void Engine::received_direct(const std::shared_ptr<Branch>& b,dhwire::Result result,size_t index,double selected) {
+  auto lock=b->guard();
+  if(!b->direct_inflight)return;
+  b->direct_inflight=false;--direct_active;
+  bool success=false;
+  try {
+    if(!result.ok)throw std::runtime_error(result.error);
+    const auto& reply=result.response.map();
+    if(!boolean(reply.at("ok")))throw std::runtime_error("Head rejected direct report");
+    const double lease_ms=number(reply.at("lease_ms"));
+    if(!std::isfinite(lease_ms)||lease_ms<=0)throw std::runtime_error("Invalid head lease");
+    b->lease=seconds()+lease_ms/1000.;b->control->renew(b->lease);
+    b->cancelled|=boolean(reply.at("cancelled"));if(b->cancelled)b->control->cancel();
+    if(!b->acked){b->acked=true;b->report_credit.reset();update(b,"acked");}
+    success=true;
+  } catch(const std::exception&) {}
+  const double now=seconds();
+  {
+    std::lock_guard<std::mutex> metrics(direct_metrics_mu);
+    add(direct_totals,"sent",1);add(direct_totals,"errors",!success);
+    add(direct_totals,"queue_ms",result.send_start_ns?(result.send_start_ns/1e9-selected)*1000.:0.);
+    add(direct_totals,"wall_ms",(now-selected)*1000.);
+    add(direct_totals,result.connection_created?"connections_created":"connections_reused",1);
+  }
+  if(b->traced) {
+    auto& ev=b->events.at(index).map();ev["sender_rpc_return_ns"]=result.done_ns;
+    ev["sender_enter_ns"]=result.send_start_ns;ev["succeeded"]=success;ev["submitted"]=true;
+    ev["rpc_counts"]=M{{"request_bytes",result.request_bytes},{"response_bytes",result.response_bytes},{"rpc_count",uint64_t(1)},
+      {"connections_created",uint64_t(result.connection_created)},{"connections_reused",uint64_t(!result.connection_created)},
+      {"pool_wait_ms",result.send_start_ns>=result.queued_ns?(result.send_start_ns-result.queued_ns)/1e6:0.},
+      {"connect_ms",result.connect_done_ns>=result.connect_start_ns?(result.connect_done_ns-result.connect_start_ns)/1e6:0.},
+      {"send_ms",result.send_done_ns>=result.send_start_ns?(result.send_done_ns-result.send_start_ns)/1e6:0.},
+      {"response_wait_ms",result.done_ns>=result.send_done_ns&&result.send_done_ns?(result.done_ns-result.send_done_ns)/1e6:0.}};
+    b->trace["report_ack_callback_ns"]=ns();
+  }
+  if(!success)retry_direct(b,now+interval);
+  // Housekeeping may lag; it is not a prerequisite for delivery or admission
+  // credit release. No report body is placed on the controller command queue.
+  lock.unlock();
+  enqueue([e=shared_from_this(),b]{auto guard=b->guard();if(!b->expired)e->timer(b,b->touched+e->retention);});
+}
+
+void Engine::poll_reports() {
+  if(!worker_reports||closing)return;
+  std::deque<std::shared_ptr<Branch>> pending;
+  {std::lock_guard<std::mutex> lock(retry_mu);pending.swap(report_retries);}
+  for(auto& b:pending) {
+    bool send=false,expired=false;
+    {
+      auto lock=b->guard();b->retry_queued=false;
+      if(b->acked||b->expired)continue;
+      if(seconds()>=std::max(b->deadline,b->touched+retention)) {
+        b->expired=true;b->report_credit.reset();update(b,"expired");
+        expired=true;
+      } else if(seconds()<b->retry_at)retry_direct(b,b->retry_at);
+      else send=true;
+    }
+    if(expired)enqueue([e=shared_from_this(),b]{
+      auto guard=b->guard();e->branches.erase(b->key);
+      if(e->queued_registration){std::lock_guard<std::mutex> l(e->registration_mu);e->registered_keys.erase(b->key);}
+    });
+    if(send)submit_direct(b);
+  }
+}
+
 Ticket::Ticket(std::weak_ptr<Engine> e,std::shared_ptr<Branch> b):engine_(std::move(e)),branch_(std::move(b)){}
-void Ticket::start(double a,double x,double r) { if(auto e=engine_.lock()){auto b=branch_;e->enqueue([b,a,x,r]{if(b->done)return;b->status="running";b->admission_ms=a;b->executor_ms=x;b->ready_ms=r;});} }
-void Ticket::child(V descriptor) {if(auto e=engine_.lock()){auto b=branch_;e->enqueue([e,b,d=std::move(descriptor)]()mutable{if(b->done)return;b->children.push_back(std::move(d));++b->transfers;e->ready(b);});}}
-void Ticket::transfer_done(V metrics,std::string error) {if(auto e=engine_.lock()){auto b=branch_;e->enqueue([e,b,m=std::move(metrics),error=std::move(error)]{
+void Ticket::start(double a,double x,double r) { if(auto e=engine_.lock()){auto b=branch_;auto work=[b,a,x,r]{auto lock=b->guard();if(b->done)return;b->status="running";b->admission_ms=a;b->executor_ms=x;b->ready_ms=r;};if(e->worker_reports)work();else e->enqueue(std::move(work));} }
+void Ticket::child(V descriptor) {if(auto e=engine_.lock()){auto b=branch_;
+  if(e->worker_reports){auto lock=b->guard();if(!b->done){b->children.push_back(std::move(descriptor));++b->transfers;}return;}
+  e->enqueue([e,b,d=std::move(descriptor)]()mutable{if(b->done)return;b->children.push_back(std::move(d));++b->transfers;e->ready(b);});}}
+void Ticket::transfer_done(V metrics,std::string error) {if(auto e=engine_.lock()){auto b=branch_;
+  if(e->worker_reports) {
+    auto lock=b->guard();if(b->transfers)--b->transfers;b->touched=seconds();
+    for(const auto& item:metrics.map())if(item.first.rfind("peer_",0)==0)Engine::add(b->peer,item.first,number(item.second));
+    if(!error.empty()) {
+      if(b->done&&b->direct_message) {
+        b->late_error=true;b->error=std::move(error);
+        lock.unlock();
+        e->enqueue([e,b]{auto guard=b->guard();e->ready(b);});
+      } else e->terminal(b,std::move(error));
+    }
+    return;
+  }
+  e->enqueue([e,b,m=std::move(metrics),error=std::move(error)]{
+  auto lock=b->guard();
   if(b->transfers)--b->transfers;
   b->touched=seconds();
   for(const auto& item:m.map()) {if(item.first.rfind("peer_",0)==0)Engine::add(b->peer,item.first,number(item.second));}
   if(!error.empty()) {
-    if(e->early_report&&b->done&&!std::holds_alternative<std::monostate>(b->report.data)) {
+    if(e->early_report&&b->done&&(b->direct_message||!std::holds_alternative<std::monostate>(b->report.data))) {
       // Already published results are immutable; report a separate diagnostic.
       b->late_error=true;b->error=error;b->touched=seconds();e->ready(b);
     } else e->terminal(b,error);
   } else e->publish(b);
 });}}
-void Ticket::complete(V report) {const auto stamp=ns();if(auto e=engine_.lock()){auto b=branch_;e->enqueue([e,b,report=std::move(report),stamp]()mutable{
+void Ticket::complete(V report) {const auto stamp=ns();if(auto e=engine_.lock()){auto b=branch_;if(e->worker_reports){e->complete_direct(b,std::move(report));return;}e->enqueue([e,b,report=std::move(report),stamp]()mutable{
   if(b->done)return;
   b->done_at=stamp/1e9;b->pending_report=std::move(report);b->status=e->early_report?"report_pending":"waiting_transfer";
   try {
@@ -294,25 +511,44 @@ void Ticket::complete(V report) {const auto stamp=ns();if(auto e=engine_.lock())
   e->publish(b);
   } catch(const std::exception& error) {e->terminal(b,std::string("Native completion error: ")+error.what());}
 });}}
-void Ticket::fail(std::string error) {if(auto e=engine_.lock()){auto b=branch_;e->enqueue([e,b,error=std::move(error)]{e->terminal(b,error);});}}
-void Ticket::renew(double lease) {branch_->control->renew(lease);if(auto e=engine_.lock()){auto b=branch_;e->enqueue([b,lease]{b->lease=lease;});}}
-void Ticket::cancel() {branch_->control->cancel();if(auto e=engine_.lock()){auto b=branch_;e->enqueue([e,b]{b->cancelled=true;if(!b->done)e->terminal(b,"TimeoutError: Branch cancelled before publication");});}}
+void Ticket::fail(std::string error) {if(auto e=engine_.lock()){auto b=branch_;if(e->worker_reports){e->complete_direct(b,V(),std::move(error));return;}e->enqueue([e,b,error=std::move(error)]{e->terminal(b,error);});}}
+void Ticket::renew(double lease) {branch_->control->renew(lease);if(auto e=engine_.lock()){auto b=branch_;if(e->worker_reports){auto lock=b->guard();b->lease=lease;return;}e->enqueue([b,lease]{b->lease=lease;});}}
+void Ticket::cancel() {branch_->control->cancel();if(auto e=engine_.lock()){auto b=branch_;e->enqueue([e,b]{auto lock=b->guard();b->cancelled=true;if(!b->done)e->terminal(b,"TimeoutError: Branch cancelled before publication");});}}
 
 static std::shared_ptr<Engine> make_engine(const V& c) {
   const auto& cfg=c.map();const auto& p=cfg.at("peer").map();const auto& comm=p.at("communication").map();
   const auto& net=cfg.at("network").map();auto e=std::make_shared<Engine>();
   auto nc=cfg.find("native_runtime");if(nc!=cfg.end()){auto x=nc->second.map().find("early_parent_report");if(x!=nc->second.map().end())e->early_report=boolean(x->second);}
   if(nc!=cfg.end()){auto x=nc->second.map().find("queued_control_registration");if(x!=nc->second.map().end())e->queued_registration=boolean(x->second);}
+  if(nc!=cfg.end()){
+    const auto& n=nc->second.map();auto x=n.find("search_thread_reports"),data=n.find("data_enabled");
+    e->worker_reports=x!=n.end()&&boolean(x->second)&&data!=n.end()&&boolean(data->second);
+  }
+  if(e->worker_reports&&!e->early_report)throw std::invalid_argument("search_thread_reports requires early_parent_report");
+  e->report_limit=size_t(getnum(p,"max_active_queries",4096));
+  if(!e->report_limit)throw std::invalid_argument("Invalid direct report credit limit");
   auto locking=p.find("locking");
   if(locking!=p.end())e->register_release_gil=boolean(locking->second.map().at("native_register_release_gil"));
   e->capacity=size_t(getnum(comm,"max_pending_control"));e->interval=getnum(p,"heartbeat_interval_ms")/1000.;
+  e->capacity_retry=nc==cfg.end()?e->interval:getnum(nc->second.map(),"report_capacity_retry_ms",e->interval*1000.)/1000.;
+  if(!std::isfinite(e->capacity_retry)||e->capacity_retry<=0)throw std::invalid_argument("Invalid report capacity retry interval");
   e->retention=getnum(p,"retention_seconds");e->lease_seconds=getnum(p,"lease_timeout_ms")/1000.;
   e->initial_delay=getnum(p.at("control").map(),"initial_heartbeat_delay_ms")/1000.;
   if(!e->capacity||e->interval<=0||e->retention<=0)throw std::invalid_argument("Invalid native control capacity/timing");
   dhwire::Config wire;wire.max_pending=e->capacity;wire.max_connections_per_endpoint=size_t(getnum(comm,"connections_per_endpoint"));
   wire.max_endpoints=size_t(getnum(comm,"max_connection_endpoints"));wire.max_message_bytes=size_t(getnum(net,"max_message_bytes"));
   e->max_endpoints=wire.max_endpoints;
-  wire.timeout_ms=uint64_t(getnum(p,"control_timeout_seconds")*1000.);e->client=std::make_unique<dhnet::Client>(wire,c);
+  wire.timeout_ms=uint64_t(getnum(p,"control_timeout_seconds")*1000.);
+  V report_config=c;
+  if(nc!=cfg.end()) {
+    const auto& n=nc->second.map();auto rn=n.find("report_network");
+    if(rn!=n.end()&&boolean(rn->second.map().at("enabled"))) {
+      auto& policy=report_config.map().at("native_runtime").map().at("network_module").map();
+      if(!boolean(policy.at("enabled")))throw std::invalid_argument("report_network requires network_module");
+      policy["connections_per_endpoint_per_reactor"]=rn->second.map().at("connections_per_endpoint_per_reactor");
+    }
+  }
+  e->client=std::make_unique<dhnet::Client>(wire,report_config);
   e->thread=std::thread([e]{e->run();});
   return e;
 }
@@ -368,8 +604,12 @@ struct Fleet {
       if(idle_since&&now-idle_since>=idle_ms*1000000&&lanes.size()>minimum) {
         for(size_t i=lanes.size();i-->minimum;) {
           auto e=lanes[i];bool empty;
-          {std::lock_guard<std::mutex> state(e->state_mu);empty=e->branches.empty()&&!e->active&&!e->command_depth.load()&&!e->client->pending();
-            if(empty){accumulate(retired_totals,e->totals);accumulate(retired_scheduler,e->scheduler);}}
+          {std::lock_guard<std::mutex> state(e->state_mu);empty=e->branches.empty()&&!e->active&&!e->direct_active.load()&&!e->report_slots->load()&&!e->command_depth.load()&&!e->client->pending();
+            if(empty){accumulate(retired_totals,e->totals);accumulate(retired_scheduler,e->scheduler);
+              // Direct ACKs accumulate outside the control thread. Preserve
+              // their totals when an idle adaptive lane is reclaimed.
+              std::lock_guard<std::mutex> metrics(e->direct_metrics_mu);
+              accumulate(retired_totals,e->direct_totals);}}
           if(empty) {
             e->close();{std::lock_guard<std::mutex> u(e->updates_mu);for(auto& v:e->updates)retired_updates.push_back(std::move(v));e->updates.clear();}
             lanes.erase(lanes.begin()+i);++down;event("idle_after_retention");changed=now;
@@ -422,6 +662,13 @@ std::shared_ptr<Ticket> Controller::register_value(V metadata,std::shared_ptr<dh
   const auto register_started=ns();uint64_t state_wait=0,queue_wait=0,held=0;
   b->key=str(b->metadata.at("query_request_id"))+"\n"+str(b->metadata.at("branch_id"));
   auto e=fleet_?fleet_->choose(b->key):engine_;b->owner=e;
+  b->direct=e->worker_reports;
+  if(b->direct) {
+    auto slots=e->report_slots;size_t current=slots->load();
+    do {if(current>=e->report_limit)throw std::runtime_error("Direct report admission capacity exceeded");}
+    while(!slots->compare_exchange_weak(current,current+1));
+    b->report_credit=std::shared_ptr<void>(new char,[slots](void* p){delete static_cast<char*>(p);--*slots;});
+  }
   b->created=getnum(b->metadata,"created_ns",double(ns()))/1e9;b->touched=b->created;
   b->lease=getnum(b->metadata,"lease",seconds()+e->lease_seconds);b->deadline=getnum(b->metadata,"deadline",b->lease);
   auto trace=b->metadata.find("trace");if(trace==b->metadata.end())trace=b->metadata.find("tracebool");
@@ -467,6 +714,7 @@ std::shared_ptr<Ticket> Controller::register_value(V metadata,std::shared_ptr<dh
         b->trace["native_register_enqueued_ns"]=ns();
       }
       e->commands.push_back([e,b]{
+        auto lock=b->guard();
         if(b->traced)b->trace["native_register_consumed_ns"]=ns();
         e->branches.emplace(b->key,b);
         if(e->initial_delay>0)e->timer(b,seconds()+e->initial_delay);else e->ready(b);
@@ -495,7 +743,7 @@ std::shared_ptr<Ticket> Controller::register_value(V metadata,std::shared_ptr<dh
     }
     if(e->endpoints.count(key)||e->endpoints.size()<e->max_endpoints)e->endpoints[key]=b->endpoint;
     e->branches.emplace(b->key,b);
-    e->commands.push_back([e,b]{if(e->initial_delay>0)e->timer(b,seconds()+e->initial_delay);else e->ready(b);});
+    e->commands.push_back([e,b]{auto lock=b->guard();if(e->initial_delay>0)e->timer(b,seconds()+e->initial_delay);else e->ready(b);});
     e->queued_command();
     if(b->traced){b->trace["native_register_start_ns"]=register_started;b->trace["native_register_end_ns"]=ns();
       b->trace["native_register_state_wait_ns"]=state_wait;b->trace["native_register_queue_wait_ns"]=queue_wait;
@@ -507,29 +755,36 @@ std::shared_ptr<Ticket> Controller::register_value(V metadata,std::shared_ptr<dh
 }
 static V snapshot_engine(const std::shared_ptr<Engine>& e,bool include_reports) {
  std::lock_guard<std::mutex> state(e->state_mu);A out;
-  for(const auto& item:e->branches){const auto& b=item.second;M row=b->peer;
+  for(const auto& item:e->branches){const auto& b=item.second;auto lock=b->guard();M row=b->peer;
     row["query_request_id"]=b->metadata.at("query_request_id");row["branch_id"]=b->metadata.at("branch_id");
     row["node_id"]=b->metadata.at("target_node");row["status"]=b->status;row["acked"]=b->acked;
     row["pending_transfers"]=uint64_t(b->transfers);row["late_error_acked"]=b->late_error_acked;
     row["touched"]=b->touched;row["lease"]=b->lease;row["cancelled"]=b->cancelled;
-    if(include_reports)row["report"]=b->report;
+    if(include_reports) {
+      if(b->direct_message) {const auto& reports=std::get<A>(b->direct_message->map().at("reports").data);row["report"]=reports.empty()?V():reports.front();}
+      else row["report"]=b->report;
+    }
     row["error"]=b->error.empty()?V():V(b->error);
     row["execution_timestamps"]=b->trace;row["control_events"]=b->events;out.emplace_back(std::move(row));}
-  return M{{"branches",std::move(out)},{"control_totals",e->totals},{"control_scheduler_totals",e->scheduler},
-           {"control_active",uint64_t(e->active)},{"command_queue_depth",e->command_depth.load(std::memory_order_relaxed)},
+  M totals=e->totals;
+  {std::lock_guard<std::mutex> lock(e->direct_metrics_mu);for(const auto& [k,v]:e->direct_totals)Engine::add(totals,k,number(v));}
+  return M{{"branches",std::move(out)},{"control_totals",std::move(totals)},{"control_scheduler_totals",e->scheduler},
+           {"search_thread_reports",e->worker_reports},{"report_credits_in_use",uint64_t(e->report_slots->load())},
+           {"control_active",uint64_t(e->active+e->direct_active.load())},{"command_queue_depth",e->command_depth.load(std::memory_order_relaxed)},
            {"command_queue_peak",e->command_peak.load(std::memory_order_relaxed)},
            {"network_send",e->client->metrics()},{"client_pending",uint64_t(e->client->pending())},{"retained_branches",uint64_t(e->branches.size())}};
 }
 V Controller::snapshot(bool include_reports)const {
   if(!fleet_)return snapshot_engine(engine_,include_reports);
   std::lock_guard<std::mutex> l(fleet_->mu);
-  M out{{"branches",A{}},{"control_totals",fleet_->retired_totals},{"control_scheduler_totals",fleet_->retired_scheduler}};
+  M out{{"branches",A{}},{"control_totals",fleet_->retired_totals},{"control_scheduler_totals",fleet_->retired_scheduler},
+        {"search_thread_reports",engine_->worker_reports},{"report_credits_in_use",uint64_t(0)}};
   A lane_stats;
   for(auto& e:fleet_->lanes) {
     auto row=snapshot_engine(e,include_reports).map();
     for(auto& b:std::get<A>(row.at("branches").data))std::get<A>(out.at("branches").data).push_back(std::move(b));
     for(const char* k:{"control_totals","control_scheduler_totals"})Fleet::accumulate(out.at(k).map(),row.at(k).map());
-    for(const char* k:{"control_active","command_queue_depth","command_queue_peak","client_pending","retained_branches"})Engine::add(out,k,number(row.at(k)));
+    for(const char* k:{"control_active","command_queue_depth","command_queue_peak","client_pending","retained_branches","report_credits_in_use"})Engine::add(out,k,number(row.at(k)));
     row.erase("branches");lane_stats.emplace_back(std::move(row));
   }
   out["adaptive_control"]=M{{"lanes",uint64_t(fleet_->lanes.size())},{"peak_lanes",uint64_t(fleet_->peak)},
@@ -542,17 +797,32 @@ V Controller::take_updates(){
   if(fleet_)for(auto& e:fleet_->lanes)collect(e);else collect(engine_);
   return out;
 }
+V Controller::network_metrics()const {
+  std::vector<std::shared_ptr<Engine>> engines;
+  if(fleet_){std::lock_guard<std::mutex> l(fleet_->mu);engines=fleet_->lanes;}
+  else engines.push_back(engine_);
+  A lanes;for(auto& e:engines)lanes.emplace_back(M{{"network_send",e->client->metrics()},
+    {"command_queue_depth",uint64_t(e->command_depth.load())},{"report_credits_in_use",uint64_t(e->report_slots->load())}});
+  return M{{"lanes",std::move(lanes)}};
+}
 void Controller::close(){if(fleet_)fleet_->close();else if(engine_)engine_->close();}
+void Controller::poll_reports(){
+  if(!fleet_){engine_->poll_reports();return;}
+  std::vector<std::shared_ptr<Engine>> engines;
+  {std::lock_guard<std::mutex> lock(fleet_->mu);engines=fleet_->lanes;}
+  for(auto& e:engines)e->poll_reports();
+}
 void register_native_control(py::module_& m) {
   py::class_<Ticket,std::shared_ptr<Ticket>>(m,"ControlTicket")
     .def("start",&Ticket::start).def("child",[](Ticket& t,py::object d){t.child(dhwire::from_python(d));})
     .def("transfer_done",[](Ticket& t,py::object m,const std::string& e){t.transfer_done(dhwire::from_python(m),e);},py::arg("metrics"),py::arg("error")="")
-    .def("complete",[](Ticket& t,py::object r){t.complete(dhwire::from_python(r));})
+    .def("complete",[](Ticket& t,py::object r){auto value=dhwire::from_python(r);py::gil_scoped_release release;t.complete(std::move(value));})
     .def("fail",&Ticket::fail).def("renew",&Ticket::renew).def("cancel",&Ticket::cancel);
   py::class_<Controller,std::shared_ptr<Controller>>(m,"NativeController")
     .def(py::init<py::dict>()).def("register_branch",&Controller::register_branch)
     .def("snapshot",[](Controller& c,bool include_reports){V v;{py::gil_scoped_release release;v=c.snapshot(include_reports);}return dhwire::to_python(v);},py::arg("include_reports")=false)
     .def("take_updates",[](Controller& c){V v;{py::gil_scoped_release release;v=c.take_updates();}return dhwire::to_python(v);})
+    .def("poll_reports",&Controller::poll_reports,py::call_guard<py::gil_scoped_release>())
     .def("close",&Controller::close,py::call_guard<py::gil_scoped_release>());
 }
 } // namespace dhcontrol

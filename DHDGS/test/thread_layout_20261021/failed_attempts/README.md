@@ -1,1 +1,0 @@
-The initial capture-limit adjustment referenced an optional benchmark_results block absent in the archived base plan. It failed before starting any node or submitting any query. The harness now explicitly copies this block from the canonical YAML. Successful measurements are reused unchanged; this failed setup is preserved and is not counted as a query run.

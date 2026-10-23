@@ -1,8 +1,0 @@
-{
-  "phase": "short",
-  "variant": "head8_network_auto",
-  "threads": 32,
-  "queries": 10000,
-  "concurrency": 256,
-  "warmup": 32
-}

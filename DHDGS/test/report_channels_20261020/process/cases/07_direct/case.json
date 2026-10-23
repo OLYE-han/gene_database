@@ -1,7 +1,0 @@
-{
-  "index": 7,
-  "mode": "direct",
-  "queries": 2000,
-  "concurrency": 128,
-  "warmup": 32
-}

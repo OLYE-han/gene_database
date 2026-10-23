@@ -47,7 +47,7 @@ class AdmissionQueueLockTests(unittest.TestCase):
                 self.assertTrue(finished.is_set())
 
     def test_old_queue_lock_and_gc_settings_migrate_and_validate(self):
-        source=Path(__file__).resolve().parents[1]/'configs/dhdgs.yaml'
+        source=Path(__file__).resolve().parents[1]/'configs/dhdgs_pilot.yaml'
         c=yaml.safe_load(source.read_text())
         del c['peer']['admission']['queue_lock'];del c['metrics']['gc_trace']
         with tempfile.TemporaryDirectory() as tmp:

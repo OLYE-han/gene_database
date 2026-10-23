@@ -17,7 +17,7 @@ class DeploymentTests(unittest.TestCase):
     def test_generated_host_configs_preserve_execution_signature(self):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp)
-            c=yaml.safe_load((ROOT/'configs/dhdgs.yaml').read_text())
+            c=yaml.safe_load((ROOT/'configs/dhdgs_pilot.yaml').read_text())
             c['network']['transport']='tcp';c['peer']['head_advertise_host']='192.0.2.1'
             plan={'dhdgs':c,'deployment':{'index_source':str(root/'index'),
                 'hosts':[{'id':0,'ssh':None,'root':str(root)},

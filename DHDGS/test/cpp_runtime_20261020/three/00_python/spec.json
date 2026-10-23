@@ -1,7 +1,0 @@
-{
-  "backend": "python",
-  "topology": "three",
-  "count": 10000,
-  "concurrency": 256,
-  "threads": 32
-}

@@ -34,7 +34,10 @@ public:
   std::shared_ptr<Ticket> register_value(dhwire::Value metadata,
                                        std::shared_ptr<dhsearch::Control> control);
   dhwire::Value snapshot(bool include_reports = false) const;
+  dhwire::Value network_metrics() const; // No retained branch scans.
   dhwire::Value take_updates();
+  // Exceptional report retries are drained by the runtime maintenance thread.
+  void poll_reports();
   void close();
 };
 void register_native_control(pybind11::module_&);

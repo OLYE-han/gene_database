@@ -32,6 +32,7 @@ class ManagedClusterTests(unittest.TestCase):
         c['storage']['io']['backend']='sync_pread'
         if getattr(self,'native_head',False):
             c['native_runtime'].update(head_enabled=True,data_enabled=True)
+            c['native_runtime']['result_sink']['enabled']=getattr(self,'disk_results',False)
         if hasattr(self,'capture_limit'):
             c['benchmark_results']['memory_limit_bytes']=self.capture_limit
         self.servers=[];self.threads=[]

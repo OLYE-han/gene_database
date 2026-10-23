@@ -34,6 +34,7 @@ class NativeRuntimeTests(unittest.TestCase):
 
     def config(self, native_data=True, native_head=False):
         c = copy.deepcopy(self.base)
+        c['native_runtime']['result_sink']['enabled'] = False
         c['native_runtime'].update(data_enabled=native_data, head_enabled=native_head,
                                   receive_threads=2, route_threads=2, merge_threads=2,
                                   queued_control_registration=True,move_head_reports=True)
@@ -104,15 +105,19 @@ class NativeRuntimeTests(unittest.TestCase):
     def test_early_parent_report_waits_for_missing_child_result(self):
         self._withheld_child('request')
 
+    def test_per_node_maintenance_missing_child_timeout(self):
+        self._withheld_child('reject', maintenance_mode='per_node')
+
     def test_late_child_rejection_cannot_produce_partial_success(self):
         self._withheld_child('reject')
 
-    def _withheld_child(self,hold):
+    def _withheld_child(self,hold,maintenance_mode='single'):
         import socketserver
         from dhdgs.cpp_runtime import NativePeer, NativeServer
         from dhdgs.index import Shard, shard_path
         from dhdgs.transport import receive, send
         c=self.config(True,True)
+        c['native_runtime']['head_maintenance_mode']=maintenance_mode
         c['native_runtime']['early_parent_report']=True
         if hold=='reject':c['peer']['query_timeout_seconds']=.5
         c['scheduler']['mode']='adaptive'
@@ -199,6 +204,89 @@ class NativeRuntimeTests(unittest.TestCase):
             for report in result['branch_reports']:
                 self.assertEqual(report['compute_thread_migrations'], 0)
 
+    def test_independent_entry_network_and_per_node_results(self):
+        c = self.config(True, True)
+        self.start(c)
+        baseline = Engine(c)
+        self.addCleanup(baseline.close)
+        expected = [baseline.search(self.x[i], i) for i in [0, 35, 70]]
+        baseline.close()
+        c['native_runtime']['head_maintenance_mode'] = 'per_node'
+        c['native_runtime']['network_module'].update(enabled=True,
+            send_min_reactors=1, send_max_reactors=1,
+            receive_min_reactors=2, receive_max_reactors=2,
+            handlers_per_receive_reactor=2)
+        c['native_runtime']['head_entry_network'] = dict(enabled=True,
+            send_min_reactors=3, send_max_reactors=3, connections_per_endpoint_per_reactor=4)
+        validate({k:v for k,v in c.items() if not k.startswith('_')})
+        engine = Engine(c)
+        self.addCleanup(engine.close)
+        futures = [engine.search_async(self.x[i], i) for i in [0, 35, 70]]
+        for actual, reference in zip([f.result(3) for f in futures], expected):
+            self.assertEqual(actual['ids'], reference['ids'])
+            self.assertEqual(actual['squared_distances'], reference['squared_distances'])
+        metrics = engine.runtime.metrics()
+        self.assertEqual(metrics['network_entry']['reactors'], 3)
+        self.assertEqual(metrics['network_lease']['reactors'], 1)
+        self.assertEqual(metrics['receiver']['workers']['workers'], 4)
+        self.assertEqual(metrics['maintenance_threads'], 3)
+        self.assertEqual([v['node_id'] for v in metrics['maintenance_lanes']], [0, 1, 2])
+        self.assertTrue(all(v['tracked_queries'] == 0 for v in metrics['maintenance_lanes']))
+
+    def test_per_node_renewal_timeout_and_retirement(self):
+        import socketserver
+        from dhdgs.transport import receive, send
+        c = self.config(False, True)
+        c['native_runtime']['head_maintenance_mode'] = 'per_node'
+        c['peer'].update(heartbeat_interval_ms=20, query_timeout_seconds=.35, retention_seconds=.05)
+        c['peer']['control']['initial_heartbeat_delay_ms'] = 0
+        seen = {i: [] for i in range(3)}
+        seen_lock = threading.Lock()
+        class Server(socketserver.ThreadingTCPServer):
+            allow_reuse_address = True
+            daemon_threads = True
+        def make_handler(sid):
+            class Handler(socketserver.BaseRequestHandler):
+                def handle(self):
+                    try:
+                        while True:
+                            req, _ = receive(self.request, 1 << 20)
+                            with seen_lock:
+                                seen[sid].append(req['op'])
+                            send(self.request, dict(ok=True, result=dict(accepted=True)), 1 << 20)
+                            if req['op'] == 'peer_submit':
+                                state = req['state']
+                                # Announce all data nodes without returning a result.
+                                # Their separate maintenance owners must all renew.
+                                msg = dict(query_request_id=state['query_request_id'], token=state['token'],
+                                           node_id=sid, involved_nodes=[0, 1, 2], reports=[])
+                                with socket.create_connection(tuple(state['head_endpoint']), 2) as sock:
+                                    send(sock, msg, 1 << 20)
+                                    receive(sock, 1 << 20)
+                    except (OSError, ValueError):
+                        pass
+            return Handler
+        for node in c['cluster']['nodes']:
+            server = Server((node['host'], node['port']), make_handler(node['id']))
+            thread = threading.Thread(target=server.serve_forever, kwargs={'poll_interval': .01})
+            thread.start()
+            self.addCleanup(thread.join, 3)
+            self.addCleanup(server.server_close)
+            self.addCleanup(server.shutdown)
+        engine = Engine(c)
+        self.addCleanup(engine.close)
+        with self.assertRaisesRegex(RuntimeError, 'deadline'):
+            engine.search_async(self.x[0], 0).result(3)
+        metrics = engine.runtime.metrics()
+        self.assertEqual(metrics['active'], 0)
+        self.assertTrue(all(v['lease_attempts'] > 0 for v in metrics['maintenance_lanes']))
+        with seen_lock:
+            self.assertTrue(all('peer_lease' in ops for ops in seen.values()))
+        until = time.monotonic()+2
+        while engine.runtime.metrics()['retained_identities'] and time.monotonic()<until:
+            time.sleep(.01)
+        self.assertEqual(engine.runtime.metrics()['retained_identities'], 0)
+
     def test_native_head_data_equivalence_and_gil_independence(self):
         c = self.config()
         self.start(c)
@@ -239,6 +327,14 @@ class NativeRuntimeTests(unittest.TestCase):
         # MessagePack native maps have string keys; JSON archives do too.
         import json
         self.assertEqual(json.loads(json.dumps(expected)), json.loads(json.dumps(actual['stats'])))
+        # Aggregation must label the configured internal transport, independent
+        # of the public API transport and without opening an RDMA connection.
+        import copy
+        rdma_config = copy.deepcopy(c)
+        rdma_config['native_runtime'].setdefault('network_module', {})['transport'] = 'rdma'
+        rdma_result = native().aggregate_native(rdma_config, reports, transfer, result['stats']['keepalive_nodes'])
+        self.assertEqual(rdma_result['stats']['transport'], 'rdma')
+        self.assertEqual(rdma_result['ids'], actual['ids'])
 
     def test_native_head_legacy_data(self):
         c = self.config(False, True)

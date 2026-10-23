@@ -1,288 +1,383 @@
-# 唯一运行配置。相对路径均相对于本 YAML 所在目录，而非当前工作目录。
-# 当前默认是端到端 pilot；提高 row_limit 前检查 build.memory_limit_bytes。
-version: 1
-seed: 42
+# 默认：Intel-35 顶层，Intel-31/32/30 数据节点；原生 RDMA 已验收方案。
+# 使用 tools/rdma_default.py 启动以加载固定运行库和 NUMA/分配器设置。
+# 本机无 RDMA 的小规模功能验证使用 dhdgs_pilot.yaml。
+assignment:
+  model: /sharenvme/usershome/xulihan/gene_database/DHDGS/artifacts/yaml_run/partition/seed_42/model_l2.npz
+  threshold: /sharenvme/usershome/xulihan/gene_database/DHDGS/artifacts/yaml_run/partition/seed_42/threshold_l2_margin_0.1.json
 benchmark_results:
-  memory_limit_bytes: 4294967296 # 原生结果保守计费+编码缓冲的上限；不等于整个服务RSS
-  json_shard_bytes: 67108864    # 独立处理程序生成的JSON分片目标大小；单条超大记录单独成片
+  json_shard_bytes: 67108864
+  memory_limit_bytes: 34359738368
   processor_timeout_seconds: 1800
-runtime:
-  blas_threads: 1
-  python_switch_interval_ms: 5.0 # 进程级Python线程切换间隔；同进程所有Engine必须配置一致
-native_runtime:
-  data_enabled: false       # 原生接纳/计算/子分支派发；保留旧实现作对照
-  head_enabled: false       # 原生入口、心跳/结果验证与合并
-  receive_threads: 4
-  receive_queue_capacity: 4096
-  max_connections: 4096
-  compute_queue_capacity: 4096
-  network_queue_capacity: 4096
-  connections_per_endpoint: 128 # 入口/邻居派发的每目标连接上限；按需建立
-  route_threads: 16
-  merge_threads: 4
-  early_parent_report: true # 本地完成即发布；顶层依据子分支清单等待其余报告
-  queued_control_registration: true # 接纳只预留身份并排队注册；对照结果见DESIGN第33节
-  move_head_reports: true # 顶层收报告及最终合并时转移所有权，避免重复深拷贝
-  network_module:
-    enabled: false
-    send_min_reactors: 1
-    send_max_reactors: 4
-    receive_min_reactors: 1
-    receive_max_reactors: 4
-    handlers_per_receive_reactor: 4
-    connections_per_endpoint_per_reactor: 128 # 容量实验值；再增至256未改善p99
-    send_queue_capacity: 4096 # 每个逻辑发送通道总上限，同时受原协议通道上限限制
-    receive_queue_capacity_per_reactor: 4096
-    max_receive_connections: 4096 # 同一监听端口所有reactor共享总上限
-    send_pending_high: 8
-    receive_queue_high: 4
-    high_samples: 2
-    sample_interval_ms: 20
-    cooldown_ms: 100
-    idle_ms: 1000
-  adaptive_control:
-    enabled: false # 数据节点完成控制+结果网络单元；实验验证后再决定默认启用
-    min_lanes: 1
-    max_lanes: 8
-    command_queue_high: 4
-    network_pending_high: 4
-    high_samples: 2
-    sample_interval_ms: 20
-    cooldown_ms: 100
-    idle_ms: 1000 # 保留状态到期且空闲后才回收线程
-metrics:
-  detailed_trace: true
-  trace_query_ids: []          # 指定需要逐批次/逐读轨迹的 uint64 查询 ID
-  lifecycle_trace: false      # 所有查询仅记录分支/线程/控制消息关键时间戳
-  gc_trace: false             # 进程级 Python GC 回调诊断，不改变 GC 策略
-  resource_sample_interval_ms: 100
-  resource_max_samples: 1024
-paths:
-  dataset: ../../Data/seq_2M
-  output: ../artifacts/yaml_run
-data:
-  metric: l2                 # l2 | cosine；实验默认值，不代表距离语义已定案
-  dimension: 2560
-  row_limit: 4096            # 0 表示全库；pilot 从全库均匀抽样，不取前缀
-  block_rows: 1024
-  inspection_rows: 128
-partition:
-  method: margin            # margin | boundary | relative_gap
-  overlap_fraction: 0.1
-  max_copies: 3
-  train_rows: 1024
-  calibration_rows: 1024
-  kmeans_iterations: 100
-  kmeans_tolerance: 0.000001
 build:
-  memory_limit_bytes: 2147483648   # 保守的向量/编码/图构建预估上限
-  degree: 24
-  candidate_list_size: 64
-  prune_alphas: [1.0, 1.2]
+  candidate_list_size: 96
+  degree: 32
+  memory_limit_bytes: 549755813888
+  prune_alphas:
+  - 1.0
+  - 1.2
+cluster:
+  nodes:
+  - host: 192.168.33.31
+    id: 0
+    index_directory: /mnt/nvme0/home/xulh/dhdgs_rdma_20261023/shard_0
+    port: 29751
+  - host: 192.168.33.32
+    id: 1
+    index_directory: /sharenvme/userhome/xulihan/dhdgs_deploy/seq2m_full_20261017/index/shard_1
+    port: 29752
+  - host: 192.168.33.30
+    id: 2
+    index_directory: /sharenvme/xulihan_dhdgs/seq2m_full_20261017/index/shard_2
+    port: 29753
+data:
+  block_rows: 4096
+  dimension: 2560
+  inspection_rows: 128
+  metric: l2
+  row_limit: 0
+experiment:
+  benchmark_concurrency: 1024
+  benchmark_queries: 2000
+  benchmark_repetitions: 1
+  calibration_rows: 2048
+  evaluation_rows: 4096
+  exact_block_rows: 8192
+  metrics:
+  - l2
+  - cosine
+  overlap_fractions:
+  - 0.0
+  - 0.05
+  - 0.1
+  - 0.2
+  - 0.3
+  seeds:
+  - 42
+  - 43
+  - 44
+  target_recall: 0.95
+  train_rows: 2048
+  warmup_queries: 2
+metrics:
+  detailed_trace: false
+  gc_trace: true
+  lifecycle_trace: true
+  resource_max_samples: 1024
+  resource_sample_interval_ms: 100
+  trace_query_ids:
+  - 734744
+native_runtime:
+  adaptive_control:
+    command_queue_high: 4
+    cooldown_ms: 100
+    enabled: false
+    high_samples: 2
+    idle_ms: 1000
+    max_lanes: 8
+    min_lanes: 1
+    network_pending_high: 4
+    sample_interval_ms: 20
+  compute_cpu_ids:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 7
+  - 8
+  - 9
+  - 10
+  - 11
+  - 12
+  - 13
+  - 14
+  - 15
+  - 16
+  - 17
+  - 18
+  - 19
+  - 20
+  - 21
+  - 22
+  - 23
+  - 24
+  - 25
+  - 26
+  - 27
+  - 28
+  - 29
+  - 30
+  - 31
+  compute_queue_capacity: 4096
+  connections_per_endpoint: 128
+  data_enabled: true
+  early_parent_report: true
+  head_enabled: true
+  head_entry_network:
+    connections_per_endpoint_per_reactor: 16
+    enabled: true
+    send_max_reactors: 32
+    send_min_reactors: 8
+  head_maintenance_mode: per_node
+  max_connections: 4096
+  merge_threads: 8
+  move_head_reports: true
+  network_module:
+    async_connect: true
+    async_connect_progress: true
+    connections_per_endpoint_per_reactor: 128
+    cooldown_ms: 100
+    cpu_ids:
+    - 32
+    - 33
+    - 34
+    - 35
+    - 36
+    - 37
+    - 38
+    - 39
+    - 40
+    - 41
+    - 42
+    - 43
+    - 44
+    - 45
+    - 46
+    - 47
+    - 48
+    - 49
+    - 50
+    - 51
+    - 52
+    - 53
+    - 54
+    - 55
+    - 56
+    - 57
+    - 58
+    - 59
+    - 60
+    - 61
+    - 62
+    - 63
+    enabled: true
+    handlers_per_receive_reactor: 2
+    high_samples: 4
+    idle_ms: 1500
+    max_connecting_per_reactor: 2
+    max_receive_connections: 16384
+    min_connections_per_endpoint_per_reactor: 8
+    rdma_poll_interval_us: 50
+    rebalance_batch: 8
+    rebalance_connections: true
+    rebalance_interval_ms: 20
+    receive_max_reactors: 32
+    receive_min_reactors: 8
+    receive_queue_capacity_per_reactor: 1024
+    receive_queue_high: 16
+    sample_interval_ms: 10
+    send_max_reactors: 32
+    send_min_reactors: 4
+    send_pending_high: 32
+    send_pressure_mode: queued
+    send_queue_capacity: 4096
+    transport: rdma
+  network_queue_capacity: 4096
+  queued_control_registration: true
+  receive_queue_capacity: 4096
+  receive_threads: 4
+  report_capacity_retry_ms: 5
+  report_network:
+    connections_per_endpoint_per_reactor: 128
+    enabled: true
+  result_sink:
+    batch_bytes: 4194304
+    batch_records: 32
+    completion: write
+    enabled: true
+    max_retained_bytes: 68719476736
+    writers: 4
+  route_threads: 32
+  search_thread_reports: true
+network:
+  batch_size: 8
+  listen_backlog: 4096
+  max_message_bytes: 134217728
+  max_retries: 1
+  timeout_seconds: 120.0
+  transport: tcp
+partition:
+  calibration_rows: 16384
+  kmeans_iterations: 100
+  kmeans_tolerance: 1.0e-06
+  max_copies: 3
+  method: margin
+  overlap_fraction: 0.1
+  train_rows: 16384
+paths:
+  dataset: /sharenvme/usershome/xulihan/gene_database/Data/seq_2M
+  output: /sharenvme/usershome/xulihan/gene_database/DHDGS/artifacts/seq2m_runtime/build
+peer:
+  adaptive_services:
+    admission: true
+    admission_max: 8
+    admission_min: 1
+    connections: false
+    connections_max: 8
+    connections_min: 2
+    cooldown_ms: 100
+    downscale_idle_ms: 1000
+    enabled: false
+    ewma_weight: 0.2
+    growth_step: 1
+    head_connections: false
+    head_dispatch: false
+    head_dispatch_max: 8
+    head_dispatch_min: 2
+    history_size: 512
+    mirror_outside_lock: false
+    sample_interval_ms: 50
+    start_without_state_lock: false
+    submit_without_state_lock: false
+    target_utilization: 0.8
+    target_wait_ms: 2
+    transfer: false
+    transfer_max: 16
+    transfer_min: 2
+  admission:
+    dispatch_threads: 1
+    mode: buffered
+    queue_capacity: 2048
+    queue_lock: shared
+  child_budget_fraction: 0.5
+  communication:
+    connections_per_endpoint: 128
+    control_workers: 16
+    max_connection_endpoints: 64
+    max_pending_control: 1024
+    mode: optimized
+    reuse_connections: true
+    transfer_workers: 16
+  compute:
+    mode: fixed
+    queue_capacity: 2048
+  connection_pool:
+    head_scheduling: fifo
+    probe_mode: reserved
+  control:
+    completion_fast_path: false
+    initial_heartbeat_delay_ms: 1000
+    max_events_per_turn: 0
+    scheduler: native
+  control_timeout_seconds: 5.0
+  execution_model: native
+  handoff_timeout_seconds: 30.0
+  head_advertise_host: 192.168.33.35
+  head_bind_host: 192.168.33.35
+  head_direct:
+    ack_timeout_ms: 1000
+    completion_dispatch: queued
+    completion_threads: 2
+    confirmation_threads: 2
+    distribution_threads: 16
+    enabled: false
+    queued_reports: true
+    report_backend: process
+    report_connections_per_channel: 64
+    report_queue_capacity: 64
+    report_registration: shared
+    result_backend: process
+    result_channels: 4
+    result_processes: 16
+    result_queue_capacity: 2048
+    results_directory: /sharenvme/usershome/xulihan/gene_database/DHDGS/artifacts/rdma_default/head_direct
+    save_results: false
+    startup_timeout_seconds: 60.0
+    submit_retries: 1
+  head_entry_workers: 4
+  head_lanes:
+    callback_connections: 128
+    dispatch_threads: 4
+    enabled: false
+    processes: 4
+    results_directory: /sharenvme/usershome/xulihan/gene_database/DHDGS/artifacts/rdma_default/head_lanes
+    route_threads: 1
+    save_results: false
+    startup_timeout_seconds: 180.0
+  head_port: 29810
+  head_query_workers: 0
+  head_receiver_ipc: split
+  head_receiver_processes: 0
+  heartbeat_interval_ms: 1000
+  lease_timeout_ms: 30000
+  locking:
+    native_register_release_gil: false
+    split_native_registration: false
+  max_active_queries: 4096
+  max_branches: 16
+  max_tombstones: 262144
+  query_timeout_seconds: 120.0
+  retention_seconds: 600
+  sender:
+    mode: queued
+    transfer_queue_capacity: 2048
+  worker_threads: 64
 quantization:
-  bits: 1                   # RaBitQ 总位数，1..9，包括 sign bit
-storage:
-  page_bytes: 4096
-  cache_bytes_per_shard: 0  # 默认不启用共享 LRU，读取不获取缓存锁；不代表禁用 OS page cache
-  io:
-    backend: sync_pread       # native: sync_pread | io_uring | thread_pool；聚合异步后端需 TCP 数据服务
-    fallback_backend: error   # error | thread_pool；启动失败不能静默回退
-    worker_threads: 4         # thread_pool 后端的 I/O 线程，不是计算线程
-    max_submit_requests: 8
-    max_inflight_per_query: 4
-    max_inflight_per_device: 32 # 每进程配额；共用SSD时应手工分配总额度，启动器报告合计
-    max_inflight_bytes_per_device: 4194304
-    buffer_pool_bytes_per_device: 16777216 # 整轮预留，包含原生到Python复制的双份空间
-    max_pending_batches: 128
-    max_completion_events_per_poll: 64
-    completion_poll_ms: 1
+  bits: 1
+query:
+  ids: /sharenvme/usershome/xulihan/gene_database/Data/seq_2M/seq_2M/queries200K/query_ids.npy
+  row: 8192
+  vectors: /sharenvme/usershome/xulihan/gene_database/Data/seq_2M/seq_2M/queries200K/queries.npy
 routing:
-  sample_ratio: 0.05
-  min_samples: 64
-  max_samples: 20000
-  hnsw_m: 16
   ef_construction: 100
   ef_search: 64
   entry_candidates: 16
-search:
-  execution: peer           # peer 默认数据节点自主执行；reference 仅保留为实验对照
-  top_k: 10
-  frontier_size: 64
-  max_expansions: 192         # 2M 完整索引的 95% 目标校准值；128 在本轮校准中为94.92%
-  local_beam: 4
-  max_inflight: 3
-  exclude_self: true
-  fallback_enabled: true
-  max_fallback_entries: 2
-  stagnation_batches: 8
-peer:
-  control:
-    scheduler: event         # scan/event: Python对照；native: C++完成/结果回传（native搜索+TCP+sync_pread）
-    max_events_per_turn: 0   # event每轮分别限制完成/dirty/timer事件；0为无界，本轮保留
-    completion_fast_path: false # event无远端派发时try-lock发布；锁忙立即退回完成队列
-    initial_heartbeat_delay_ms: 0 # optimized模式；不超过heartbeat_interval_ms，仅延后无状态变化的首个心跳
-  connection_pool:
-    data_scheduling: broadcast
-    probe_mode: reserved     # locked: 历史对照；reserved: 预约借用名额后在锁外探测/关闭连接
-    head_scheduling: fifo    # 顶层入口按目标FIFO预约/定向唤醒；broadcast保留旧实验行为
-  compute:
-    mode: executor           # executor | prestarted | fixed；固定队列目前仅支持native
-    queue_capacity: 128      # fixed模式等待队列上限；运行中任务不占此容量
-  sender:
-    mode: queued             # queued: 预启动发送线程；executor: 历史对照
-    transfer_queue_capacity: 128 # 等待派发的任务上限，不含正在发送的任务
-  locking:
-    split_native_registration: false  # 身份/容量预留后，在runtime状态锁外注册native分支
-    native_register_release_gil: false # 原生注册等mutex/DNS时释放GIL；用于独立对照
-  adaptive_services:
-    enabled: false
-    mirror_outside_lock: false
-    submit_without_state_lock: false
-    start_without_state_lock: false
-    connections: false
-    head_connections: false
-    connections_min: 2
-    connections_max: 8
-    admission: true
-    head_dispatch: false
-    transfer: false
-    admission_min: 1
-    admission_max: 8
-    head_dispatch_min: 2
-    head_dispatch_max: 8
-    transfer_min: 2
-    transfer_max: 16
-    sample_interval_ms: 50
-    target_wait_ms: 2
-    cooldown_ms: 100
-    downscale_idle_ms: 1000
-    growth_step: 1
-    target_utilization: 0.8
-    ewma_weight: 0.2
-    history_size: 512
-  admission:
-    mode: buffered            # 接纳成功入队即确认；direct 保留同步提交对照
-    queue_lock: shared        # shared: 历史对照；independent: 队列独立短锁
-    dispatch_threads: 1       # 接纳队列消费者；只提交分支，不参与查询距离计算
-    queue_capacity: 128        # 已接纳但尚未开始计算，含已交给计算线程池的任务
-  communication:
-    mode: optimized           # legacy 保留旧通信行为，用于对照实验
-    transfer_workers: 16      # 仅发送扩展函数批准的远端分支
-    control_workers: 16       # 心跳/结果的有界并发发送
-    max_pending_control: 1024 # 排队和在途控制任务总上限，避免先被旧64请求上限限制
-    reuse_connections: true
-    connections_per_endpoint: 128 # 控制/结果通道每目标连接上限；按需建立
-    max_connection_endpoints: 64
-  execution_model: native    # native: C++循环、每分支固定计算线程；blocking/resumable 为 Python 对照
-  max_branches: 16          # 上限；每节点至多启动一次，实际还受服务器数量限制
-  child_budget_fraction: 0.5
-  worker_threads: 8          # 每查询分支固定一个线程；不同查询并行，非单查询内并行
-  max_active_queries: 128
-  heartbeat_interval_ms: 250
-  lease_timeout_ms: 5000
-  query_timeout_seconds: 30.0
-  control_timeout_seconds: 1.0
-  handoff_timeout_seconds: 5.0
-  retention_seconds: 60.0
-  max_tombstones: 4096
-  head_bind_host: 127.0.0.1
-  head_advertise_host: 127.0.0.1
-  head_port: 0               # 0 由 OS 分配回调端口；多机时 advertise_host 必须可达
-  head_receiver_processes: 0 # 0=原进程接收；1..32=独立报告接收进程，固定端口时使用 head_port+i
-  head_receiver_ipc: shared  # shared=旧通道；split=注册/派发确认与终态报告分离
-  head_query_workers: 0      # 0=旧同步入口；>0=事件续执行线程数，要求接收进程>0且IPC=split
-  head_pipeline:
-    enabled: false           # 单进程流水线；启用时receiver_processes/query_workers均设为0
-    receive_min: 1
-    receive_max: 4
-    receive_backlog: 8       # 接纳或路由队列每积压此数量增加一个接收线程
-    receive_idle_ms: 100     # 无明显积压持续此时间后缩减
-    route_workers: 16
-    merge_workers: 1
-    dispatch_workers: 4
-    callback_connections: 128
-    ack_inline: true         # 收到完整报告立即尝试非阻塞ACK，余量再等待可写事件
-  head_entry_workers: 4      # 每个接收进程的初始派发线程数；不参与数据节点候选扩展
-  head_lanes:
-    enabled: false
-    processes: 4
-    route_threads: 1
-    dispatch_threads: 4
-    callback_connections: 128
-    startup_timeout_seconds: 180.0
-    save_results: true
-    results_directory: test/control_capacity_20261020/results
-  head_direct:
-    result_backend: process  # inline removes result IPC; requires process report receivers
-    enabled: false
-    distribution_threads: 16
-    confirmation_threads: 2
-    result_processes: 16
-    ack_timeout_ms: 1000
-    submit_retries: 1        # 相同request/branch身份重传，不产生新搜索分支
-    result_queue_capacity: 2048
-    startup_timeout_seconds: 60.0
-    save_results: true
-    results_directory: test/direct_distribution_20261020/results
-    queued_reports: false   # opt-in until three-host channel comparison completes
-    report_backend: thread # thread | process (independent receiver GILs)
-    report_registration: ipc # ipc | shared (process backend identity publication)
-    completion_dispatch: queued # inline lets terminal pipe consumer submit merge directly
-    result_channels: 8      # ports head_port + confirmation_threads + channel
-    report_queue_capacity: 64  # bounded inbox per channel, TCP backpressure when full
-    report_connections_per_channel: 64
-    completion_threads: 2   # registry completion/continuations, never socket loops
+  hnsw_m: 16
+  max_samples: 20000
+  min_samples: 64
+  sample_ratio: 0.05
+runtime:
+  blas_threads: 1
+  python_switch_interval_ms: 0.1
 scheduler:
-  mode: adaptive            # adaptive | reference | local_first
-  kappa: 1.0
-  exploration: 0.02
-  max_wait_ms: 1.0          # 仅在本节点首次派发前生效；派发后只搜索本地
-  local_batch_ms: 0.15       # 冷启动估值；运行时由测量更新
-  remote_rtt_ms: 0.5
   bandwidth_bytes_per_ms: 100000.0
   ewma_weight: 0.2
-  remote_selection: probabilistic # probabilistic | threshold
-  remote_weight: 1.0        # 0 禁用非强制远端分支；越大越偏向跨机
+  exploration: 0.02
+  kappa: 1.0
+  local_batch_ms: 0.15
+  max_wait_ms: 1.0
+  mode: adaptive
   probability_temperature: 1.0
-network:
-  rpc_tcp_nodelay: false
-  listen_backlog: 128       # 数据服务和入口回调的待接收 TCP 连接队列
-  transport: local          # local | tcp；local 仍从各分片文件 pread，非网络性能测试
-  batch_size: 8
-  timeout_seconds: 30.0
-  max_message_bytes: 8388608
-  max_retries: 1
-cluster:
-  nodes:                    # 长期为本机、intel-32、intel-30；当前回环端口用于进程联调
-    - id: 0
-      host: 127.0.0.1
-      port: 19101
-      index_directory: null # null => output/index/shard_<id>
-    - id: 1
-      host: 127.0.0.1
-      port: 19102
-      index_directory: null
-    - id: 2
-      host: 127.0.0.1
-      port: 19103
-      index_directory: null
-query:
-  vectors: ../../Data/seq_2M/seq_2M/queries200K/queries.npy
-  ids: ../../Data/seq_2M/seq_2M/queries200K/query_ids.npy
-  row: 0
-assignment:
-  model: ../artifacts/yaml_run/partition/seed_42/model_l2.npz
-  threshold: ../artifacts/yaml_run/partition/seed_42/threshold_l2_margin_0.1.json
-experiment:
-  metrics: [l2, cosine]
-  overlap_fractions: [0.0, 0.05, 0.1, 0.2, 0.3]
-  seeds: [42, 43, 44]
-  train_rows: 2048
-  calibration_rows: 2048
-  evaluation_rows: 4096
-  benchmark_queries: 16
-  benchmark_concurrency: 1
-  benchmark_repetitions: 1
-  warmup_queries: 0
-  exact_block_rows: 1024
-  target_recall: 0.95
+  remote_rtt_ms: 0.5
+  remote_selection: probabilistic
+  remote_weight: 1.0
+search:
+  exclude_self: true
+  execution: peer
+  fallback_enabled: true
+  frontier_size: 64
+  local_beam: 4
+  max_expansions: 200
+  max_fallback_entries: 2
+  max_inflight: 3
+  stagnation_batches: 8
+  top_k: 10
+seed: 42
+storage:
+  cache_bytes_per_shard: 0
+  io:
+    backend: sync_pread
+    buffer_pool_bytes_per_device: 4194304
+    completion_poll_ms: 1
+    fallback_backend: error
+    max_completion_events_per_poll: 64
+    max_inflight_bytes_per_device: 98304
+    max_inflight_per_device: 8
+    max_inflight_per_query: 4
+    max_pending_batches: 128
+    max_submit_requests: 8
+    worker_threads: 2
+  page_bytes: 4096
+version: 1

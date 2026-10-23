@@ -18,7 +18,8 @@ from .peer import execution_signature
 
 
 class NativeEngine:
-    def __init__(self, c):
+    def __init__(self, c, *, external_completion=False):
+        self.external_completion = external_completion
         from .runtime import apply_process_runtime
         self.runtime_settings = apply_process_runtime(c)
         self.c = c
@@ -57,6 +58,10 @@ class NativeEngine:
         self.runtime = native().NativeHead(self.c, self.manifest, execution_signature(self.c), self.router,
             self.quantizer, self.route_bank, self.ids, self.membership)
         self.stopping = threading.Event()
+        self.disk_mode = self.c.get('native_runtime', {}).get('result_sink', {}).get('enabled', False)
+        self.consumer = None
+        if self.disk_mode or self.external_completion:
+            return
         self.consumer = threading.Thread(target=self._consume, name='dhdgs-final-api', daemon=True)
         self.consumer.start()
 
@@ -94,6 +99,10 @@ class NativeEngine:
                     return
 
     def search_async(self, vector, query_id=None, *, capture=False):
+        if self.disk_mode:
+            raise RuntimeError('SSD result mode uses run_to_disk; process files after the experiment')
+        if self.external_completion:
+            raise RuntimeError('Use the network search API in external completion mode')
         offered = time.monotonic_ns()
         if query_id is not None and (type(query_id) is not int or not 0 <= query_id < 2**64):
             raise ValueError('query_id must be uint64 or null')
@@ -114,10 +123,28 @@ class NativeEngine:
     def search(self, vector, query_id=None):
         return self.search_async(vector, query_id).result()
 
+    def run_to_disk(self, vectors, ids, directory, concurrency):
+        if not self.disk_mode or self.closed:
+            raise RuntimeError('Native SSD result mode is not active')
+        # Arrays remain alive throughout the native call, which releases the GIL.
+        x = np.ascontiguousarray(vectors, dtype=np.float64)
+        qids = np.ascontiguousarray(ids, dtype=np.uint64)
+        with self.lock:
+            if self.pending:
+                raise RuntimeError('Queries already active')
+            self.pending['disk_run'] = None
+        try:
+            return self.runtime.run_to_disk(x, qids, concurrency, str(directory),
+                                           self.c['native_runtime']['result_sink'])
+        finally:
+            with self.lock:
+                self.pending.pop('disk_run')
+
     def _stop(self):
         self.stopping.set()
         self.runtime.close()
-        self.consumer.join()
+        if self.consumer is not None:
+            self.consumer.join()
 
     def apply_configuration(self, c, router=None):
         with self.lock:

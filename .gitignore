@@ -77,3 +77,8 @@ __pycache__/
 /Reference_Code/DiskANN/test_data/yfcc/yfcc_runbook_gt/step4.gt10
 /Reference_Code/DiskANN/test_data/yfcc/yfcc_runbook_gt/step6.gt10
 /Reference_Code/DiskANN/test_data/yfcc/yfcc_runbook_gt/step8.gt10
+
+# Local experiment data and generated outputs; retain the workflow documentation.
+/DHDGS/test/*
+!/DHDGS/test/README.md
+!/DHDGS/test/EXPERIMENT_WORKFLOW.md

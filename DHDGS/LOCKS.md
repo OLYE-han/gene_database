@@ -291,8 +291,18 @@ memfd暂存采用单写者；兼容同步查询线程时，用独立的`result_l
 
 保留同一分支一次一条在途控制消息的限制，因此一个已经在途的心跳仍可能推迟结果发送；本轮没有将这种等待误称为已消除。控制命令排队、网络发送容量、OS调度及顶层状态锁也仍需观测。三机实测父分支完成处理至报告就绪p99从83–102ms降至约0.024–0.027ms，但整体p99没有改善，详见DESIGN.md第29节及[test/early_parent_report_20261021](test/early_parent_report_20261021/REPORT.md)。
 
-## 11. 原生控制注册的短临界区与队列提交（2026-10-22）
+## 16. 原生控制注册的短临界区与队列提交（2026-10-22）
 
 `native_runtime.queued_control_registration` 启用时，C++接纳不再持有runtime状态锁同步等待controller状态锁。新增每个controller lane的 `registration_mu` 只保护身份预留与endpoint弱引用缓存，不在该锁内等待队列/状态锁或DNS。注册命令先入FIFO，Ticket的后续命令才允许发布，避免分支先完成后注册。到期时控制线程删除身份预留；快照可能暂时不包含尚未消费的注册命令，需要结合 `native_register_enqueued_ns/consumed_ns` 判断控制排队。
 
 原同步路径保留作A/B对照；搜索循环没有新增串行锁。协议、重试、取消、关闭和重复身份并发测试覆盖新路径。实验与结果见 `test/control_registration_20261022/REPORT.md`。
+
+## 17. 连接预热与线程放置补充（2026-10-23）
+
+`native_wire.cpp`的有界建连池复用`native_pool.hpp`任务队列：提交/取出任务和状态计数时持锁，socket创建、connect及可选CM事件推进在锁外运行。未发布的连接由建连任务独占，使用release/acquire完成标志交给I/O reactor；不会让搜索工作线程持锁等待握手。收发仍归唯一reactor，连接迁移只发生在完整帧边界。
+
+`native_network.cpp`中的连接均衡与缩容状态受模块mutex保护；迁移请求交由原reactor执行。draining连接优先迁出，避免连接数接近时缩容永远停留在标记状态。不同网络handler在配置的CPU集合内调度，不把多个单handler池强制放到同一CPU。
+
+独立压测模块新增最终文件同步屏障，只让消费线程在全部网络生产者完成后执行`fdatasync`。条件变量等待释放其mutex；服务端查询、路由、网络收发不使用这把锁。每lane结果队列仍有独立短锁和硬内存/条数上限，超过容量明确使测试失败。
+
+这些变更没有删除协议去重、查询终止、预算和任务队列所需的同步，也没有给RaBitQ距离计算或只读图遍历新增全局锁。源码、负结果及回归见[本轮报告](test/network_parallel_20261023/REPORT.md)。

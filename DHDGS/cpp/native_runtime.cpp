@@ -128,11 +128,13 @@ struct DataRuntime::Impl {
     controller = std::make_unique<dhcontrol::Controller>(config);
     client = std::make_unique<dhnet::Client>(wc,config);
     workers = std::make_unique<Pool>(get<size_t>(p, "worker_threads"),
-                                     get<size_t>(nc, "compute_queue_capacity"));
+                                     get<size_t>(nc, "compute_queue_capacity"),
+                                     optional<std::vector<int>>(nc,"compute_cpu_ids",{}));
     maintenance = std::thread([this] { maintain(); });
   }
   ~Impl() { close(); }
   void update() {
+    controller->poll_reports();
     auto updates = controller->take_updates();
     std::vector<std::shared_ptr<Record>> retired;
     {
@@ -369,6 +371,7 @@ struct DataRuntime::Impl {
     }
   }
   V spawn(std::shared_ptr<Record> r, V payload) {
+    const auto decision_at = stamp();
     auto used = get<size_t>(payload, "draws_used");
     payload.map().erase("draws_used");
     V child = r->state;
@@ -377,6 +380,7 @@ struct DataRuntime::Impl {
     auto &m = child.map();
     m["branch_id"] = identifier();
     m["parent_branch_id"] = at(r->state, "branch_id");
+    r->mark("child_dispatch_ns:" + get<std::string>(child, "branch_id"), decision_at);
     std::get<A>(m["visited_nodes"].data).push_back(m["target_node"]);
     std::get<A>(m["ancestry"].data)
         .push_back(M{{"branch_id", at(r->state, "branch_id")},
@@ -401,6 +405,7 @@ struct DataRuntime::Impl {
     r->ticket->child(desc);
     r->mark("transfer_worker_enter_ns", stamp());
     transfer(t);
+    r->mark("child_submit_done_ns:" + get<std::string>(desc, "branch_id"), stamp());
     return desc;
   }
   void run(std::shared_ptr<Record> r) {
@@ -562,5 +567,7 @@ dhwire::Reply DataRuntime::handle(V r, uint64_t ns, size_t bytes) {
   return impl_->handle(std::move(r), ns, bytes);
 }
 V DataRuntime::metrics() const { return impl_->metrics(); }
+V DataRuntime::network_metrics() const {return M{{"compute_queue",impl_->workers->metrics()},
+  {"network_send",impl_->client->metrics()},{"report_control",impl_->controller->network_metrics()}};}
 void DataRuntime::close() { impl_->close(); }
 } // namespace dhruntime

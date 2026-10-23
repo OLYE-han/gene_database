@@ -1,0 +1,32 @@
+api:
+  host: 127.0.0.1
+  port: 29910
+  handlers: 2
+  queue_capacity: 1024
+  max_connections: 4096
+  max_message_bytes: 1048576
+  reactors: 8
+client:
+  host: 127.0.0.1
+  port: 29910
+  lanes: 16
+  connections: 4096
+  timeout_ms: 180000
+  max_message_bytes: 1048576
+  consumer_queue_records: 256
+  consumer_queue_bytes: 67108864
+experiment:
+  queries: 200000
+  warmup: 2000
+  concurrency:
+  - 1024
+  search_threads: 64
+  search_budget: 200
+  route_threads: 32
+  merge_threads: 8
+  data_ports:
+  - 29751
+  - 29752
+  - 29753
+  report_port: 29810
+  scratch: /sharenvme/usershome/xulihan/gene_database/DHDGS/artifacts/rdma_default/runs

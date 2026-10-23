@@ -241,7 +241,7 @@ class PoolReservationTests(unittest.TestCase):
 
     def test_config_modes_and_archived_migration(self):
         from dhdgs.config import load_config
-        source = Path(__file__).resolve().parents[1] / 'configs/dhdgs.yaml'
+        source = Path(__file__).resolve().parents[1] / 'configs/dhdgs_pilot.yaml'
         raw = yaml.safe_load(source.read_text())
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / 'config.yaml'
@@ -258,7 +258,7 @@ class PoolReservationTests(unittest.TestCase):
 
     def test_partial_or_invalid_pool_configuration_rejected(self):
         from dhdgs.config import load_config
-        source = Path(__file__).resolve().parents[1] / 'configs/dhdgs.yaml'
+        source = Path(__file__).resolve().parents[1] / 'configs/dhdgs_pilot.yaml'
         raw = yaml.safe_load(source.read_text())
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / 'config.yaml'

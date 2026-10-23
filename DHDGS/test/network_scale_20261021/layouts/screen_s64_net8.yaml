@@ -1,9 +1,0 @@
-search: 64
-route: 16
-merge: 4
-data_tx: 8
-data_rx: 8
-data_handlers_per_rx: 4
-head_tx: 8
-head_rx: 8
-head_handlers_per_rx: 4

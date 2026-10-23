@@ -1,4 +1,6 @@
 #include "native_wire.hpp"
+#include "native_affinity.hpp"
+#include "native_pool.hpp"
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <algorithm>
@@ -106,80 +108,157 @@ Endpoint::Endpoint(const std::string& host,uint16_t port) {
 }
 struct Client::Impl {
   struct Job { Endpoint endpoint;std::vector<uint8_t> frame;Callback callback;Result result;uint64_t deadline;std::vector<uint8_t> request_id; };
-  struct Conn { int fd=-1;std::string endpoint;bool connecting=false;std::unique_ptr<Job> job;size_t sent=0;std::vector<uint8_t> received;size_t expected=0; };
-  Config config; mutable std::mutex mutex;std::deque<std::unique_ptr<Job>> incoming;std::atomic<size_t> count{0};bool stopping=false;int wake=-1;std::thread thread;std::thread::id reactor_id;std::mutex close_mutex;
-  std::vector<Conn> conns;std::deque<std::unique_ptr<Job>> waiting;std::vector<std::pair<Callback,Result>> callbacks;struct EndpointInfo { Endpoint endpoint;size_t pending=0;uint64_t last_used=0; };
-  std::map<std::string,EndpointInfo> endpoints;
-  std::vector<std::string> evicted_endpoints;
-  explicit Impl(Config c):config(c) {
-    if(!c.max_pending || !c.max_connections_per_endpoint || !c.max_endpoints || !c.max_message_bytes || c.max_message_bytes>UINT32_MAX || !c.timeout_ms || c.timeout_ms>UINT64_MAX/1000000)throw std::invalid_argument("Invalid native RPC limits");
+  struct Opening {
+    Transport io;std::atomic<bool> done{false};int fd=-1,error=0;bool immediate=false;uint64_t call_ns=0;
+    explicit Opening(Transport t):io(t){}
+    ~Opening(){if(fd>=0)io.close(fd);}
+  };
+  struct Conn { std::shared_ptr<Opening> opening;bool discarded=false;Endpoint endpoint;int fd=-1;bool connecting=false;uint64_t connect_started=0,connect_deadline=0,retry_after=0,idle_since=0;std::unique_ptr<Job> job;size_t sent=0;std::vector<uint8_t> received;size_t expected=0;explicit Conn(const Endpoint& e):endpoint(e){} };
+  Config config;Transport io;mutable std::mutex mutex;std::deque<std::unique_ptr<Job>> incoming;std::deque<Endpoint> preparing;std::map<std::string,Endpoint> targets;
+  std::atomic<size_t> count{0},queued_count{0},ready_count{0},connecting_count{0},connect_attempts{0},connect_failures{0},peak_ready{0},idle_closed{0};std::atomic<uint64_t> connect_time_ns{0},connect_peak_ns{0},open_call_ns{0},open_call_peak_ns{0};
+  std::unique_ptr<dhruntime::Pool> connectors;
+  bool stopping=false;std::atomic<bool> connector_stopping{false};int wake=-1;std::thread thread;std::thread::id reactor_id;std::mutex close_mutex;
+  std::vector<Conn> conns;std::deque<std::unique_ptr<Job>> waiting;std::vector<std::pair<Callback,Result>> callbacks;
+  struct EndpointInfo {Endpoint endpoint;size_t pending=0;uint64_t last_used=0;};std::map<std::string,EndpointInfo> endpoints;std::vector<std::string> evicted_endpoints;
+  explicit Impl(Config c):config(c),io(c.transport,c.rdma_poll_interval_us) {
+    if(!c.max_pending||!c.max_endpoints||!c.max_message_bytes||c.max_message_bytes>UINT32_MAX||!c.timeout_ms||c.timeout_ms>UINT64_MAX/1000000||(c.max_connections_per_endpoint&&c.min_connections_per_endpoint>c.max_connections_per_endpoint)||!c.max_connecting)throw std::invalid_argument("Invalid native RPC limits");
     wake=eventfd(0,EFD_NONBLOCK|EFD_CLOEXEC);if(wake<0)throw std::runtime_error("eventfd failed");
-    try{thread=std::thread([this]{run();});reactor_id=thread.get_id();}catch(...){::close(wake);throw;}
+    try{if(c.async_connect)connectors=std::make_unique<dhruntime::Pool>(c.max_connecting,c.max_connecting,c.cpu_ids,false);thread=std::thread([this]{run();});dhruntime::bind_thread(thread,c.cpu_ids);reactor_id=thread.get_id();}catch(...){{std::lock_guard<std::mutex> l(mutex);stopping=true;}signal();if(thread.joinable())thread.join();::close(wake);throw;}
   }
-  void signal() { uint64_t one=1;ssize_t rc;do{rc=write(wake,&one,sizeof(one));}while(rc<0&&errno==EINTR); }
-  void finish(std::unique_ptr<Job> j,const std::string& error={}) { j->result.done_ns=now_ns();j->result.ok=error.empty();j->result.error=error;
-    {std::lock_guard<std::mutex> lock(mutex);auto it=endpoints.find(j->endpoint.key);if(it!=endpoints.end()){--it->second.pending;it->second.last_used=now_ns();}}
-    count.fetch_sub(1);callbacks.emplace_back(std::move(j->callback),std::move(j->result)); }
-  void close_conn(Conn& c,const std::string& why) { if(c.fd>=0)::close(c.fd);c.fd=-1;c.connecting=false;if(c.job)finish(std::move(c.job),why);c.received.clear();c.expected=0;c.sent=0; }
-  void invoke() { auto ready=std::move(callbacks);callbacks.clear();for(auto& cb:ready)try{cb.first(std::move(cb.second));}catch(...){/* application callback must not kill reactor */} }
-  void start(Conn& c,std::unique_ptr<Job> j) {
-    c.job=std::move(j);c.sent=0;c.received.clear();c.expected=0;c.job->result.send_start_ns=now_ns();
-    if(c.fd>=0)return;
-    c.job->result.connection_created=true;c.job->result.connect_start_ns=now_ns();
-    c.fd=socket(c.job->endpoint.family,SOCK_STREAM|SOCK_NONBLOCK|SOCK_CLOEXEC,0);
-    if(c.fd<0){close_conn(c,"socket failed");return;}int one=1;setsockopt(c.fd,IPPROTO_TCP,TCP_NODELAY,&one,sizeof(one));
-    int rc=connect(c.fd,reinterpret_cast<const sockaddr*>(&c.job->endpoint.address),c.job->endpoint.address_length);
-    if(rc==0)c.job->result.connect_done_ns=now_ns();else if(errno==EINPROGRESS)c.connecting=true;else close_conn(c,std::string("connect: ")+std::strerror(errno));
+  void signal(){uint64_t one=1;ssize_t rc;do{rc=write(wake,&one,sizeof(one));}while(rc<0&&errno==EINTR);}
+  bool remember(const Endpoint& ep,uint64_t t){ // mutex held, bounded even for warmup
+    if(endpoints.count(ep.key))return true;
+    if(endpoints.size()>=config.max_endpoints){auto oldest=endpoints.end();for(auto it=endpoints.begin();it!=endpoints.end();++it)if(!it->second.pending&&(oldest==endpoints.end()||it->second.last_used<oldest->second.last_used))oldest=it;
+      if(oldest==endpoints.end())return false;evicted_endpoints.push_back(oldest->first);endpoints.erase(oldest);}
+    endpoints.emplace(ep.key,EndpointInfo{ep,0,t});if(config.min_connections_per_endpoint)preparing.push_back(ep);return true;
   }
-  void assign() {
-    auto n=waiting.size();while(n--){auto j=std::move(waiting.front());waiting.pop_front();
-      if(now_ns()>=j->deadline){finish(std::move(j),"RPC timeout in queue");continue;}
-      Conn* available=nullptr;size_t occupied=0;for(auto& c:conns)if(c.endpoint==j->endpoint.key){++occupied;if(!c.job)available=&c;}
-      if(!available && occupied<config.max_connections_per_endpoint){conns.emplace_back();conns.back().endpoint=j->endpoint.key;available=&conns.back();}
-      if(available)start(*available,std::move(j));else waiting.push_back(std::move(j));
+  void finish(std::unique_ptr<Job> j,const std::string& error={}){
+    j->result.done_ns=now_ns();j->result.ok=error.empty();j->result.error=error;
+    {std::lock_guard<std::mutex> l(mutex);auto it=endpoints.find(j->endpoint.key);if(it!=endpoints.end()){--it->second.pending;it->second.last_used=now_ns();}}
+    --count;callbacks.emplace_back(std::move(j->callback),std::move(j->result));
+  }
+  void connected(Conn& c){
+    c.connecting=false;--connecting_count;++ready_count;c.idle_since=now_ns();peak_ready=std::max(peak_ready.load(),ready_count.load());auto elapsed=now_ns()-c.connect_started;connect_time_ns+=elapsed;auto peak=connect_peak_ns.load();while(peak<elapsed&&!connect_peak_ns.compare_exchange_weak(peak,elapsed)){}
+    if(c.job)c.job->result.connect_done_ns=now_ns();
+  }
+  void close_conn(Conn& c,const std::string& why){
+    if(c.opening){c.discarded=true;return;} // connector owns the unpublished descriptor
+    if(c.fd>=0){io.close(c.fd);if(!c.connecting)--ready_count;}
+    if(c.connecting)--connecting_count;
+    if(c.connecting)++connect_failures;c.fd=-1;c.connecting=false;
+    c.retry_after=(config.min_connections_per_endpoint&&!c.job)?now_ns()+250000000:0;
+    if(c.job)finish(std::move(c.job),why);c.received.clear();c.expected=0;c.sent=0;
+  }
+  void invoke(){auto ready=std::move(callbacks);callbacks.clear();for(auto& cb:ready)try{cb.first(std::move(cb.second));}catch(...){} }
+  void open_socket(const Endpoint& ep,Opening& opened){
+    const auto start=now_ns();opened.fd=io.socket(ep.family);
+    if(opened.fd<0)opened.error=errno;
+    else{
+      int one=1;io.setsockopt(opened.fd,IPPROTO_TCP,TCP_NODELAY,&one,sizeof(one));
+      int rc=io.connect(opened.fd,reinterpret_cast<const sockaddr*>(&ep.address),ep.address_length);
+      opened.immediate=rc==0;if(rc<0&&errno!=EINPROGRESS)opened.error=errno;
     }
+    opened.call_ns=now_ns()-start;
   }
-  void progress(Conn& c,short events) {
-    if(!c.job)return;
-    if(c.connecting && events){int err=0;socklen_t len=sizeof(err);if(getsockopt(c.fd,SOL_SOCKET,SO_ERROR,&err,&len)<0 || err){close_conn(c,"RPC connect failed");return;}c.connecting=false;c.job->result.connect_done_ns=now_ns();}
-    if(events&POLLOUT){while(c.sent<c.job->frame.size()) {auto n=::send(c.fd,c.job->frame.data()+c.sent,c.job->frame.size()-c.sent,MSG_NOSIGNAL);if(n>0){c.sent+=n;c.job->result.request_bytes+=n;}else if(n<0&&errno==EINTR)continue;else if(n<0&&(errno==EAGAIN||errno==EWOULDBLOCK))break;else{close_conn(c,"RPC send failed");return;}}if(c.sent==c.job->frame.size()&&!c.job->result.send_done_ns)c.job->result.send_done_ns=now_ns();}
-    if(events&(POLLIN|POLLHUP|POLLERR)) {
-      while(c.job){uint8_t buf[65536];size_t needed=c.expected?c.expected-c.received.size():4-c.received.size();auto n=recv(c.fd,buf,std::min(sizeof(buf),needed),0);
-        if(n>0){c.received.insert(c.received.end(),buf,buf+n);c.job->result.response_bytes+=n;}
-        else if(n<0&&errno==EINTR)continue;else if(n<0&&(errno==EAGAIN||errno==EWOULDBLOCK))break;else{close_conn(c,"RPC connection closed during frame");return;}
-        if(!c.expected&&c.received.size()==4){uint64_t len=0;for(auto b:c.received)len=(len<<8)|b;if(!len||len>config.max_message_bytes){close_conn(c,"Invalid RPC frame size");return;}c.expected=len+4;}
-        if(c.expected&&c.received.size()==c.expected){try{c.job->result.response=unpack(c.received.data()+4,c.expected-4);if(!std::holds_alternative<Value::Map>(c.job->result.response.data))throw std::invalid_argument("RPC response must be a mapping");if(!c.job->request_id.empty()){auto it=c.job->result.response.map().find("request_id");if(it==c.job->result.response.map().end()||pack(it->second)!=c.job->request_id)throw std::invalid_argument("RPC request ID mismatch");}finish(std::move(c.job));c.received.clear();c.expected=0;c.sent=0;}catch(const std::exception& e){close_conn(c,e.what());}return;}
+  void collect_open(Conn& c){
+    auto opened=c.opening;if(!opened||!opened->done.load(std::memory_order_acquire))return;
+    c.fd=opened->fd;opened->fd=-1;c.opening.reset();
+    open_call_ns+=opened->call_ns;auto peak=open_call_peak_ns.load();while(peak<opened->call_ns&&!open_call_peak_ns.compare_exchange_weak(peak,opened->call_ns)){}
+    if(c.discarded||opened->error||now_ns()>=c.connect_deadline){close_conn(c,opened->error?std::string("connect: ")+std::strerror(opened->error):"Connection setup cancelled or timed out");return;}
+    if(opened->immediate)connected(c);
+  }
+  void finish_connect(Opening& opened,uint64_t deadline){
+    if(opened.error||opened.immediate)return;
+    // CM/event progression can also do work in rsockets. Keep ALL unpublished
+    // connection work off the established-connection reactor, not just rconnect.
+    int local_wake=eventfd(0,EFD_NONBLOCK|EFD_CLOEXEC);
+    if(local_wake<0){opened.error=errno;return;}
+    struct WakeGuard {int fd;~WakeGuard(){::close(fd);}} guard{local_wake};
+    while(!connector_stopping.load()&&now_ns()<deadline){
+      pollfd fds[]={{local_wake,POLLIN,0},{opened.fd,short(POLLIN|POLLOUT),0}};
+      int rc=io.poll(fds,2,10);
+      if(rc<0){if(errno==EINTR)continue;opened.error=errno;break;}
+      if(fds[1].revents){int error=0;socklen_t len=sizeof(error);
+        if(io.getsockopt(opened.fd,SOL_SOCKET,SO_ERROR,&error,&len)<0)error=errno;
+        if(fds[1].revents&POLLNVAL)error=EBADF;
+        opened.error=error;opened.immediate=!error;break;
       }
     }
-    if(c.job && (events&(POLLNVAL|POLLERR|POLLHUP)))close_conn(c,"RPC socket error");
+    if(!opened.error&&!opened.immediate)opened.error=connector_stopping.load()?ECANCELED:ETIMEDOUT;
   }
-  void run() {
+  void begin_connect(Conn& c){
+    c.connect_started=now_ns();c.connect_deadline=c.connect_started+config.timeout_ms*1000000;c.discarded=false;++connect_attempts;
+    if(c.job){c.job->result.connection_created=true;c.job->result.connect_start_ns=c.connect_started;}
+    c.connecting=true;++connecting_count;c.opening=std::make_shared<Opening>(io);
+    if(connectors){auto opened=c.opening;auto ep=c.endpoint;auto deadline=c.connect_deadline;
+      if(!connectors->submit([this,opened,ep,deadline]{
+        try{open_socket(ep,*opened);if(config.async_connect_progress)finish_connect(*opened,deadline);}catch(...){opened->error=EIO;}
+        opened->done.store(true,std::memory_order_release);signal();
+      })){c.opening.reset();close_conn(c,"Connector capacity exceeded");}
+    }else{open_socket(c.endpoint,*c.opening);c.opening->done=true;collect_open(c);}
+  }
+  void prepare_connections(){
+    for(auto& [key,ep]:targets){size_t active=0;for(auto& c:conns)if(c.endpoint.key==key&&(c.fd>=0||c.opening))++active;
+      while(active<config.min_connections_per_endpoint&&connecting_count<config.max_connecting){Conn* slot=nullptr;size_t allocated=0;for(auto& c:conns)if(c.endpoint.key==key){++allocated;if(c.fd<0&&!c.opening&&!c.job&&c.retry_after<=now_ns())slot=&c;}
+        if(!slot&&(!config.max_connections_per_endpoint||allocated<config.max_connections_per_endpoint)){conns.emplace_back(ep);slot=&conns.back();}
+        if(!slot)break;begin_connect(*slot);if(slot->fd<0&&!slot->opening)break;++active;}
+    }
+  }
+  void assign(){
+    auto n=waiting.size();while(n--){auto j=std::move(waiting.front());waiting.pop_front();
+      if(now_ns()>=j->deadline){--queued_count;finish(std::move(j),"RPC timeout in queue");continue;}
+      Conn *available=nullptr,*cold=nullptr;size_t occupied=0;
+      for(auto& c:conns)if(c.endpoint.key==j->endpoint.key){++occupied;if(!c.job&&!c.connecting&&!c.opening){if(c.fd>=0)available=&c;else if(c.retry_after<=now_ns())cold=&c;}}
+      if(!available){
+        bool can_connect=(!config.min_connections_per_endpoint&&!config.async_connect)||connecting_count<config.max_connecting;
+        if(!cold&&(!config.max_connections_per_endpoint||occupied<config.max_connections_per_endpoint)&&can_connect){conns.emplace_back(j->endpoint);cold=&conns.back();}
+        if(cold&&can_connect){if(config.min_connections_per_endpoint){begin_connect(*cold);if(cold->fd>=0&&!cold->connecting)available=cold;}else available=cold;}
+      }
+      if(!available){waiting.push_back(std::move(j));continue;}
+      available->job=std::move(j);--queued_count;available->sent=0;available->received.clear();available->expected=0;available->job->result.send_start_ns=now_ns();
+      if(available->fd<0)begin_connect(*available);
+    }
+  }
+  void progress(Conn& c,short events){
+    if(c.connecting&&events){int err=0;socklen_t len=sizeof(err);if(io.getsockopt(c.fd,SOL_SOCKET,SO_ERROR,&err,&len)<0||err){close_conn(c,"RPC connect failed");return;}connected(c);}
+    if(!c.job)return;
+    if(events&POLLOUT){while(c.sent<c.job->frame.size()){auto n=io.send(c.fd,c.job->frame.data()+c.sent,c.job->frame.size()-c.sent,MSG_NOSIGNAL);if(n>0){c.sent+=n;c.job->result.request_bytes+=n;}else if(n<0&&errno==EINTR)continue;else if(n<0&&(errno==EAGAIN||errno==EWOULDBLOCK))break;else{close_conn(c,"RPC send failed");return;}}if(c.sent==c.job->frame.size()&&!c.job->result.send_done_ns)c.job->result.send_done_ns=now_ns();}
+    if(events&(POLLIN|POLLHUP|POLLERR)){
+      while(c.job){uint8_t buf[65536];size_t needed=c.expected?c.expected-c.received.size():4-c.received.size();auto n=io.recv(c.fd,buf,std::min(sizeof(buf),needed),0);
+        if(n>0){c.received.insert(c.received.end(),buf,buf+n);c.job->result.response_bytes+=n;}else if(n<0&&errno==EINTR)continue;else if(n<0&&(errno==EAGAIN||errno==EWOULDBLOCK))break;else{close_conn(c,"RPC connection closed during frame");return;}
+        if(!c.expected&&c.received.size()==4){uint64_t len=0;for(auto b:c.received)len=(len<<8)|b;if(!len||len>config.max_message_bytes){close_conn(c,"Invalid RPC frame size");return;}c.expected=len+4;}
+        if(c.expected&&c.received.size()==c.expected){try{c.job->result.response=unpack(c.received.data()+4,c.expected-4);if(!std::holds_alternative<Value::Map>(c.job->result.response.data))throw std::invalid_argument("RPC response must be a mapping");if(!c.job->request_id.empty()){auto it=c.job->result.response.map().find("request_id");if(it==c.job->result.response.map().end()||pack(it->second)!=c.job->request_id)throw std::invalid_argument("RPC request ID mismatch");}finish(std::move(c.job));c.idle_since=now_ns();c.received.clear();c.expected=0;c.sent=0;}catch(const std::exception& e){close_conn(c,e.what());}return;}
+      }
+    }
+    if(c.job&&(events&(POLLNVAL|POLLERR|POLLHUP)))close_conn(c,"RPC socket error");
+  }
+  void run(){
     for(;;){bool stop;std::vector<std::string> evicted;
-      {std::lock_guard<std::mutex> lock(mutex);stop=stopping;evicted.swap(evicted_endpoints);while(!incoming.empty()){waiting.push_back(std::move(incoming.front()));incoming.pop_front();}}
-      // Only endpoints with no accepted work can be evicted. Socket ownership
-      // stays on the reactor; no connect/send/close occurs under producer locks.
-      for(auto& key:evicted){for(auto& c:conns)if(c.endpoint==key&&!c.job)close_conn(c,"Endpoint evicted");
-        conns.erase(std::remove_if(conns.begin(),conns.end(),[&key](const Conn& c){return c.endpoint==key&&!c.job;}),conns.end());}
+      {std::lock_guard<std::mutex> l(mutex);stop=stopping;evicted.swap(evicted_endpoints);while(!incoming.empty()){waiting.push_back(std::move(incoming.front()));incoming.pop_front();}while(!preparing.empty()){targets.insert_or_assign(preparing.front().key,preparing.front());preparing.pop_front();}}
+      for(auto& key:evicted){targets.erase(key);for(auto& c:conns)if(c.endpoint.key==key&&!c.job)close_conn(c,"Endpoint evicted");conns.erase(std::remove_if(conns.begin(),conns.end(),[&key](const Conn& c){return c.endpoint.key==key&&!c.job&&!c.opening;}),conns.end());}
       if(stop)break;
-      assign();invoke();
-      std::vector<pollfd> fds{{wake,POLLIN,0}};std::vector<size_t> indices;uint64_t deadline=now_ns()+1000000000;
+      for(auto& c:conns)collect_open(c);
+      conns.erase(std::remove_if(conns.begin(),conns.end(),[](const Conn& c){return c.discarded&&!c.opening&&!c.job;}),conns.end());
+      prepare_connections();assign();invoke();
+      if(config.connection_idle_ms&&!count){
+        std::map<std::string,size_t> retained;const auto cutoff=now_ns();
+        for(auto& c:conns)if(c.fd>=0&&!c.job&&!c.opening&&!c.connecting){
+          if(retained[c.endpoint.key]++>=config.min_connections_per_endpoint&&c.idle_since&&cutoff-c.idle_since>=config.connection_idle_ms*1000000){close_conn(c,"Idle connection reclaimed");++idle_closed;c.discarded=true;}
+        }
+        conns.erase(std::remove_if(conns.begin(),conns.end(),[](const Conn& c){return c.discarded&&!c.opening&&!c.job;}),conns.end());
+      }
+      std::vector<pollfd> fds{{wake,POLLIN,0}};std::vector<size_t> indices;uint64_t deadline=now_ns()+100000000;
       for(auto& j:waiting)deadline=std::min(deadline,j->deadline);
-      for(size_t i=0;i<conns.size();++i){auto& c=conns[i];if(c.job){deadline=std::min(deadline,c.job->deadline);short events=POLLIN;if(c.connecting||c.sent<c.job->frame.size())events|=POLLOUT;fds.push_back({c.fd,events,0});indices.push_back(i);}}
-      auto now=now_ns();int timeout=deadline<=now?0:int(std::min<uint64_t>(1000,(deadline-now+999999)/1000000));int rc=poll(fds.data(),fds.size(),timeout);
-      if(rc<0&&errno!=EINTR){for(auto& c:conns)close_conn(c,"poll failed");}
+      for(size_t i=0;i<conns.size();++i){auto& c=conns[i];if(!c.opening&&(c.job||c.connecting)){deadline=std::min(deadline,c.job?c.job->deadline:c.connect_deadline);short events=POLLIN;if(c.connecting||(c.job&&c.sent<c.job->frame.size()))events|=POLLOUT;fds.push_back({c.fd,events,0});indices.push_back(i);}}
+      auto now=now_ns();int timeout=deadline<=now?0:int(std::min<uint64_t>(100,(deadline-now+999999)/1000000));int rc=io.poll(fds.data(),fds.size(),timeout);
+      if(rc<0&&errno!=EINTR)for(auto& c:conns)close_conn(c,"poll failed");
       if(fds[0].revents){uint64_t v;while(read(wake,&v,sizeof(v))>0){}}
-      for(size_t i=0;i<indices.size();++i){auto& c=conns[indices[i]];if(c.job&&now_ns()>=c.job->deadline)close_conn(c,"RPC timeout");else if(fds[i+1].revents)progress(c,fds[i+1].revents);}
+      for(size_t i=0;i<indices.size();++i){auto& c=conns[indices[i]];if((c.job&&now_ns()>=c.job->deadline)||(c.connecting&&now_ns()>=c.connect_deadline))close_conn(c,"RPC timeout");else if(fds[i+1].revents)progress(c,fds[i+1].revents);}
       invoke();
     }
-    for(auto& c:conns)close_conn(c,"RPC client closed");
-    while(!waiting.empty()){finish(std::move(waiting.front()),"RPC client closed");waiting.pop_front();}invoke();
+    connector_stopping=true;if(connectors)connectors->close();for(auto& c:conns){collect_open(c);close_conn(c,"RPC client closed");}while(!waiting.empty()){--queued_count;finish(std::move(waiting.front()),"RPC client closed");waiting.pop_front();}invoke();
   }
-  void close() {
-    // A callback may request close; it cannot join its own reactor thread.
-    {std::lock_guard<std::mutex> lock(mutex);stopping=true;signal();}
-    if(std::this_thread::get_id()==reactor_id)return;
-    std::lock_guard<std::mutex> lock(close_mutex);if(thread.joinable())thread.join();
-  }
+  void close(){ {std::lock_guard<std::mutex> l(mutex);stopping=true;signal();}if(std::this_thread::get_id()==reactor_id)return;std::lock_guard<std::mutex> l(close_mutex);if(thread.joinable())thread.join();}
   ~Impl(){close();::close(wake);}
 };
 Client::Client(Config config):impl_(new Impl(config)){}
@@ -190,20 +269,15 @@ bool Client::submit(const Endpoint& ep,const Value& value,Callback callback) {
   auto body=pack(value,impl_->config.max_message_bytes);std::vector<uint8_t> frame;frame.reserve(body.size()+4);for(int i=3;i>=0;--i)frame.push_back(uint8_t(body.size()>>(8*i)));frame.insert(frame.end(),body.begin(),body.end());
   auto t=now_ns();auto j=std::make_unique<Impl::Job>(Impl::Job{ep,std::move(frame),std::move(callback),{},t+impl_->config.timeout_ms*1000000,{}});j->result.queued_ns=t;auto id=value.map().find("request_id");if(id!=value.map().end())j->request_id=pack(id->second);
   std::lock_guard<std::mutex> lock(impl_->mutex);if(impl_->stopping||impl_->count.load()>=impl_->config.max_pending)return false;
+  if(!impl_->remember(ep,t))return false;
   auto endpoint=impl_->endpoints.find(ep.key);
-  if(endpoint==impl_->endpoints.end()){
-    if(impl_->endpoints.size()>=impl_->config.max_endpoints){
-      auto oldest=impl_->endpoints.end();
-      for(auto it=impl_->endpoints.begin();it!=impl_->endpoints.end();++it)
-        if(!it->second.pending && (oldest==impl_->endpoints.end()||it->second.last_used<oldest->second.last_used))oldest=it;
-      if(oldest==impl_->endpoints.end())return false; // bounded active capacity
-      impl_->evicted_endpoints.push_back(oldest->first);impl_->endpoints.erase(oldest);
-    }
-    endpoint=impl_->endpoints.emplace(ep.key,Impl::EndpointInfo{ep,0,t}).first;
-  }
   ++endpoint->second.pending;endpoint->second.last_used=t;
-  ++impl_->count;impl_->incoming.push_back(std::move(j));impl_->signal();return true;
+  ++impl_->count;++impl_->queued_count;impl_->incoming.push_back(std::move(j));impl_->signal();return true;
 }
+bool Client::prepare(const Endpoint& ep){std::lock_guard<std::mutex> l(impl_->mutex);if(impl_->stopping||!impl_->remember(ep,now_ns()))return false;impl_->signal();return true;}
+size_t Client::queued()const{return impl_->queued_count;}
+size_t Client::ready_connections()const{return impl_->ready_count;}
+Value Client::metrics()const{return Value::Map{{"async_connect",impl_->config.async_connect},{"connector_workers",uint64_t(impl_->connectors?impl_->config.max_connecting:0)},{"connection_open_call_ms",impl_->open_call_ns.load()/1e6},{"connection_open_call_max_ms",impl_->open_call_peak_ns.load()/1e6},{"queued",uint64_t(impl_->queued_count)},{"ready_connections",uint64_t(impl_->ready_count)},{"peak_ready_connections",uint64_t(impl_->peak_ready)},{"idle_connections_closed",uint64_t(impl_->idle_closed)},{"connecting",uint64_t(impl_->connecting_count)},{"connection_attempts",uint64_t(impl_->connect_attempts)},{"connection_failures",uint64_t(impl_->connect_failures)},{"connection_setup_ms",impl_->connect_time_ns.load()/1e6},{"connection_setup_max_ms",impl_->connect_peak_ns.load()/1e6}};}
 void Client::close(){impl_->close();}
 size_t Client::pending() const{return impl_->count.load();}
 namespace py=pybind11;
@@ -236,6 +310,7 @@ py::object to_python(const Value& v) {
   }throw std::logic_error("Invalid native value");
 }
 void bind_native_wire(py::module_& m) {
+  m.def("rdma_available",&Transport::rdma_available);
   m.def("native_wire_pack",[](py::handle v,size_t limit){auto b=pack(from_python(v),limit);return py::bytes(reinterpret_cast<const char*>(b.data()),b.size());},py::arg("value"),py::arg("limit")=67108864);
   m.def("native_wire_unpack",[](py::bytes b){auto s=py::cast<std::string>(b);return to_python(unpack(reinterpret_cast<const uint8_t*>(s.data()),s.size()));});
   py::class_<Endpoint>(m,"NativeWireEndpoint").def(py::init<const std::string&,uint16_t>()).def_readonly("key",&Endpoint::key);

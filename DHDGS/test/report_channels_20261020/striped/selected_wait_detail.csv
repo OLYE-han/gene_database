@@ -1,6 +1,0 @@
-stage,start_ms,end_ms,duration_ms
-Search + report arrival + receiver validation,60.976762,155.83891,94.862148
-Terminal encode / IPC / parent scheduling,155.83891,200.201654,44.362744
-Apply terminal state in parent,200.201654,200.214849,0.013195
-Wait for completion consumer (ACK gate included),200.214849,448.237049,248.0222
-Completion validation + cleanup + result submission,448.237049,463.090291,14.853242

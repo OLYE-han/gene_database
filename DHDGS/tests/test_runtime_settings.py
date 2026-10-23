@@ -14,7 +14,7 @@ from dhdgs.transport import create_server
 
 class RuntimeSettingsTests(unittest.TestCase):
     def setUp(self):
-        path=Path(__file__).resolve().parents[1]/'configs/dhdgs.yaml'
+        path=Path(__file__).resolve().parents[1]/'configs/dhdgs_pilot.yaml'
         self.raw=yaml.safe_load(path.read_text())
 
     def test_switch_interval_is_applied_in_seconds_and_can_be_shared(self):

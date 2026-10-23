@@ -1,6 +1,9 @@
 #include "native_network.hpp"
 #pragma once
 #include "native_head.hpp"
+#include "native_result_sink.hpp"
+#include "native_search_api.hpp"
+#include "retained_size.hpp"
 #include "native_runtime.hpp"
 #include "pcg64_compat.hpp"
 #include <condition_variable>
@@ -10,26 +13,7 @@ namespace dhruntime {
 struct CompletedRecord {
   V value;
   uint64_t retained_bytes = 0;
-  // Conservative retained-object accounting, not a process RSS measurement.
-  // Charge capacities, map nodes, string capacities (even SSO), plus allocator
-  // slack. The Python capture layer separately reserves per-record metadata.
-  static uint64_t extra_bytes(const V &v) {
-    if (auto p = std::get_if<std::string>(&v.data)) return p->capacity() + 65;
-    if (auto p = std::get_if<V::Bytes>(&v.data)) return p->capacity() + 64;
-    if (auto p = std::get_if<V::Array>(&v.data)) {
-      uint64_t total = p->capacity() * sizeof(V) + 64;
-      for (const auto &child : *p) total += extra_bytes(child);
-      return total;
-    }
-    if (auto p = std::get_if<V::Map>(&v.data)) {
-      uint64_t total = 64;
-      for (const auto &entry : *p)
-        total += sizeof(V::Map::value_type) + 64 + entry.first.capacity() + 65
-                 + extra_bytes(entry.second);
-      return total;
-    }
-    return 0;
-  }
+  static uint64_t extra_bytes(const V &v) { return retained_extra_bytes(v); }
   std::string request_id() const {
     return dhvalue::get<std::string>(value, "request_id");
   }
@@ -59,6 +43,7 @@ class HeadBinding {
   std::unordered_map<uint64_t, size_t> locations_;
   std::unordered_map<uint64_t, std::vector<size_t>> membership_;
   std::unique_ptr<HeadRuntime> runtime_;
+  std::unique_ptr<SearchApi> search_api_;
   V route(const std::vector<double> &raw, const V &qid) {
     using namespace dhvalue;
     require(raw.size() == dim_, "Wrong search query dimension");
@@ -193,7 +178,7 @@ public:
           return route(q, id);
         });
   }
-  ~HeadBinding() { runtime_->close(); }
+  ~HeadBinding() { close(); }
   std::string submit(Array<double> query, py::object id) {
     require(query.ndim() == 1 && size_t(query.size()) == dim_,
             "Wrong query dimensions");
@@ -228,6 +213,17 @@ public:
       records.append(py::cast(std::move(record)));
     return records;
   }
+  py::object run_to_disk(Array<double> queries, Array<uint64_t> ids, size_t concurrency, const std::string& directory, py::dict options) {
+    require(queries.ndim()==2 && size_t(queries.shape(1))==dim_ && ids.ndim()==1 && ids.size()==queries.shape(0), "Invalid disk query batch");
+    require(concurrency>0 && concurrency<=dhvalue::get<size_t>(dhvalue::at(config_,"peer"),"max_active_queries"), "Invalid disk concurrency");
+    auto settings=dhwire::from_python(options);V result;
+    {
+      py::gil_scoped_release release;
+      result=run_disk_queries(*runtime_,queries.data(),ids.data(),size_t(ids.size()),dim_,concurrency,directory,settings,
+           dhvalue::get<size_t>(dhvalue::at(config_,"network"),"max_message_bytes"));
+    }
+    return dhwire::to_python(result);
+  }
   py::object metrics() {
     V out;
     {
@@ -236,7 +232,12 @@ public:
     }
     return dhwire::to_python(out);
   }
-  void close() { runtime_->close(); }
+  uint16_t start_api(py::dict options) {
+    require(!search_api_,"Search API already started");auto v=dhwire::from_python(options);
+    py::gil_scoped_release release;search_api_=std::make_unique<SearchApi>(*runtime_,dim_,v);return search_api_->port();
+  }
+  py::object api_metrics(){V v;{py::gil_scoped_release release;require(bool(search_api_),"Search API not started");v=search_api_->metrics();}return dhwire::to_python(v);}
+  void close() { if(search_api_)search_api_->close();runtime_->close(); }
 };
 // Python is used only by this management adapter, never by the data handler.
 class ManagedTransport {
@@ -376,7 +377,10 @@ inline void bind_runtime(py::module_ &m) {
   py::class_<HeadBinding>(m, "NativeHead")
       .def(py::init<py::dict, py::dict, std::string, py::object, py::object,
                     py::dict, Array<uint64_t>, Array<uint8_t>>())
+      .def("start_api", &HeadBinding::start_api)
+      .def("api_metrics", &HeadBinding::api_metrics)
       .def("submit", &HeadBinding::submit)
+      .def("run_to_disk", &HeadBinding::run_to_disk)
       .def("completed", &HeadBinding::completed, py::arg("maximum") = 32,
            py::arg("timeout_ms") = 50)
       .def("completed_records", &HeadBinding::completed_records,
@@ -384,6 +388,10 @@ inline void bind_runtime(py::module_ &m) {
       .def("metrics", &HeadBinding::metrics)
       .def("close", &HeadBinding::close,
            py::call_guard<py::gil_scoped_release>());
+  m.def("run_network_load",[](Array<double> queries,Array<uint64_t> ids,size_t concurrency,py::dict options,const std::string& directory){
+    require(queries.ndim()==2&&ids.ndim()==1&&ids.size()==queries.shape(0),"Invalid network query batch");auto opts=dhwire::from_python(options);V result;
+    {py::gil_scoped_release release;result=run_network_load(queries.data(),ids.data(),size_t(ids.size()),size_t(queries.shape(1)),concurrency,opts,directory);}return dhwire::to_python(result);
+  });
   m.def("validate_manifests",
         [](py::object reports, std::string root, size_t node, size_t budget,
            size_t slots, size_t nodes) {
@@ -421,6 +429,7 @@ inline void bind_runtime(py::module_ &m) {
              }
              return dhwire::to_python(value);
            })
+      .def("network_metrics",[](DataRuntime &r){V value;{py::gil_scoped_release release;value=r.network_metrics();}return dhwire::to_python(value);})
       .def("close", &DataRuntime::close,
            py::call_guard<py::gil_scoped_release>());
   py::class_<ManagedTransport>(m, "NativeManagedTransport")

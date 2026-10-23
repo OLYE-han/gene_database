@@ -125,7 +125,7 @@ class CompletionFastPathTests(unittest.TestCase):
         self.assertFalse(self.r.control_workers.calls)
 
     def test_old_config_migrates_disabled_and_requires_bool(self):
-        source=Path(__file__).resolve().parents[1]/'configs/dhdgs.yaml'
+        source=Path(__file__).resolve().parents[1]/'configs/dhdgs_pilot.yaml'
         raw=yaml.safe_load(source.read_text())
         del raw['peer']['control']['completion_fast_path']
         with tempfile.TemporaryDirectory() as tmp:

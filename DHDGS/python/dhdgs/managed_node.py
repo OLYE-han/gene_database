@@ -164,6 +164,12 @@ class NodeControl:
         op=request['op']
         with self.admin_lock:
             if op=='admin_status':return self.status()
+            if op=='admin_network_metrics':
+                runtime=getattr(self.peer,'runtime',None)
+                if runtime is None:raise ValueError('Lightweight network metrics require native runtime')
+                from .metrics import process_snapshot
+                return dict(node_id=self.sid,time_ns=time.monotonic_ns(),runtime=runtime.network_metrics(),
+                            receiver=self._native_transport.metrics(),process=process_snapshot())
             if op=='admin_snapshot':
                 raw=msgpack.packb(self.metrics(),use_bin_type=True)
                 self.snapshot_id=uuid.uuid4().hex;self.snapshot_data=raw

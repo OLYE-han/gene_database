@@ -100,3 +100,10 @@ artifacts/
 /test/receive_admission_20261021/source
 /test/receive_admission_20261021/data/
 /test/control_registration_20261022/cases/**/runs
+
+# Native SSD result streams: keep compact reports/manifests, not query payloads.
+/test/**/*.frames
+/test/**/*.commits
+
+# Offline experiment journal writer lock
+/TestLog.md.lock

@@ -124,7 +124,7 @@ class FairQueueTests(unittest.TestCase):
     def test_config_optional_legacy_and_explicit_fifo(self):
         from pathlib import Path
         from dhdgs.config import load_config,validate
-        c=load_config(Path(__file__).resolve().parents[1]/'configs/dhdgs.yaml')
+        c=load_config(Path(__file__).resolve().parents[1]/'configs/dhdgs_pilot.yaml')
         self.assertEqual(c['peer']['connection_pool']['head_scheduling'],'fifo')
         # load_config adds metadata; validate only the public configuration.
         c={k:v for k,v in c.items() if not k.startswith('_')}
@@ -138,7 +138,7 @@ class FairQueueTests(unittest.TestCase):
         from pathlib import Path
         from dhdgs.config import load_config
         from dhdgs.peer import execution_signature
-        c=load_config(Path(__file__).resolve().parents[1]/'configs/dhdgs.yaml')
+        c=load_config(Path(__file__).resolve().parents[1]/'configs/dhdgs_pilot.yaml')
         c['peer']['connection_pool'].pop('head_scheduling',None)
         signature=execution_signature(c)
         for mode in ('fifo','broadcast'):

@@ -11,7 +11,11 @@ class HeadRuntime {
 public:
   HeadRuntime(V config, V manifest, RouteFunction);
   ~HeadRuntime();
-  std::string submit(std::vector<double>, V query_id);
+  // Internal native completion callback: short, nonthrowing, no file I/O.
+  // Invoked after releasing head/query locks and the active-query slot.
+  using Completion = std::function<void(V)>;
+  std::string submit(std::vector<double>, V query_id, std::string request_id = {},
+                     Completion completion = {});
   V completed(size_t maximum, uint64_t timeout_ms);
   V metrics() const;
   void close();

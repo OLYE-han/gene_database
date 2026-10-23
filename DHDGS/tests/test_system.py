@@ -33,7 +33,7 @@ def fixture(root, metric="l2"):
     dataset_at(root/"data", x)
     np.save(root/"queries.npy", x[[0, 35, 70]])
     np.save(root/"query_ids.npy", np.array([0, 35, 70], dtype=np.uint64))
-    c = yaml.safe_load((ROOT/"configs/dhdgs.yaml").read_text())
+    c = yaml.safe_load((ROOT/"configs/dhdgs_pilot.yaml").read_text())
     c["paths"] = {"dataset": "data", "output": "out"}
     c["data"].update(dimension=64, row_limit=96, metric=metric, block_rows=32)
     c["partition"].update(train_rows=48, calibration_rows=24, overlap_fraction=.4)
@@ -66,7 +66,7 @@ class ConfigTests(unittest.TestCase):
                 snapshot(c, root/"snapshot")
 
     def test_invalid_configuration(self):
-        raw = yaml.safe_load((ROOT/"configs/dhdgs.yaml").read_text())
+        raw = yaml.safe_load((ROOT/"configs/dhdgs_pilot.yaml").read_text())
         from dhdgs.config import validate
         for section, key, value in [("search", "top_k", True), ("partition", "max_copies", 4),
             ("network", "timeout_seconds", float("nan")), ("search", "frontier_size", 1),

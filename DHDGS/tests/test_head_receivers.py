@@ -14,7 +14,7 @@ from dhdgs.peer import HeadSession, execution_signature, exchange
 
 class ReceiverTests(unittest.TestCase):
     def setUp(self):
-        self.c=yaml.safe_load((Path(__file__).parents[1]/'configs/dhdgs.yaml').read_text())
+        self.c=yaml.safe_load((Path(__file__).parents[1]/'configs/dhdgs_pilot.yaml').read_text())
         self.c['peer'].update(head_receiver_processes=2,head_port=0,head_bind_host='127.0.0.1',
             head_advertise_host='127.0.0.1',control_timeout_seconds=3.)
         self.c['peer']['communication']['mode']='optimized'

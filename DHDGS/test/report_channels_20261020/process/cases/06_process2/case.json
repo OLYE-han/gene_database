@@ -1,7 +1,0 @@
-{
-  "index": 6,
-  "mode": "process2",
-  "queries": 2000,
-  "concurrency": 128,
-  "warmup": 32
-}

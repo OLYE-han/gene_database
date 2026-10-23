@@ -1,5 +1,8 @@
 # DHDGS
 
+**当前默认（2026-10-23）：四机 RDMA 已验收方案。** Intel-35 顶层、Intel-31/32/30 数据节点，每节点64搜索线程、预算200，推荐并发1024。配置在 [configs/dhdgs.yaml](configs/dhdgs.yaml) 和 [configs/rdma_deployment.yaml](configs/rdma_deployment.yaml)，使用 `.venv/bin/python tools/rdma_default.py check` 核验、`benchmark` 启动。CPU/NUMA、jemalloc 和固定 RDMA 运行库由启动器加载，操作说明见 [RDMA_DEFAULT.md](docs/RDMA_DEFAULT.md)。本机小规模验证显式使用 `configs/dhdgs_pilot.yaml`。以下早期默认值与部署描述为历史记录，以本段和当前操作说明为准。
+
+
 原常驻三机部署为 **Intel-35：head + data-0；Intel-32：data-1；Intel-30：data-2**。每节点32个查询工作线程，见 [原入口操作命令](test/managed_continuation_three_20261019/README.md)。
 
 2026-10-20：选型改为 **QPS优先**，约束平均Recall@10≥0.95且无失败。新增按查询划分顶层执行进程的 `peer.head_lanes` 模式，减少中间IPC交接；完整2M三机固定并发128短测，QPS中位数604.73→1168.58，Recall约97%。扩大去重容量后的双向扫描选中并发256、约1103QPS；但100000次连续请求仅527QPS、p99约6.24秒，持续性能问题尚未解决，未替换常驻入口。最新候选、并发扫描及长测边界见 [控制链容量优化报告](test/control_capacity_20261020/REPORT.md) 和 [运行说明](test/control_capacity_20261020/README.md)。
@@ -30,15 +33,15 @@ python3 -m venv .venv
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DPython_EXECUTABLE="$PWD/.venv/bin/python"
 cmake --build build --parallel 4
 
-.venv/bin/dhdgs validate-config --config configs/dhdgs.yaml
-.venv/bin/dhdgs inspect --config configs/dhdgs.yaml
-.venv/bin/dhdgs build --config configs/dhdgs.yaml
-.venv/bin/dhdgs query --config configs/dhdgs.yaml
-.venv/bin/dhdgs benchmark --config configs/dhdgs.yaml
+.venv/bin/dhdgs validate-config --config configs/dhdgs_pilot.yaml
+.venv/bin/dhdgs inspect --config configs/dhdgs_pilot.yaml
+.venv/bin/dhdgs build --config configs/dhdgs_pilot.yaml
+.venv/bin/dhdgs query --config configs/dhdgs_pilot.yaml
+.venv/bin/dhdgs benchmark --config configs/dhdgs_pilot.yaml
 .venv/bin/python -m unittest discover -s tests -v
 ```
 
-默认从 `seq_2M` 均匀抽取 4096 条 2560 维向量，构建三个分片。`build` 拒绝覆盖已有 `paths.output/index`；已有测试索引只有在构建参数与 YAML 一致时才能直接执行 `query` 和 `benchmark`；例如将 RaBitQ 从 4 bit 改为 1 bit 后，需要新建输出目录并重建。新建实验索引前修改 YAML 的 `paths.output`。每次查询、检查或 benchmark 自动生成独立的 `runs/<操作>_<时间>_<随机标识>/`，保存可重新加载的 `resolved.yaml`、配置来源哈希和 `report.json`。
+上述pilot命令从 `seq_2M` 均匀抽取 4096 条 2560 维向量，构建三个分片。`build` 拒绝覆盖已有 `paths.output/index`；已有测试索引只有在构建参数与 YAML 一致时才能直接执行 `query` 和 `benchmark`；例如将 RaBitQ 从 4 bit 改为 1 bit 后，需要新建输出目录并重建。新建实验索引前修改 YAML 的 `paths.output`。每次查询、检查或 benchmark 自动生成独立的 `runs/<操作>_<时间>_<随机标识>/`，保存可重新加载的 `resolved.yaml`、配置来源哈希和 `report.json`。
 
 所有相对路径均相对于 YAML 文件位置。未知、重复、缺失字段和非法参数组合均报错，已支持的旧配置按显式迁移规则补全并记录。`runtime.blas_threads` 控制 Python 数值库线程数。`search.max_inflight` 在 legacy peer 模式控制传输工作线程数，在 reference 模式控制单查询并行分片请求数；optimized peer 使用 `peer.communication.transfer_workers`。CMake 构建类型和编译进程数属于开发工具设置，不是检索实验参数。
 
@@ -65,8 +68,8 @@ cmake --build build --parallel 4
 `partition.overlap_fraction` 即 ρ，控制校准样本中多归属点的比例；应用到其他数据时应报告实际比例。**RF 是各分片向量总份数 / 唯一向量数**，不是服务器数量。例如 10% 的点有两个副本、其余只有一个副本，则 RF=1.1；若其中部分点有三个副本，RF 更高。两者分别记录在索引 manifest 中。
 
 ```sh
-.venv/bin/dhdgs partition-study --config configs/dhdgs.yaml
-.venv/bin/dhdgs assign --config configs/dhdgs.yaml
+.venv/bin/dhdgs partition-study --config configs/dhdgs_pilot.yaml
+.venv/bin/dhdgs assign --config configs/dhdgs_pilot.yaml
 ```
 
 几何实验使用 `experiment.metrics/overlap_fractions/seeds`，保存到 `partition/seed_<seed>/`；训练、校准和评估 ID 互不重叠并排除官方查询 ID。`assign` 读取 `assignment.model/threshold`，流式生成全库归属计划，不执行网络 shuffle。其 metric、方法和 ρ 以所选模型与阈值文件为依据，配置必须匹配。几何实验目录和归属计划目录同样拒绝覆盖。
@@ -78,9 +81,9 @@ cmake --build build --parallel 4
 将 YAML 的 `network.transport` 改为 `tcp`，分别在三个终端运行：
 
 ```sh
-.venv/bin/dhdgs serve --config configs/dhdgs.yaml --node-id 0
-.venv/bin/dhdgs serve --config configs/dhdgs.yaml --node-id 1
-.venv/bin/dhdgs serve --config configs/dhdgs.yaml --node-id 2
+.venv/bin/dhdgs serve --config configs/dhdgs_pilot.yaml --node-id 0
+.venv/bin/dhdgs serve --config configs/dhdgs_pilot.yaml --node-id 1
+.venv/bin/dhdgs serve --config configs/dhdgs_pilot.yaml --node-id 2
 ```
 
 再执行 `query` 或 `benchmark`。默认地址是本机回环地址，测试不依赖另外两台服务器。服务启动时输出监听端点；Ctrl-C 停止。peer 模式只在入口提交和跨节点分支时传输查询与种子，节点内部直接调用本地扩展；各分支主动回传最终结果，顶层负责保活及合并。协议校验索引版本、配置、预算、目的节点和消息长度；失败显式上报。

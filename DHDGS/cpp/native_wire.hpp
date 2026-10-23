@@ -1,4 +1,5 @@
 #pragma once
+#include "native_transport.hpp"
 #include <cstdint>
 #include <functional>
 #include <map>
@@ -40,8 +41,16 @@ struct Endpoint {
   Endpoint(const std::string& host, uint16_t port);
 };
 struct Config {
+  std::vector<int> cpu_ids;
+  std::string transport = "tcp";
+  uint64_t rdma_poll_interval_us = 50;
   size_t max_pending = 4096;
-  size_t max_connections_per_endpoint = 2;
+  size_t max_connections_per_endpoint = 2; // 0: no application-level count limit
+  uint64_t connection_idle_ms = 0; // 0 disables trimming excess idle connections
+  size_t min_connections_per_endpoint = 0; // 0 preserves on-demand connection setup
+  size_t max_connecting = 4; // per reactor, across endpoints
+  bool async_connect = false; // bounded connector pool; reactor retains framing ownership
+  bool async_connect_progress = true; // also progress unpublished CM/handshake events
   size_t max_message_bytes = 67108864;
   size_t max_endpoints = 64;
   uint64_t timeout_ms = 5000;
@@ -70,6 +79,10 @@ class Client {
   // Invalid payload throws before accepting. Callback must be short/nonblocking;
   // it may request close(), but must not destroy this Client on its reactor.
   bool submit(const Endpoint&, const Value&, Callback);
+  bool prepare(const Endpoint&); // connection-only warmup, never sends a query
+  Value metrics() const;
+  size_t queued() const;
+  size_t ready_connections() const;
   void close(); // cancel queued/inflight; callbacks invoked without internal locks
   size_t pending() const;
  private:

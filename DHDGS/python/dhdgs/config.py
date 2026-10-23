@@ -30,12 +30,18 @@ SCHEMA = {
     "version": int, "seed": int,
     "benchmark_results": {"memory_limit_bytes":int,"json_shard_bytes":int,"processor_timeout_seconds":int},
     "runtime": {"blas_threads": int,"python_switch_interval_ms":float},
-    "native_runtime": {"data_enabled":bool,"head_enabled":bool,
+    "native_runtime": {"compute_cpu_ids":list,"data_enabled":bool,"head_enabled":bool,
                        "receive_threads":int,"receive_queue_capacity":int,
                        "max_connections":int,"compute_queue_capacity":int,
                        "network_queue_capacity":int,"connections_per_endpoint":int,
-                       "route_threads":int,"merge_threads":int,"early_parent_report":bool,"queued_control_registration":bool,"move_head_reports":bool,
-                       "network_module":{"enabled":bool,"send_min_reactors":int,"send_max_reactors":int,
+                       "route_threads":int,"merge_threads":int,"early_parent_report":bool,"queued_control_registration":bool,"move_head_reports":bool,"search_thread_reports":bool,
+                       "head_maintenance_mode":str,
+                       "report_capacity_retry_ms":int,
+                       "report_network":{"enabled":bool,"connections_per_endpoint_per_reactor":int},
+                       "result_sink":{"enabled":bool,"writers":int,"batch_records":int,"batch_bytes":int,"completion":str,"max_retained_bytes":int},
+                       "head_entry_network":{"enabled":bool,"send_min_reactors":int,"send_max_reactors":int,
+                                             "connections_per_endpoint_per_reactor":int},
+                       "network_module":{"scale_up_busy_fraction":float,"async_connect_progress":bool,"async_connect":bool,"cpu_ids":list,"transport":str,"rdma_poll_interval_us":int,"min_connections_per_endpoint_per_reactor":int,"max_connecting_per_reactor":int,"send_pressure_mode":str,"rebalance_connections":bool,"rebalance_interval_ms":int,"rebalance_batch":int,"enabled":bool,"send_min_reactors":int,"send_max_reactors":int,
                            "receive_min_reactors":int,"receive_max_reactors":int,"handlers_per_receive_reactor":int,
                            "connections_per_endpoint_per_reactor":int,"send_queue_capacity":int,
                            "receive_queue_capacity_per_reactor":int,"max_receive_connections":int,
@@ -111,7 +117,9 @@ SCHEMA = {
 def _check(values, schema, path=""):
     optional={'listen_backlog','rpc_tcp_nodelay'} if path=='network' else set()
     if path=='':optional={'native_runtime','benchmark_results'}  # Archived plans remain usable.
-    if path=='native_runtime':optional={'adaptive_control','network_module','early_parent_report','queued_control_registration','move_head_reports'}
+    if path=='native_runtime':optional={'compute_cpu_ids','report_network','result_sink','report_capacity_retry_ms','adaptive_control','network_module','early_parent_report','queued_control_registration','move_head_reports','search_thread_reports','head_maintenance_mode','head_entry_network'}
+    if path=='native_runtime.network_module':optional={'scale_up_busy_fraction','async_connect_progress','async_connect','cpu_ids','transport','rdma_poll_interval_us','min_connections_per_endpoint_per_reactor','max_connecting_per_reactor','send_pressure_mode','rebalance_connections','rebalance_interval_ms','rebalance_batch'}
+    if path=='native_runtime.result_sink':optional={'max_retained_bytes'}
     if path=='peer.connection_pool':optional={'head_scheduling','data_scheduling'}
     if path=='peer.head_pipeline':optional={'ack_inline'}
     if path=='peer.head_direct':optional={'queued_reports','result_channels','report_queue_capacity','report_connections_per_channel','completion_threads','report_backend','report_registration','completion_dispatch','result_backend'}
@@ -141,12 +149,48 @@ def validate(c):
     if any(v <= 0 for v in c.get('benchmark_results',{}).values()):
         raise ValueError('benchmark_results limits must be positive')
     nr = c.get('native_runtime', {})
+    if nr.get('head_maintenance_mode','single') not in ('single','per_node'):
+        raise ValueError('head_maintenance_mode must be single or per_node')
+    sink=nr.get('result_sink')
+    if sink is not None:
+        if not 1<=sink['writers']<=64 or not 1<=sink['batch_records']<=4096 or sink['batch_bytes']<=0 or sink.get('max_retained_bytes',8<<30)<=0 or sink['completion'] not in ('write','fdatasync'):
+            raise ValueError('Invalid native result sink settings')
+    if nr.get('report_capacity_retry_ms',1)<=0:
+        raise ValueError('report_capacity_retry_ms must be positive')
+    report_net=nr.get('report_network')
+    if report_net is not None:
+        if report_net['connections_per_endpoint_per_reactor']<0:
+            raise ValueError('Invalid report_network connections')
+        if report_net['enabled'] and not nr.get('network_module',{}).get('enabled',False):
+            raise ValueError('report_network requires network_module')
+    entry=nr.get('head_entry_network')
+    if entry is not None:
+        if entry['send_min_reactors']<1 or entry['send_max_reactors']<0 or (entry['send_max_reactors'] and entry['send_min_reactors']>entry['send_max_reactors']) or entry['connections_per_endpoint_per_reactor']<0:
+            raise ValueError('Invalid head_entry_network resource bounds')
+        if entry['enabled'] and not nr.get('network_module',{}).get('enabled',False):
+            raise ValueError('head_entry_network requires network_module')
+    if nr.get('data_enabled',False) and nr.get('search_thread_reports',False) and not nr.get('early_parent_report',False):
+        raise ValueError('search_thread_reports requires early_parent_report')
     nm=nr.get('network_module')
     if nm is not None:
-        if any(v<=0 for k,v in nm.items() if k!='enabled') or any(nm[x+'_min_reactors']>nm[x+'_max_reactors'] or nm[x+'_max_reactors']>64 for x in ('send','receive')):
+        if not 1<=nm.get('rdma_poll_interval_us',50)<=100000:
+            raise ValueError('rdma_poll_interval_us must be in [1,100000]')
+        if nm.get('transport','tcp') not in ('tcp','rdma'):
+            raise ValueError('network_module.transport must be tcp or rdma')
+        if nm.get('transport','tcp')=='rdma' and not (nm['enabled'] and nr.get('data_enabled') and nr.get('head_enabled')):
+            raise ValueError('RDMA requires native data/head and network_module enabled')
+        unlimited_keys={'send_max_reactors','receive_max_reactors','connections_per_endpoint_per_reactor','max_receive_connections'}
+        if any(nm[k]<0 for k in unlimited_keys) or any(v<=0 for k,v in nm.items() if k not in unlimited_keys | {'async_connect_progress','async_connect','cpu_ids','enabled','transport','send_pressure_mode','rebalance_connections','min_connections_per_endpoint_per_reactor'}) or any(nm[x+'_max_reactors'] and nm[x+'_min_reactors']>nm[x+'_max_reactors'] for x in ('send','receive')):
             raise ValueError('Invalid network_module resource bounds')
+        if nm.get('min_connections_per_endpoint_per_reactor',0)<0 or (nm['connections_per_endpoint_per_reactor'] and nm.get('min_connections_per_endpoint_per_reactor',0)>nm['connections_per_endpoint_per_reactor']):
+            raise ValueError('Invalid warm connection count')
+        if not 0<nm.get('scale_up_busy_fraction',0.5)<=1:raise ValueError('Invalid network scale_up_busy_fraction')
+        if nm.get('send_pressure_mode','pending') not in ('pending','queued'):
+            raise ValueError('Invalid send pressure mode')
         if nm['enabled'] and nr.get('adaptive_control',{}).get('enabled',False):
             raise ValueError('Enable network_module or adaptive_control separately')
+    for ids in (nr.get('compute_cpu_ids',[]),(nm or {}).get('cpu_ids',[])):
+        if len(ids)!=len(set(ids)) or any(type(i) is not int or i<0 or i>=1024 for i in ids):raise ValueError('Invalid native CPU list')
     ac=nr.get('adaptive_control')
     if ac is not None and (any(v<=0 for k,v in ac.items() if k!='enabled') or ac['min_lanes']>ac['max_lanes'] or ac['max_lanes']>64):
         raise ValueError('Invalid adaptive_control lane bounds or thresholds')
@@ -396,27 +440,27 @@ def load_config(path):
     if (isinstance(raw,dict) and raw.get('version')==1 and isinstance(raw.get('peer'),dict)
             and isinstance(raw.get('storage'),dict) and 'execution_model' not in raw['peer']
             and 'io' not in raw['storage']):
-        defaults=yaml.load((Path(__file__).resolve().parents[2]/'configs/dhdgs.yaml').read_text(),Loader=StrictLoader)
+        defaults=yaml.load((Path(__file__).resolve().parents[2]/'configs/dhdgs_pilot.yaml').read_text(),Loader=StrictLoader)
         raw['peer']['execution_model']='blocking'
         raw['storage']['io']=copy.deepcopy(defaults['storage']['io'])
         migration+=['peer.execution_model=blocking','storage.io (inactive canonical defaults)']
     if isinstance(raw,dict) and isinstance(raw.get('peer'),dict) and 'communication' not in raw['peer']:
-        defaults=yaml.load((Path(__file__).resolve().parents[2]/'configs/dhdgs.yaml').read_text(),Loader=StrictLoader)
+        defaults=yaml.load((Path(__file__).resolve().parents[2]/'configs/dhdgs_pilot.yaml').read_text(),Loader=StrictLoader)
         raw['peer']['communication']=copy.deepcopy(defaults['peer']['communication'])
         raw['peer']['communication']['mode']='legacy'
         migration.append('peer.communication.mode=legacy (archived protocol behavior); inactive capacities from canonical YAML')
     if isinstance(raw,dict) and isinstance(raw.get('peer'),dict) and 'admission' not in raw['peer']:
-        defaults=yaml.load((Path(__file__).resolve().parents[2]/'configs/dhdgs.yaml').read_text(),Loader=StrictLoader)
+        defaults=yaml.load((Path(__file__).resolve().parents[2]/'configs/dhdgs_pilot.yaml').read_text(),Loader=StrictLoader)
         raw['peer']['admission']=copy.deepcopy(defaults['peer']['admission'])
         raw['peer']['admission']['mode']='direct'
         migration.append('peer.admission.mode=direct (archived synchronous executor submission)')
     if isinstance(raw,dict) and isinstance(raw.get('peer'),dict) and 'sender' not in raw['peer']:
-        defaults=yaml.load((Path(__file__).resolve().parents[2]/'configs/dhdgs.yaml').read_text(),Loader=StrictLoader)
+        defaults=yaml.load((Path(__file__).resolve().parents[2]/'configs/dhdgs_pilot.yaml').read_text(),Loader=StrictLoader)
         raw['peer']['sender']=copy.deepcopy(defaults['peer']['sender'])
         raw['peer']['sender']['mode']='executor'
         migration.append('peer.sender.mode=executor (archived communication submission)')
     if isinstance(raw,dict) and isinstance(raw.get('peer'),dict) and 'compute' not in raw['peer']:
-        defaults=yaml.load((Path(__file__).resolve().parents[2]/'configs/dhdgs.yaml').read_text(),Loader=StrictLoader)
+        defaults=yaml.load((Path(__file__).resolve().parents[2]/'configs/dhdgs_pilot.yaml').read_text(),Loader=StrictLoader)
         raw['peer']['compute']=copy.deepcopy(defaults['peer']['compute'])
         raw['peer']['compute']['mode']='executor'
         migration.append('peer.compute.mode=executor (archived on-demand compute workers)')
@@ -454,9 +498,13 @@ def load_config(path):
         raw['peer']['control']['completion_fast_path']=False
         migration.append('peer.control.completion_fast_path=False (archived queued local completion)')
     if isinstance(raw,dict) and 'native_runtime' not in raw:
-        defaults=yaml.load((Path(__file__).resolve().parents[2]/'configs/dhdgs.yaml').read_text(),Loader=StrictLoader)
+        defaults=yaml.load((Path(__file__).resolve().parents[2]/'configs/dhdgs_pilot.yaml').read_text(),Loader=StrictLoader)
         raw['native_runtime']=copy.deepcopy(defaults['native_runtime'])
         raw['native_runtime'].update(data_enabled=False,head_enabled=False)
+        raw['native_runtime']['network_module'].update(enabled=False,transport='tcp',cpu_ids=[])
+        raw['native_runtime']['head_entry_network']['enabled']=False
+        raw['native_runtime']['report_network']['enabled']=False
+        raw['native_runtime']['compute_cpu_ids']=[]
         migration.append('native_runtime disabled (archived Python runtime)')
     validate(raw)
     c = copy.deepcopy(raw)

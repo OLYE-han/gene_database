@@ -285,7 +285,12 @@ V aggregate_native(const V &c, const V &reports, const V &transfer,
   stats["server_to_server_migrations"] = uint64_t(0);
   stats["server_to_server_branches"] = uint64_t(rows.size() - 1);
   stats["exact_reranked"] = stats["exact_distance_evaluations"];
-  stats["transport"] = "tcp";
+  // The public API may still use TCP; this field describes inter-node RPCs.
+  std::string transport = "tcp";
+  if (has(c, "native_runtime") && has(at(c, "native_runtime"), "network_module"))
+    transport = optional<std::string>(at(at(c, "native_runtime"), "network_module"),
+                                      "transport", "tcp");
+  stats["transport"] = transport;
   stats["execution"] = "peer_single_visit_parallel_local";
   stats["stop_reason"] = "all_branch_manifests_complete";
   stats["branch_stop_reasons"] = std::move(stop_reasons);
@@ -303,6 +308,7 @@ struct HeadRuntime::Impl {
     std::mutex mu;
     std::string id, token, root, error;
     V query_id, state;
+    HeadRuntime::Completion completion;
     std::vector<double> input;
     std::map<std::string, V> reports;
     std::map<std::string, std::string> digests;
@@ -310,9 +316,12 @@ struct HeadRuntime::Impl {
     std::set<size_t> nodes;
     std::set<size_t> lease_inflight;
     M trace, entry = counts(), control = counts(), by_kind, transfer_failures;
+    M branch_received, branch_ack;
     bool acked = false, all_reports = false, merging = false, finished = false;
     size_t responses = 0, attempts = 0;
+    size_t maintenance_owner = 0;
     uint64_t submitted = 0, deadline = 0, next_lease = 0, finished_ns = 0;
+    std::vector<uint64_t> node_next_lease;
     double route_cpu = 0;
     Query() {
       control["errors"] = uint64_t(0);
@@ -324,6 +333,8 @@ struct HeadRuntime::Impl {
   RouteFunction route;
   size_t node_count, capacity, max_retries, budget, slots;
   bool move_head_reports = false;
+  bool per_node_maintenance = false;
+  size_t maintenance_count = 1, next_maintenance_owner = 0;
   double lease_ms;
   uint64_t timeout_ns, heartbeat_ns, retention_ns;
   std::unique_ptr<Pool> routes, merges;
@@ -334,12 +345,15 @@ struct HeadRuntime::Impl {
   std::mutex close_mu;
   std::condition_variable wake, done_cv;
   std::unordered_map<std::string, std::shared_ptr<Query>> queries;
-  std::unordered_map<std::string, std::shared_ptr<Query>> live;
-  std::deque<std::pair<std::string, uint64_t>> expiry;
+  // A query is registered with its deadline owner and each involved node.
+  // Registry access uses mu; work on each query runs after releasing mu.
+  std::vector<std::unordered_map<std::string, std::shared_ptr<Query>>> live;
+  std::vector<std::deque<std::pair<std::string, uint64_t>>> expiry;
+  std::vector<uint64_t> maintenance_ticks, maintenance_visits, lease_attempts;
   std::deque<V> finished;
   size_t active = 0;
   bool stopping = false, closed = false;
-  std::thread timer;
+  std::vector<std::thread> timers;
   A head_endpoint;
   Impl(V c, V m, RouteFunction fn)
       : config(std::move(c)), manifest(std::move(m)), route(std::move(fn)) {
@@ -359,6 +373,16 @@ struct HeadRuntime::Impl {
       endpoints.emplace_back(get<std::string>(n, "host"),
                              get<uint16_t>(n, "port"));
     node_count = endpoints.size();
+    const auto maintenance_mode = optional<std::string>(nc, "head_maintenance_mode", "single");
+    check(maintenance_mode == "single" || maintenance_mode == "per_node", "Invalid head maintenance mode");
+    per_node_maintenance = maintenance_mode == "per_node";
+    maintenance_count = per_node_maintenance ? node_count : 1;
+    check(maintenance_count > 0, "Head requires data nodes");
+    live.resize(maintenance_count);
+    expiry.resize(maintenance_count);
+    maintenance_ticks.resize(maintenance_count);
+    maintenance_visits.resize(maintenance_count);
+    lease_attempts.resize(maintenance_count);
     dhwire::Config wc;
     wc.max_pending = get<size_t>(nc, "network_queue_capacity");
     wc.max_connections_per_endpoint =
@@ -366,11 +390,22 @@ struct HeadRuntime::Impl {
     wc.max_message_bytes = get<size_t>(net, "max_message_bytes");
     wc.max_endpoints = node_count;
     wc.timeout_ms = uint64_t(get<double>(p, "handoff_timeout_seconds") * 1000);
-    entries = std::make_unique<dhnet::Client>(wc,config);
+    V entry_config = config;
+    if (has(nc, "head_entry_network")) {
+      const auto &overrides = at(nc, "head_entry_network");
+      if (get<bool>(overrides, "enabled")) {
+        check(has(nc, "network_module") && get<bool>(at(nc, "network_module"), "enabled"),
+              "head_entry_network requires network_module");
+        auto &policy = entry_config.map().at("native_runtime").map().at("network_module").map();
+        for (const char *key : {"send_min_reactors", "send_max_reactors", "connections_per_endpoint_per_reactor"})
+          policy[key] = at(overrides, key);
+      }
+    }
+    entries = std::make_unique<dhnet::Client>(wc,entry_config);
     wc.timeout_ms = uint64_t(get<double>(p, "control_timeout_seconds") * 1000);
     leases = std::make_unique<dhnet::Client>(wc,config);
-    routes = std::make_unique<Pool>(get<size_t>(nc, "route_threads"), capacity);
-    merges = std::make_unique<Pool>(get<size_t>(nc, "merge_threads"), capacity);
+    routes = std::make_unique<Pool>(get<size_t>(nc, "route_threads"), capacity,optional<std::vector<int>>(nc,"compute_cpu_ids",{}));
+    merges = std::make_unique<Pool>(get<size_t>(nc, "merge_threads"), capacity,optional<std::vector<int>>(nc,"compute_cpu_ids",{}));
     dhwire::ServerConfig sc;
     sc.host = get<std::string>(p, "head_bind_host");
     sc.port = get<uint16_t>(p, "head_port");
@@ -385,9 +420,24 @@ struct HeadRuntime::Impl {
         },dhnet::Server::Handler{},config);
     head_endpoint = {get<std::string>(p, "head_advertise_host"),
                      uint64_t(server->port())};
-    timer = std::thread([this] { maintain(); });
+    try {
+      for (size_t i = 0; i < maintenance_count; ++i)
+        timers.emplace_back([this, i] { maintain(i); });
+    } catch (...) {
+      { std::lock_guard<std::mutex> l(mu); stopping = true; }
+      wake.notify_all();
+      for (auto &timer : timers) if (timer.joinable()) timer.join();
+      throw;
+    }
   }
   ~Impl() { close(); }
+  // Caller holds q->mu. All users of mu release it before locking a query.
+  void track_node(const std::shared_ptr<Query> &q, size_t node) {
+    if (!q->nodes.insert(node).second || !per_node_maintenance || q->finished || q->merging)
+      return;
+    std::lock_guard<std::mutex> l(mu);
+    live.at(node).emplace(q->id, q);
+  }
   V reports(const Query &q) {
     A result;
     for (const auto &[id, r] : q.reports)
@@ -441,8 +491,12 @@ struct HeadRuntime::Impl {
                     if (!retry)
                       q->error = e.what();
                   }
-                  if (!retry)
+                  if (!retry) {
+                    const bool already_merging = q->merging;
                     maybe_merge(q);
+                    if (!already_merging && q->merging)
+                      q->trace["completion_gate_kind"] = "entry_ack";
+                  }
                 }
                 if (retry)
                   dispatch(q);
@@ -478,7 +532,14 @@ struct HeadRuntime::Impl {
         m["head_endpoint"] = head_endpoint;
         if (has(config, "_cluster_revision"))
           m["cluster_revision"] = at(config, "_cluster_revision");
-        q->nodes.insert(get<size_t>(s, "target_node"));
+        const auto target = get<size_t>(s, "target_node");
+        track_node(q, target);
+        if (per_node_maintenance) {
+          std::lock_guard<std::mutex> registry(mu);
+          if (!q->nodes.count(q->maintenance_owner))
+            live[q->maintenance_owner].erase(q->id);
+          q->maintenance_owner = target;
+        }
         q->state = std::move(s);
         q->trace["routing_done_ns"] = stamp();
         q->trace["entry_submit_enter_ns"] = stamp();
@@ -492,16 +553,18 @@ struct HeadRuntime::Impl {
       maybe_merge(q);
     }
   }
-  std::string submit(std::vector<double> query, V qid) {
+  std::string submit(std::vector<double> query, V qid, std::string request_id, HeadRuntime::Completion completion) {
     auto q = std::make_shared<Query>();
-    q->id = identifier();
+    q->id = request_id.empty() ? identifier() : std::move(request_id);
     q->token = identifier();
     q->root = identifier();
     q->query_id = std::move(qid);
     q->input = std::move(query);
+    q->completion = std::move(completion);
     q->submitted = stamp();
     q->deadline = q->submitted + timeout_ns;
     q->next_lease = q->submitted + heartbeat_ns;
+    q->node_next_lease.assign(node_count, q->next_lease);
     q->trace = {{"search_enter_ns", q->submitted}};
     {
       std::lock_guard<std::mutex> l(mu);
@@ -511,14 +574,15 @@ struct HeadRuntime::Impl {
       check(queries.size() <
                 capacity + get<size_t>(at(config, "peer"), "max_tombstones"),
             "Native head retention capacity exceeded");
-      queries.emplace(q->id, q);
-      live.emplace(q->id, q);
+      check(queries.emplace(q->id, q).second, "Duplicate native request ID");
+      q->maintenance_owner = next_maintenance_owner++ % maintenance_count;
+      live[q->maintenance_owner].emplace(q->id, q);
       ++active;
     }
     if (!routes->submit([this, q] { route_query(q); })) {
       std::lock_guard<std::mutex> l(mu);
       queries.erase(q->id);
-      live.erase(q->id);
+      live[q->maintenance_owner].erase(q->id);
       --active;
       throw std::runtime_error("Native route queue capacity exceeded");
     }
@@ -542,10 +606,10 @@ struct HeadRuntime::Impl {
     std::lock_guard<std::mutex> l(q->mu);
     check(get<std::string>(message, "token") == q->token,
           "Invalid query control token");
-    q->nodes.insert(node);
+    track_node(q, node);
     for (auto n : get<std::vector<size_t>>(message, "involved_nodes")) {
       check(n < node_count, "Invalid involved node");
-      q->nodes.insert(n);
+      track_node(q, n);
     }
     if(has(message,"children"))for(const auto& child:array(at(message,"children"))) {
       const auto bid=get<std::string>(child,"branch_id");
@@ -557,7 +621,7 @@ struct HeadRuntime::Impl {
         check(!q->finished&&!q->merging,"Late unknown child announcement");
         q->announced_children.emplace(bid,child);
       }
-      q->nodes.insert(get<size_t>(child,"node_id"));
+      track_node(q, get<size_t>(child,"node_id"));
       if(!q->reports.count(bid))q->all_reports=false;
     }
     for (auto &r : incoming) {
@@ -570,6 +634,7 @@ struct HeadRuntime::Impl {
       else {
         check(!q->finished && !q->merging, "Late unknown branch result");
         q->digests.emplace(bid, std::move(hash));
+        q->branch_received[bid] = received;
         // message owns this payload; validation above has already consumed it.
         // Keep the digest for retries, but transfer the large report only once.
         if(move_head_reports)q->reports.emplace(bid, std::move(r));
@@ -614,13 +679,20 @@ struct HeadRuntime::Impl {
           {"lease_ms", lease_ms},
           {"involved_nodes",
            vector(std::vector<size_t>(q->nodes.begin(), q->nodes.end()))}};
-    out.sent = [this, q, kind](uint64_t ns, size_t tx) {
+    const auto control_branch = optional<std::string>(message, "branch_id", "");
+    out.sent = [this, q, kind, control_branch](uint64_t ns, size_t tx) {
       std::lock_guard<std::mutex> l(q->mu);
       --q->responses;
       add(q->control, "response_bytes", double(tx));
       add(q->by_kind[kind].map(), "response_bytes", double(tx));
       q->trace["last_report_ack_sent_ns"] = ns;
+      if (kind == "result") q->branch_ack[control_branch] = ns;
+      const bool already_merging = q->merging;
       maybe_merge(q);
+      if (!already_merging && q->merging) {
+        q->trace["completion_gate_kind"] = kind;
+        q->trace["completion_gate_branch_id"] = control_branch;
+      }
     };
     return out;
   }
@@ -650,7 +722,7 @@ struct HeadRuntime::Impl {
       add(q->control, "errors", 1);
     }
   }
-  void maintain() {
+  void maintain(size_t lane) {
     for (;;) {
       std::vector<std::shared_ptr<Query>> selected, retired;
       {
@@ -659,16 +731,19 @@ struct HeadRuntime::Impl {
                           [this] { return stopping; }))
           return;
         const auto now = stamp();
-        while (!expiry.empty() && now - expiry.front().second > retention_ns) {
-          auto it = queries.find(expiry.front().first);
+        ++maintenance_ticks[lane];
+        auto &expired = expiry[lane];
+        while (!expired.empty() && now - expired.front().second > retention_ns) {
+          auto it = queries.find(expired.front().first);
           if (it != queries.end()) {
             retired.push_back(std::move(it->second));
             queries.erase(it);
           }
-          expiry.pop_front();
+          expired.pop_front();
         }
-        for (const auto &[id, q] : live)
+        for (const auto &[id, q] : live[lane])
           selected.push_back(q);
+        maintenance_visits[lane] += selected.size();
       }
       for (auto q : selected) {
         std::vector<size_t> renew;
@@ -677,17 +752,27 @@ struct HeadRuntime::Impl {
           const auto now = stamp();
           if (q->finished || q->merging)
             continue;
-          if (now >= q->deadline) {
+          if (lane == q->maintenance_owner && now >= q->deadline) {
             q->error = q->transfer_failures.empty()?"Global query deadline exceeded":"Global query deadline exceeded; child report missing after transfer failure";
             maybe_merge(q);
             continue;
           }
-          if (now >= q->next_lease) {
+          if (per_node_maintenance) {
+            if (q->nodes.count(lane) && now >= q->node_next_lease[lane]) {
+              q->node_next_lease[lane] = now + heartbeat_ns;
+              if (q->lease_inflight.insert(lane).second)
+                renew.push_back(lane);
+            }
+          } else if (now >= q->next_lease) {
             q->next_lease = now + heartbeat_ns;
             for (auto n : q->nodes)
               if (q->lease_inflight.insert(n).second)
                 renew.push_back(n);
           }
+        }
+        if (!renew.empty()) {
+          std::lock_guard<std::mutex> l(mu);
+          lease_attempts[lane] += renew.size();
         }
         for (auto n : renew)
           lease(q, n, false);
@@ -724,6 +809,8 @@ struct HeadRuntime::Impl {
         out["metric"] = at(manifest, "metric");
         out["branch_reports"] = std::move(rs);
         stats["entry_rpc"] = q->entry;
+        stats["branch_report_received_ns"] = q->branch_received;
+        stats["branch_report_ack_sent_ns"] = q->branch_ack;
         stats["transfer_failures_observed"]=q->transfer_failures;
         stats["announced_child_count"]=uint64_t(q->announced_children.size());
         stats["head_route_cpu_ms"] = q->route_cpu;
@@ -793,12 +880,21 @@ struct HeadRuntime::Impl {
     }
     {
       std::lock_guard<std::mutex> l(mu);
-      finished.push_back(std::move(result));
-      live.erase(q->id);
-      expiry.emplace_back(q->id, stamp());
+      if (!q->completion && has(result,"stats") && has(at(result,"stats"),"native_head_timestamps"))
+        result.map().at("stats").map().at("native_head_timestamps").map()["completed_enqueued_ns"]=stamp();
+      // Direct native capture bypasses the consumer queue. Errors also have
+      // a completion boundary; they must release the benchmark admission slot.
+      result.map()["retrieval_done_ns"] = has(at(result,"stats"),"native_head_timestamps")
+          ? at(at(at(result,"stats"),"native_head_timestamps"),"native_ready_ns") : V(stamp());
+      if (!q->completion) finished.push_back(std::move(result));
+      for (auto &registry : live) registry.erase(q->id);
+      expiry[q->maintenance_owner].emplace_back(q->id, stamp());
       --active;
     }
-    done_cv.notify_one();
+    if (q->completion) {
+      auto completion = std::move(q->completion);
+      completion(std::move(result));
+    } else done_cv.notify_one();
     for (auto n : cancel_nodes)
       lease(q, n, true);
   }
@@ -808,14 +904,27 @@ struct HeadRuntime::Impl {
     done_cv.wait_for(l, std::chrono::milliseconds(timeout),
                      [this] { return !finished.empty() || closed; });
     while (!finished.empty() && out.size() < maximum) {
-      out.push_back(std::move(finished.front()));
+      auto& value=finished.front();
+      if(has(value,"stats") && has(at(value,"stats"),"native_head_timestamps"))
+        value.map().at("stats").map().at("native_head_timestamps").map()["completed_dequeued_ns"]=stamp();
+      out.push_back(std::move(value));
       finished.pop_front();
     }
     return out;
   }
   V metrics() const {
     std::lock_guard<std::mutex> l(mu);
+    A maintenance;
+    for (size_t i = 0; i < maintenance_count; ++i)
+      maintenance.emplace_back(M{{"node_id", per_node_maintenance ? V(uint64_t(i)) : V()},
+                                 {"tracked_queries", uint64_t(live[i].size())},
+                                 {"retained_queries", uint64_t(expiry[i].size())},
+                                 {"ticks", maintenance_ticks[i]}, {"query_visits", maintenance_visits[i]},
+                                 {"lease_attempts", lease_attempts[i]}});
     return M{{"active", uint64_t(active)},
+             {"maintenance_mode", per_node_maintenance ? "per_node" : "single"},
+             {"maintenance_threads", uint64_t(maintenance_count)},
+             {"maintenance_lanes", std::move(maintenance)},
              {"completed_pending", uint64_t(finished.size())},
              {"retained_identities", uint64_t(queries.size())},
              {"routes", routes->metrics()},
@@ -836,8 +945,8 @@ struct HeadRuntime::Impl {
         selected.push_back(q);
     }
     wake.notify_all();
-    if (timer.joinable())
-      timer.join();
+    for (auto &timer : timers)
+      if (timer.joinable()) timer.join();
     routes->close();
     entries->close();
     for (auto q : selected) {
@@ -860,8 +969,8 @@ struct HeadRuntime::Impl {
 HeadRuntime::HeadRuntime(V c, V m, RouteFunction r)
     : impl_(std::make_unique<Impl>(std::move(c), std::move(m), std::move(r))) {}
 HeadRuntime::~HeadRuntime() { close(); }
-std::string HeadRuntime::submit(std::vector<double> q, V id) {
-  return impl_->submit(std::move(q), std::move(id));
+std::string HeadRuntime::submit(std::vector<double> q, V id, std::string request_id, Completion completion) {
+  return impl_->submit(std::move(q), std::move(id), std::move(request_id), std::move(completion));
 }
 V HeadRuntime::completed(size_t n, uint64_t ms) {
   return impl_->completed(n, ms);

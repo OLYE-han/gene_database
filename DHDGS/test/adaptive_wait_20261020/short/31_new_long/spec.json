@@ -1,9 +1,0 @@
-{
-  "phase": "short",
-  "variant": "new_long",
-  "source": "source_v6",
-  "threads": 32,
-  "queries": 100000,
-  "concurrency": 256,
-  "warmup": 32
-}

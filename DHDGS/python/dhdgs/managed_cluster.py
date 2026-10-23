@@ -204,12 +204,49 @@ class ClusterHead:
             raise RuntimeError('A benchmark capture or report is already running')
         try:
             with self.exclusive('benchmark'):
+                if getattr(self.engine,'disk_mode',False):
+                    return self._capture_disk_benchmark(opts)
                 captured=self._capture_benchmark(opts)
             # All query/snapshot work is complete. Ordinary queries and safe
             # configuration transactions can proceed while this report runs.
             return self._finish_benchmark(captured)
         finally:
             self.benchmark_lock.release()
+
+    def _capture_disk_benchmark(self,opts):
+        """Native retrieval into RAM, then deferred output; return without analysis."""
+        from .metrics import process_snapshot
+        count,concurrency,warmup=[opts[k] for k in ('queries','concurrency','warmup')]
+        path=self.new_run('disk_benchmark');save_json(path/'benchmark_options.json',opts)
+        try:
+            selection=json.loads(Path(self.settings['query_selection']).read_text())['validation'][:count]
+            if len(selection)!=count:raise ValueError('Not enough validation queries')
+            vectors=np.load(self.c['query']['vectors'],mmap_mode='r');ids=np.load(self.c['query']['ids'],mmap_mode='r')
+            x=np.ascontiguousarray(vectors[selection],dtype=np.float64)
+            qids=np.ascontiguousarray(ids[selection],dtype=np.uint64)
+            truth=[self.truth(int(row),self.c['search']['top_k']) for row in selection]
+            if warmup:
+                picks=np.arange(warmup)%count
+                self.engine.run_to_disk(x[picks],qids[picks],path/'warmup',min(concurrency,warmup))
+            self.quiescent();before=self.pull();head_before=[process_snapshot()]
+            disk=self.engine.run_to_disk(x,qids,path/'results',concurrency)
+            head_after=[process_snapshot()]
+            save_json(path/'disk_manifest.json',disk)
+            self.quiescent();after=self.pull()
+            rev=revision(self.c)
+            settings=self.c['benchmark_results']
+            save_json(path/'capture_context.json',dict(settings=settings,selection=selection,truth=truth,
+                query_ids=qids.tolist(),config_revision=rev,max_message_bytes=self.c['network']['max_message_bytes'],
+                offered_ns=disk['offered_ns']))
+            save_json(path/'report_context.json',dict(count=count,concurrency=concurrency,offered_ns=disk['offered_ns'],
+                config_revision=rev,max_expansions=self.c['search']['max_expansions'],before=before,after=after,
+                head_before=head_before,head_after=head_after,receiver_roles={},report_receiver_pids=[],
+                build_profile=self.engine.manifest.get('build_profile'),capture=disk))
+            return dict(directory=str(path),offline_report_pending=True,query_count=count,
+                completion=disk['completion'],result_sink=disk,
+                raw_completion_qps=count/((disk['last_completion_ns']-disk['offered_ns'])/1e9))
+        except BaseException as exc:
+            save_json(path/'failed.json',dict(error=str(exc),revision=revision(self.c)));raise
 
     def _capture_benchmark(self,opts):
         count,concurrency,warmup=[opts[k] for k in ('queries','concurrency','warmup')]

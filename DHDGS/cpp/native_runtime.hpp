@@ -20,6 +20,7 @@ public:
   ~DataRuntime();
   dhwire::Reply handle(V request, uint64_t received_ns, size_t rx_bytes);
   V metrics() const;
+  V network_metrics() const;
   void close();
 };
 std::string identifier();

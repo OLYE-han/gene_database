@@ -1,9 +1,0 @@
-stage,start_ms,end_ms,duration_ms
-API admission,0.0,0.019569,0.019569
-Distribution queue,0.019569,0.629685,0.610116
-Route + request send,0.629685,7.764307,7.134622
-Wait for confirmation + reports,7.764307,477.691376,469.927069
-Result queue + input IPC,477.691376,478.754091,1.062715
-Merge + metrics + persistence,478.754091,479.626801,0.87271
-Output IPC + callback,479.626801,481.569543,1.942742
-Benchmark consumer,481.569543,481.776884,0.207341

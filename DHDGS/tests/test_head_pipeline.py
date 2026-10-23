@@ -16,7 +16,7 @@ from dhdgs.config import validate
 
 
 def config():
-    c=yaml.safe_load((Path(__file__).parents[1]/'configs/dhdgs.yaml').read_text())
+    c=yaml.safe_load((Path(__file__).parents[1]/'configs/dhdgs_pilot.yaml').read_text())
     c['peer'].update(head_port=0,head_bind_host='127.0.0.1',head_advertise_host='127.0.0.1')
     c['peer']['head_pipeline']['enabled']=True;c['peer']['communication']['mode']='optimized'
     c['network']['transport']='tcp';c['search']['execution']='peer'
