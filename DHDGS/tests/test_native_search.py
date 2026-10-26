@@ -96,6 +96,54 @@ class NativeSearchTests(unittest.TestCase):
                 self.assertEqual(report['expanded_ids'],expected['expanded_ids'])
             finally:runtime.close();shard.close()
 
+    def test_skip_seen_estimates_preserves_local_search(self):
+        no_fork=lambda *_: self.fail('Unexpected fork')
+        original=run_native(self.state(),self.shard,self.directory,self.c,no_fork,lambda:False)
+        tuned=copy.deepcopy(self.c);tuned['search']['skip_seen_estimates']=True
+        validate({k:v for k,v in tuned.items() if not k.startswith('_')})
+        optimized=run_native(self.state(),self.shard,self.directory,tuned,no_fork,lambda:False)
+        for key in ('expanded_ids','ids','result_paths','squared_distances','work_spent'):
+            self.assertEqual(original[key],optimized[key])
+        for key in ('pread_calls','scanned_edges','exact_distance_evaluations'):
+            self.assertEqual(original['stats'][key],optimized['stats'][key])
+        self.assertGreater(optimized['stats']['rabitq_skipped_seen'],0)
+        self.assertEqual(original['stats']['rabitq_evaluations'],
+                         optimized['stats']['rabitq_evaluations']+optimized['stats']['rabitq_skipped_seen'])
+
+    def test_striped_statistics_with_parallel_native_searches(self):
+        shard=Shard(self.root/'out/index/shard_0',0,counter_stripes=128)
+        self.addCleanup(shard.close);prepare_shard(shard,self.directory)
+        before=shard.counters.snapshot()
+        def run(i):
+            return run_native(self.state(str(i)),shard,self.directory,self.c,
+                              lambda *_:self.fail('Unexpected fork'),lambda:False)
+        with ThreadPoolExecutor(16) as pool:reports=list(pool.map(run,range(64)))
+        after=shard.counters.snapshot()
+        self.assertTrue(all(r['ids']==reports[0]['ids'] for r in reports))
+        self.assertEqual(after['active'],0)
+        self.assertEqual(after['completed']-before['completed'],sum(r['stats']['batches']for r in reports))
+        for k in ('pread_calls','file_read_bytes','rabitq_evaluations','exact_distance_evaluations'):
+            self.assertEqual(after[k]-before[k],sum(r['stats'][k]for r in reports))
+
+    def test_bounded_dense_id_lookup_preserves_search_and_falls_back(self):
+        reference=run_native(self.state(),self.shard,self.directory,self.c,lambda *_:None,lambda:False)
+        for limit,mode in ((1,'hash'),(1<<20,'dense')):
+            shard=Shard(self.root/'out/index/shard_0',0,id_lookup_max_bytes=limit)
+            self.addCleanup(shard.close);prepare_shard(shard,self.directory)
+            layout=shard.native_search.id_lookup_info()
+            self.assertEqual(layout['mode'],mode);self.assertLessEqual(layout['dense_bytes'],limit)
+            actual=run_native(self.state(),shard,self.directory,self.c,lambda *_:None,lambda:False)
+            for key in ('expanded_ids','ids','squared_distances','result_paths','work_spent'):
+                self.assertEqual(actual[key],reference[key])
+            for key in ('pread_calls','scanned_edges','rabitq_evaluations','exact_distance_evaluations'):
+                self.assertEqual(actual['stats'][key],reference['stats'][key])
+        # Widely spaced uint64 identifiers cannot overflow into a small table.
+        sparse=Shard(self.root/'out/index/shard_0',0,id_lookup_max_bytes=1<<20)
+        self.addCleanup(sparse.close);sparse.code_ids=np.array(sparse.code_ids,copy=True)
+        sparse.code_ids[0]=0;sparse.code_ids[-1]=np.iinfo(np.uint64).max
+        prepare_shard(sparse,self.directory)
+        self.assertEqual(sparse.native_search.id_lookup_info()['mode'],'hash')
+
     def test_selected_query_trace_preserves_aggregate_metrics(self):
         self.c['metrics'].update(detailed_trace=False,trace_query_ids=[])
         state=self.state()

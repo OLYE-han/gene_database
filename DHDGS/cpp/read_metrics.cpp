@@ -2,7 +2,8 @@
 
 void register_read_metrics(py::module_& m) {
   py::class_<ExpansionCounters>(m, "ExpansionCounters")
-      .def(py::init<const std::vector<std::string>&>())
+      .def(py::init<const std::vector<std::string>&, size_t>(),
+           py::arg("names"), py::arg("stripes") = 1)
       .def("begin", &ExpansionCounters::begin)
       .def("finish", &ExpansionCounters::finish)
       .def("snapshot", &ExpansionCounters::snapshot)

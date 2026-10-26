@@ -303,7 +303,8 @@ def build(c, *, shard_workers=1, graph_threads=1, checkpoint_directory=None, res
 
 
 class Shard:
-    def __init__(self, directory, cache_bytes):
+    def __init__(self, directory, cache_bytes, counter_stripes=1, id_lookup_max_bytes=0):
+        self.native_id_lookup_bytes = id_lookup_max_bytes
         self.directory = Path(directory)
         self.meta = json.loads((self.directory/"manifest.json").read_text())
         m = self.meta
@@ -342,7 +343,8 @@ class Shard:
         # Only an enabled mutable LRU uses this mutex. Immutable index reads
         # and expansion accounting do not acquire it.
         self.cache_lock = threading.Lock()
-        self.counters = native().ExpansionCounters(EXPANSION_METRICS)
+        self.counters = native().ExpansionCounters(
+            EXPANSION_METRICS, counter_stripes)
         self.index_file_bytes = sum(p.stat().st_size for p in self.directory.iterdir() if p.is_file())
 
     def close(self):
@@ -421,6 +423,7 @@ class Shard:
                 "stored_vectors": len(self.ids), "code_rows": len(self.code_ids),
                 "index_file_bytes": self.index_file_bytes,
                 "expansion_counters_lock_free": self.counters.is_lock_free,
+                "native_id_lookup": self.native_search.id_lookup_info() if getattr(self,'native_search',None) is not None else None,
                 "storage_access": "buffered", "os_page_cache_bypassed": False}
 
     def _expand(self, query, ids, epoch, records=None, read_stats=None):

@@ -48,7 +48,7 @@ class LocalTransport:
         self.shards = {}
         try:
             for node in c["cluster"]["nodes"]:
-                self.shards[node["id"]] = Shard(shard_path(c, node["id"]), c["storage"]["cache_bytes_per_shard"])
+                self.shards[node["id"]] = Shard(shard_path(c, node["id"]), c["storage"]["cache_bytes_per_shard"], c['metrics'].get('expansion_counter_stripes',1),c['storage'].get('native_id_lookup_bytes',0))
         except Exception:
             self.close()
             raise
@@ -144,7 +144,7 @@ def create_server(c, sid):
         return standalone_server(c, sid)
     from .runtime import apply_process_runtime
     apply_process_runtime(c)
-    worker = Shard(shard_path(c, sid), c["storage"]["cache_bytes_per_shard"])
+    worker = Shard(shard_path(c, sid), c["storage"]["cache_bytes_per_shard"], c['metrics'].get('expansion_counter_stripes',1),c['storage'].get('native_id_lookup_bytes',0))
     if (worker.meta["shard_id"] != sid or worker.meta["dimension"] != c["data"]["dimension"]
             or worker.meta["metric"] != c["data"]["metric"]
             or worker.meta["bits"] != c["quantization"]["bits"]

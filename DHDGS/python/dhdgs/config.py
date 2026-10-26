@@ -50,14 +50,14 @@ SCHEMA = {
                        "adaptive_control":{"enabled":bool,"min_lanes":int,"max_lanes":int,
                            "command_queue_high":int,"network_pending_high":int,"high_samples":int,
                            "sample_interval_ms":int,"cooldown_ms":int,"idle_ms":int}},
-    "metrics": {"detailed_trace": bool,"trace_query_ids":list,"lifecycle_trace":bool,"gc_trace":bool, "resource_sample_interval_ms": int, "resource_max_samples": int},
+    "metrics": {"expansion_counter_stripes":int,"detailed_trace": bool,"trace_query_ids":list,"lifecycle_trace":bool,"gc_trace":bool, "resource_sample_interval_ms": int, "resource_max_samples": int},
     "paths": {"dataset": str, "output": str},
     "data": {"metric": str, "dimension": int, "row_limit": int, "block_rows": int, "inspection_rows": int},
     "partition": {"method": str, "overlap_fraction": float, "max_copies": int, "train_rows": int,
                   "calibration_rows": int, "kmeans_iterations": int, "kmeans_tolerance": float},
     "build": {"memory_limit_bytes": int, "degree": int, "candidate_list_size": int, "prune_alphas": list},
     "quantization": {"bits": int},
-    "storage": {"page_bytes": int, "cache_bytes_per_shard": int,
+    "storage": {"native_id_lookup_bytes":int,"page_bytes": int, "cache_bytes_per_shard": int,
                 "io": {"backend": str, "fallback_backend": str, "worker_threads": int,
                        "max_submit_requests": int, "max_inflight_per_query": int,
                        "max_inflight_per_device": int, "max_inflight_bytes_per_device": int,
@@ -65,7 +65,7 @@ SCHEMA = {
                        "max_completion_events_per_poll": int, "completion_poll_ms": int}},
     "routing": {"sample_ratio": float, "min_samples": int, "max_samples": int, "hnsw_m": int,
                 "ef_construction": int, "ef_search": int, "entry_candidates": int},
-    "search": {"execution": str, "top_k": int, "frontier_size": int, "max_expansions": int, "local_beam": int,
+    "search": {"skip_seen_estimates": bool,"execution": str, "top_k": int, "frontier_size": int, "max_expansions": int, "local_beam": int,
                "max_inflight": int, "exclude_self": bool, "fallback_enabled": bool,
                "max_fallback_entries": int, "stagnation_batches": int},
     "peer": {"execution_model": str,"max_branches": int,"child_budget_fraction": float,"worker_threads": int,
@@ -117,6 +117,9 @@ SCHEMA = {
 def _check(values, schema, path=""):
     optional={'listen_backlog','rpc_tcp_nodelay'} if path=='network' else set()
     if path=='':optional={'native_runtime','benchmark_results'}  # Archived plans remain usable.
+    if path=='search':optional={'skip_seen_estimates'}
+    if path=='metrics':optional={'expansion_counter_stripes'}
+    if path=='storage':optional={'native_id_lookup_bytes'}
     if path=='native_runtime':optional={'compute_cpu_ids','report_network','result_sink','report_capacity_retry_ms','adaptive_control','network_module','early_parent_report','queued_control_registration','move_head_reports','search_thread_reports','head_maintenance_mode','head_entry_network'}
     if path=='native_runtime.network_module':optional={'scale_up_busy_fraction','async_connect_progress','async_connect','cpu_ids','transport','rdma_poll_interval_us','min_connections_per_endpoint_per_reactor','max_connecting_per_reactor','send_pressure_mode','rebalance_connections','rebalance_interval_ms','rebalance_batch'}
     if path=='native_runtime.result_sink':optional={'max_retained_bytes'}
@@ -146,6 +149,8 @@ def _check(values, schema, path=""):
 
 def validate(c):
     _check(c, SCHEMA)
+    if not 1<=c['metrics'].get('expansion_counter_stripes',1)<=4096:
+        raise ValueError('expansion_counter_stripes must be in [1, 4096]')
     if any(v <= 0 for v in c.get('benchmark_results',{}).values()):
         raise ValueError('benchmark_results limits must be positive')
     nr = c.get('native_runtime', {})
@@ -220,7 +225,7 @@ def validate(c):
     ]:
         if c[section][key] not in choices:
             raise ValueError(f"Invalid {section}.{key}")
-    zero_allowed = {("data", "row_limit"), ("storage", "cache_bytes_per_shard"),
+    zero_allowed = {("data", "row_limit"), ("storage", "cache_bytes_per_shard"), ("storage", "native_id_lookup_bytes"),
                     ("search", "max_fallback_entries"), ("network", "max_retries"), ("query", "row"),
                     ("experiment", "warmup_queries")}
     zero_allowed.add(("peer", "head_port"))

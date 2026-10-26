@@ -913,25 +913,34 @@ struct HeadRuntime::Impl {
     return out;
   }
   V metrics() const {
-    std::lock_guard<std::mutex> l(mu);
-    A maintenance;
-    for (size_t i = 0; i < maintenance_count; ++i)
-      maintenance.emplace_back(M{{"node_id", per_node_maintenance ? V(uint64_t(i)) : V()},
+    M snapshot;
+    {
+      // Only registry counters require mu. Network metrics can wait for a
+      // reactor resize; doing that under mu stalls submit, receive and merge
+      // together, allowing monitoring to amplify a transient ingress backlog.
+      std::lock_guard<std::mutex> l(mu);
+      A maintenance;
+      for (size_t i = 0; i < maintenance_count; ++i)
+        maintenance.emplace_back(M{{"node_id", per_node_maintenance ? V(uint64_t(i)) : V()},
                                  {"tracked_queries", uint64_t(live[i].size())},
                                  {"retained_queries", uint64_t(expiry[i].size())},
                                  {"ticks", maintenance_ticks[i]}, {"query_visits", maintenance_visits[i]},
                                  {"lease_attempts", lease_attempts[i]}});
-    return M{{"active", uint64_t(active)},
+      snapshot = M{{"active", uint64_t(active)},
              {"maintenance_mode", per_node_maintenance ? "per_node" : "single"},
              {"maintenance_threads", uint64_t(maintenance_count)},
              {"maintenance_lanes", std::move(maintenance)},
              {"completed_pending", uint64_t(finished.size())},
-             {"retained_identities", uint64_t(queries.size())},
-             {"routes", routes->metrics()},
-             {"merges", merges->metrics()},
-             {"receiver", server->metrics()},
-             {"network_entry",entries->metrics()},{"network_lease",leases->metrics()},
-             {"entry_pending", uint64_t(entries->pending())}};
+             {"retained_identities", uint64_t(queries.size())}};
+    }
+    // Resource counts are individual snapshots, not one atomic system state.
+    snapshot["routes"] = routes->metrics();
+    snapshot["merges"] = merges->metrics();
+    snapshot["receiver"] = server->metrics();
+    snapshot["network_entry"] = entries->metrics();
+    snapshot["network_lease"] = leases->metrics();
+    snapshot["entry_pending"] = uint64_t(entries->pending());
+    return snapshot;
   }
   void close() {
     std::lock_guard<std::mutex> closing(close_mu);

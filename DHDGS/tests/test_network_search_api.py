@@ -1,4 +1,4 @@
-import tempfile,unittest,socket
+import tempfile,unittest,socket,threading
 from pathlib import Path
 import numpy as np
 import test_cpp_runtime as fixtures
@@ -47,3 +47,37 @@ class NetworkSearchApiTests(unittest.TestCase):
                 send(sock,dict(version=1,op='search',encoding='float64_le',vector=self.x[i].astype('<f8').tobytes(),query_id=i),1048576)
         engine.runtime.close()
         self.assertEqual(engine.runtime.metrics()['active'],0)
+
+    def test_metrics_during_unbounded_receive_scaling_and_queries(self):
+        c=self.config(True,True)
+        c['native_runtime']['network_module'].update(
+            enabled=True,transport='tcp',send_min_reactors=1,send_max_reactors=0,
+            receive_min_reactors=1,receive_max_reactors=0,
+            connections_per_endpoint_per_reactor=0,max_receive_connections=0,
+            receive_queue_high=1,high_samples=1,sample_interval_ms=2,
+            cooldown_ms=4,rebalance_connections=True)
+        self.start(c);engine=NativeEngine(c,external_completion=True);self.addCleanup(engine.close)
+        settings={'api':dict(host='127.0.0.1',port=0,handlers=1,queue_capacity=256,
+            max_connections=0,max_message_bytes=1048576,reactors=1,max_reactors=0)}
+        port=engine.runtime.start_api(api_options(c,settings))
+        opts=dict(host='127.0.0.1',port=port,lanes=2,connections=64,timeout_ms=10000,
+            max_message_bytes=1048576,consumer_queue_records=256,consumer_queue_bytes=64<<20)
+        stop=threading.Event();snapshots=[];errors=[]
+        def monitor():
+            try:
+                while not stop.is_set():
+                    snapshots.append((engine.runtime.metrics(),engine.runtime.api_metrics()))
+                    stop.wait(.002)
+            except BaseException as exc:errors.append(exc)
+        thread=threading.Thread(target=monitor);thread.start()
+        root=Path(tempfile.mkdtemp(dir=self.root))
+        try:
+            m=native().run_network_load(self.x[:96],np.arange(96,dtype=np.uint64),64,opts,str(root/'results'))
+        finally:
+            stop.set();thread.join(10)
+        self.assertFalse(thread.is_alive());self.assertFalse(errors);self.assertTrue(snapshots)
+        self.assertFalse(m['error']);rows=list(records(root/'results'))
+        self.assertEqual({row['job'] for row in rows},set(range(96)))
+        self.assertTrue(all(row['transport_ok'] and row['result']['status']=='ok' for row in rows))
+        self.assertEqual(engine.runtime.metrics()['active'],0)
+        self.assertEqual(engine.runtime.api_metrics()['network_module']['max_reactors'],0)

@@ -115,6 +115,22 @@ class ReadConcurrencyTests(unittest.TestCase):
 
 
 class NativeReadConcurrencyTests(unittest.TestCase):
+    def test_striped_counter_totals_and_validation(self):
+        for stripes in (1,8,128):
+            counters=_native.ExpansionCounters(['bytes','work'],stripes)
+            def update(i):
+                for _ in range(100):
+                    counters.begin();counters.finish(True,{'bytes':i+1,'work':.5})
+            with ThreadPoolExecutor(max_workers=16) as pool:list(pool.map(update,range(32)))
+            result=counters.snapshot()
+            self.assertEqual(result['bytes'],sum(range(1,33))*100)
+            self.assertEqual(result['work'],1600)
+            self.assertEqual(result['requests'],3200)
+            self.assertEqual(result['completed'],3200)
+            self.assertEqual(result['active'],0)
+        for stripes in (0,4097):
+            with self.assertRaises(ValueError):_native.ExpansionCounters(['bytes'],stripes)
+
     def test_atomic_accounting_and_rejected_metrics_are_not_partially_applied(self):
         counters = _native.ExpansionCounters(['bytes'])
         self.assertTrue(counters.is_lock_free)

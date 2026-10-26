@@ -66,7 +66,8 @@ def standalone_server(c, sid):
     from .runtime import apply_process_runtime
     from .gc_profile import snapshot
     apply_process_runtime(c)
-    worker = Shard(shard_path(c, sid), c['storage']['cache_bytes_per_shard'])
+    worker = Shard(shard_path(c, sid), c['storage']['cache_bytes_per_shard'],
+                   c['metrics'].get('expansion_counter_stripes',1),c['storage'].get('native_id_lookup_bytes',0))
     peer = None
     sampler = ResourceSampler(c['metrics']['resource_sample_interval_ms'], c['metrics']['resource_max_samples'])
     try:

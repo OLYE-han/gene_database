@@ -112,7 +112,7 @@ class NodeControl:
             # Only restore allowed query settings; never restore paths or ports.
             self.c=patched(self.c,saved['settings'])
         apply_process_runtime(self.c)
-        self.worker=Shard(shard_path(self.c,sid),self.c['storage']['cache_bytes_per_shard'])
+        self.worker=Shard(shard_path(self.c,sid),self.c['storage']['cache_bytes_per_shard'],self.c['metrics'].get('expansion_counter_stripes',1),self.c['storage'].get('native_id_lookup_bytes',0))
         m=self.worker.meta
         if (m['shard_id'],m['dimension'],m['metric'],m['bits'],m['header_bytes'])!=(sid,
                 self.c['data']['dimension'],self.c['data']['metric'],self.c['quantization']['bits'],self.c['storage']['page_bytes']):

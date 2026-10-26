@@ -82,6 +82,17 @@ class Shard {
   const float* factors_=nullptr;
   const uint32_t* center_ids_=nullptr;
   std::unordered_map<Id,size_t> locations_,code_locations_;
+  Id lookup_base_=0;
+  std::vector<size_t> dense_locations_,dense_code_locations_;
+  static constexpr size_t missing_location=std::numeric_limits<size_t>::max();
+  size_t locate(Id id,bool code) const {
+    if(!dense_code_locations_.empty()) {
+      if(id<lookup_base_||id-lookup_base_>=dense_code_locations_.size())return missing_location;
+      return (code?dense_code_locations_:dense_locations_)[size_t(id-lookup_base_)];
+    }
+    const auto& table=code?code_locations_:locations_;
+    auto found=table.find(id);return found==table.end()?missing_location:found->second;
+  }
   std::vector<std::vector<int>> owners_;
 public:
   Shard(py::object shard, Array<uint8_t> membership, py::object clock_domain):clock_domain_(clock_domain) {
@@ -104,10 +115,28 @@ public:
     code_bytes_=codes.shape(1);extra_bytes_=extra.shape(1);
     quantizer_owner_=shard.attr("quantizer");quantizer_=&quantizer_owner_.cast<Quantizer&>();
     counter_owner_=shard.attr("counters");counters_=&counter_owner_.cast<ExpansionCounters&>();
-    locations_.reserve(ids.size());code_locations_.reserve(code_ids.size());owners_.resize(code_ids.size());
-    for(ssize_t i=0;i<ids.size();++i)locations_.emplace(ids.data()[i],i);
+    const size_t lookup_limit=py::hasattr(shard,"native_id_lookup_bytes")?shard.attr("native_id_lookup_bytes").cast<size_t>():0;
+    if(lookup_limit&&ids.size()&&code_ids.size()) {
+      lookup_base_=std::min(ids.data()[0],code_ids.data()[0]);
+      const Id highest=std::max(ids.data()[ids.size()-1],code_ids.data()[code_ids.size()-1]);
+      const Id delta=highest-lookup_base_;
+      // Check before +1 and multiplication: arbitrary uint64 IDs stay safe.
+      const size_t max_span=lookup_limit/(2*sizeof(size_t));
+      if(delta<max_span) {
+        const size_t span=size_t(delta)+1;
+        dense_locations_.assign(span,missing_location);
+        dense_code_locations_.assign(span,missing_location);
+      }
+    }
+    if(dense_code_locations_.empty()){locations_.reserve(ids.size());code_locations_.reserve(code_ids.size());}
+    owners_.resize(code_ids.size());
+    for(ssize_t i=0;i<ids.size();++i) {
+      if(dense_locations_.empty())locations_.emplace(ids.data()[i],i);
+      else dense_locations_[size_t(ids.data()[i]-lookup_base_)]=i;
+    }
     for(ssize_t i=0;i<code_ids.size();++i) {
-      code_locations_.emplace(code_ids.data()[i],i);
+      if(dense_code_locations_.empty())code_locations_.emplace(code_ids.data()[i],i);
+      else dense_code_locations_[size_t(code_ids.data()[i]-lookup_base_)]=i;
       for(ssize_t n=0;n<membership.shape(1);++n)
         if(membership.data()[i*membership.shape(1)+n])owners_[i].push_back(int(n));
       require(!owners_[i].empty(),"Native code has no owner");
@@ -117,6 +146,11 @@ public:
   }
   ~Shard(){if(fd_>=0)::close(fd_);}
   void close(){if(fd_>=0){::close(fd_);fd_=-1;}}
+  py::dict id_lookup_info() const {
+    py::dict out;out["mode"]=dense_code_locations_.empty()?"hash":"dense";
+    out["dense_bytes"]=(dense_locations_.size()+dense_code_locations_.size())*sizeof(size_t);
+    out["id_base"]=lookup_base_;return out;
+  }
 
   py::dict run(py::dict state,py::dict config,Array<double> draws,
                std::shared_ptr<Control> control,py::object read_batch,
@@ -167,6 +201,7 @@ public:
     std::vector<float> query(dim_);std::memcpy(query.data(),bytes.data(),bytes.size());finite(query.data(),dim_);
     if(cosine_) {double norm=0;for(float v:query)norm+=double(v)*v;require(std::abs(std::sqrt(norm)-1)<=1.001e-5,"Cosine query must be normalized");}
     const auto& cfg=dhvalue::at(config,"search");const auto& policy=dhvalue::at(config,"scheduler");
+    const bool skip_seen_estimates=dhvalue::optional<bool>(cfg,"skip_seen_estimates",false);
     const auto& peer=dhvalue::at(config,"peer");const auto& net=dhvalue::at(config,"network");
     const size_t topk=dhvalue::get<size_t>(cfg,"top_k"),frontier_limit=dhvalue::get<size_t>(cfg,"frontier_size");
     const size_t beam=dhvalue::get<size_t>(cfg,"local_beam"),remote_batch=dhvalue::get<size_t>(net,"batch_size");
@@ -356,9 +391,9 @@ public:
             control->check();const Id id=batch[i];selected_by_id.emplace(id,selected[i]);
             char* data=raw.data()+i*stride_;
             if(!async) {
-              auto location=locations_.find(id);require(location!=locations_.end(),"Native expansion of nonlocal vertex");
+              const size_t location=locate(id,false);require(location!=missing_location,"Native expansion of nonlocal vertex");
               const auto t=now_ns();ssize_t count;
-              do {count=::pread(fd_,data,stride_,header_+location->second*stride_);}while(count<0&&errno==EINTR);
+              do {count=::pread(fd_,data,stride_,header_+location*stride_);}while(count<0&&errno==EINTR);
               const auto end=now_ns();work["pread_ms"]+=(end-t)/1e6;work["pread_calls"]++;
               if(count<0)throw std::runtime_error(std::string("native pread: ")+strerror(errno));
               require(size_t(count)==stride_,"Short native node read");work["file_read_bytes"]+=stride_;
@@ -374,11 +409,18 @@ public:
             work["scanned_edges"]+=degree;
             for(size_t j=0;j<degree;++j){Id neighbor;std::memcpy(&neighbor,data+dim_*4+4+j*8,8);parents.emplace(neighbor,id);}
           }
-          std::vector<Id> neighbors;neighbors.reserve(parents.size());for(auto [id,parent]:parents)neighbors.push_back(id);
+          std::vector<Id> neighbors;neighbors.reserve(parents.size());
+          stats["rabitq_neighbor_candidates"]+=parents.size();
+          for(auto [id,parent]:parents){
+            // Such candidates are already ignored below. Their estimate is
+            // immutable for this query, so recomputing it cannot affect search.
+            if(skip_seen_estimates&&seen.count(id)){stats["rabitq_skipped_seen"]++;continue;}
+            neighbors.push_back(id);
+          }
           std::sort(neighbors.begin(),neighbors.end());
           std::vector<std::pair<float,float>> estimates;estimates.reserve(neighbors.size());const auto quant_start=now_ns();
           for(Id id:neighbors) {
-            const auto found=code_locations_.find(id);require(found!=code_locations_.end(),"Missing native neighbor code");const size_t p=found->second;
+            const size_t p=locate(id,true);require(p!=missing_location,"Missing native neighbor code");
             auto value=quantizer_->score_native(prepared,codes_+p*code_bytes_,extra_bytes_?extra_+p*extra_bytes_:nullptr,factors_+3*p,center_ids_[p]);
             require(std::isfinite(value.first)&&std::isfinite(value.second),"Nonfinite native estimate");estimates.push_back(value);
           }
@@ -394,7 +436,7 @@ public:
           for(auto [id,distance]:exact) {paths.push_back(selected_by_id.at(id));if(!(exclude_self&&query_id&&id==*query_id))results[id]=distance;}
           for(size_t i=0;i<neighbors.size();++i) {
             Id id=neighbors[i];if(!seen.insert(id).second)continue;
-            const auto& parent=selected_by_id.at(parents.at(id));const auto& owners=owners_[code_locations_.at(id)];
+            const auto& parent=selected_by_id.at(parents.at(id));const auto& owners=owners_[locate(id,true)];
             const int target=owner(owners);if(target<0){stats[dropped()]++;continue;}
             Candidate c;c.id=id;c.distance=estimates[i].first;c.uncertainty=estimates[i].second;c.owners=owners;
             c.parent=parent.id;c.depth=parent.depth+1;c.cross=parent.cross+(target!=sid_);c.root=parent.root;c.queued=now_ns();frontier.push_back(std::move(c));
@@ -402,8 +444,10 @@ public:
           const bool improved=threshold()<old;stats["improved_topk_batches"]+=improved;stagnation=improved?0:stagnation+1;
           if(frontier.size()>frontier_limit){std::sort(frontier.begin(),frontier.end(),closer);stats["frontier_dropped"]+=frontier.size()-frontier_limit;frontier.resize(frontier_limit);}
           if(stagnation>=stagnation_limit)fallback();
+          const auto counter_start=now_ns();
           counters_->finish_native(true,work);
           accounted=true;
+          stats["counter_update_ms"]+=ms_since(counter_start);
           if(detailed){trace.stats=std::move(work);traces.push_back(std::move(trace));}
         } catch(...) {
           if(held){std::vector<char>().swap(raw);try{release_batch();}catch(...){}}
@@ -496,6 +540,7 @@ inline void register_native_search(py::module_& m) {
     .def("cancel",&dhsearch::Control::cancel).def("cancelled",&dhsearch::Control::cancelled);
   py::class_<dhsearch::Shard,std::shared_ptr<dhsearch::Shard>>(m,"SearchShard")
     .def(py::init<py::object,Array<uint8_t>,py::object>())
+    .def("id_lookup_info",&dhsearch::Shard::id_lookup_info)
     .def("run",&dhsearch::Shard::run,py::arg("state"),py::arg("config"),py::arg("draws"),
          py::arg("control"),py::arg("read_batch"),py::arg("release_batch"),py::arg("spawn"),py::arg("completion")=nullptr)
     .def("close",&dhsearch::Shard::close);

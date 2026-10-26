@@ -138,7 +138,11 @@ struct Server::Core {
       for(auto& x:lanes){auto s=x->wire->metrics();const auto& w=dhvalue::at(s,"workers");requests+=dhvalue::get<size_t>(s,"requests");active|=dhvalue::get<size_t>(w,"active")||dhvalue::get<size_t>(w,"queued");busy_lanes+=!x->draining&&dhvalue::get<size_t>(w,"queued")>=p.rx_high;accepting+=!x->draining;}
       bool busy=busy_lanes>=std::max(size_t(1),size_t(std::ceil(p.scale_busy_fraction*accepting)));high=busy?high+1:0;auto t=now();if(active||requests!=last_requests)idle=0;else if(!idle)idle=t;last_requests=requests;
       if(high>=p.high_samples&&(!p.rx_max||lanes.size()<p.rx_max)&&t-changed>=p.cooldown_ms*1000000){
-        try{lanes.push_back(make());++ups;peak=std::max(peak,lanes.size());event("receive_pressure");}catch(const std::exception&){event("scale_up_failed");}changed=t;high=0;
+        // Starting and pinning the new workers can take much longer than a
+        // queue operation. Existing acceptors and metric readers must keep
+        // progressing while the new lane becomes ready. Only this monitor
+        // changes the lane vector; close joins it before reclaiming lanes.
+        try{l.unlock();std::shared_ptr<Lane> fresh;try{fresh=make();}catch(...){l.lock();throw;}l.lock();lanes.push_back(std::move(fresh));++ups;peak=std::max(peak,lanes.size());event("receive_pressure");}catch(const std::exception&){event("scale_up_failed");}changed=t;high=0;
       }
       if(p.rebalance_connections&&lanes.size()>1&&t-last_balance>=p.rebalance_interval_ms*1000000){
         std::shared_ptr<Lane> low,high_lane,drain;size_t low_n=SIZE_MAX,high_n=0,drain_n=0;
@@ -152,7 +156,10 @@ struct Server::Core {
         }
         last_balance=t;
       }
-      if(idle&&t-idle>=p.idle_ms*1000000&&accepting>p.rx_min){for(size_t i=lanes.size();i-->0;)if(!lanes[i]->draining){lanes[i]->draining=true;lanes[i]->wire->stop_accepting();event("receive_drain");break;}idle=t;}
+      // idle_ms establishes sustained inactivity for the whole receiver, not
+      // a new full wait for each surplus lane. Drain one lane per sample while
+      // idle; in-flight frames stay owned until safely completed/migrated.
+      if(idle&&t-idle>=p.idle_ms*1000000&&accepting>p.rx_min){for(size_t i=lanes.size();i-->0;)if(!lanes[i]->draining){lanes[i]->draining=true;lanes[i]->wire->stop_accepting();event("receive_drain");break;}}
       for(size_t i=lanes.size();i-->0;){auto x=lanes[i];if(!x->draining)continue;auto s=x->wire->metrics();const auto& w=dhvalue::at(s,"workers");
         if(!dhvalue::get<bool>(s,"accepting")&&!dhvalue::get<size_t>(s,"connections")&&!dhvalue::get<size_t>(w,"active")&&!dhvalue::get<size_t>(w,"queued")){
           // Stop accepting is asynchronous. Join and drain before reclaiming.
