@@ -1,5 +1,7 @@
 # DHDGS 当前实现的锁与同步机制清单
 
+2026-10-27补充：本轮共享资源与并行等待复测见[test/resource_parallel_20261027](test/resource_parallel_20261027/)。新增顶层计时将合并线程取任务后的查询锁等待与队列/调度等待拆开；这属于观测改动，不代表已经消除锁竞争。`head_stage_timings_ms.merge_query_lock_wait_ms` 使用取锁前后时间，`head_finalize_registry_wait_ms`覆盖完成阶段注册表锁等待；`merge_worker_enter_ns`至`merge_started_ns`是查询锁等待，`merge_enqueued_ns`至`merge_worker_enter_ns`是提交/线程池排队及调度。路由在开启`metrics.lifecycle_trace`时另外记录HNSW与种子准备的CPU/墙钟时间，内部临时字段在派发到数据节点前删除。CPU时间不能与墙钟等待相加当作互斥分解。
+
 首次审计日期：2026-10-20。对象是工作区中的 `python/dhdgs/`、`cpp/`、`tools/`，以及实际引用的 hnswlib 头文件。包含可选实现、建图和管理路径；不把历史实验源码副本和测试用例里的同步器重复计入。首次审计只修改文档；随后按用户要求进行了第10节的锁优化，旧审计JSON的SHA-256及行号仍表示首次快照。
 
 第1–9节是**源码审计**，不是远端常驻进程的锁实例转储；后续锁竞争实验另见第10节。不同 YAML 会启用不同路径，不能把表中的全部锁叠加到一次查询上。构造位置、源码 SHA-256 见 [审计记录](test/lock_audit_20261020/inventory.json)。行号对应首次审计快照，后续修改可能改变行号。
@@ -316,3 +318,5 @@ memfd暂存采用单写者；兼容同步查询线程时，用独立的`result_l
 搜索批次统计原来通过共享原子double执行CAS。新增可选 `metrics.expansion_counter_stripes`，1保持原密集布局，多个stripe按线程分散写入并按缓存行分隔，读取时相加。它仍使用原子操作处理线程哈希碰撞；请求active/peak计数仍为全局原子量。不能把“无互斥锁”与“无缓存一致性争用”混为一谈，也不能在实测前断言统计是主要瓶颈。`counter_update_ms`记录finish_native区间，真实收益见[本轮实验](test/search_scaling_unbounded_20261023/REPORT.md)。
 
 本轮消融没有证明128组分散计数优于默认1组，故未将它设为默认优化。跳过已见估距只操作查询私有的seen集合；有预算的ID直接寻址表在索引加载时构建，发布后不可变，搜索读取不新增锁。660万次正式请求的分支统计和预算检查通过；不能由此推导所有网络长尾已消除，尚有reactor内部等待需进一步定位。
+
+2026-10-27实测补充：正常诊断组查询合并锁均值0.0448ms、p99 1.2737ms，完成注册表锁均值0.0304ms、p99 0.8755ms；三个数据节点各64搜索区间实际重叠。异常组尚无这些细分时间点，不将正常组证据作为完全排除异常锁竞争的依据。详见[本轮报告](test/resource_parallel_20261027/REPORT.md)。

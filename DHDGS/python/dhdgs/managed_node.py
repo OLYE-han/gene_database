@@ -35,7 +35,8 @@ scheduler.mode scheduler.kappa scheduler.exploration scheduler.max_wait_ms
 scheduler.local_batch_ms scheduler.remote_rtt_ms scheduler.bandwidth_bytes_per_ms
 scheduler.ewma_weight scheduler.remote_weight scheduler.remote_selection
 scheduler.probability_temperature peer.worker_threads peer.child_budget_fraction
-peer.max_branches'''.split())
+peer.max_branches peer.allow_node_revisit peer.min_expansions_after_cross
+peer.cross_on_local_exhaustion peer.deduplicate_node_expansions'''.split())
 
 
 def clean_config(c):
@@ -43,7 +44,7 @@ def clean_config(c):
 
 
 def hot_values(c):
-    return {key:c[key.split('.')[0]][key.split('.')[1]] for key in sorted(HOT_FIELDS)}
+    return {key:c[key.split('.')[0]][key.split('.')[1]] for key in sorted(HOT_FIELDS) if key.split('.')[1] in c[key.split('.')[0]]}
 
 
 def revision(c):
@@ -123,6 +124,14 @@ class NodeControl:
         self.rev=revision(self.c)
         self.peer=make_peer(self.c,self.worker)
         self.sampler=ResourceSampler(self.c['metrics']['resource_sample_interval_ms'],self.c['metrics']['resource_max_samples']).start()
+        self.replica_service = None
+        if self.c.get('load_balance', {}).get('enabled'):
+            from .replicas import ReplicaService
+            try:
+                self.replica_service = ReplicaService(self)
+            except BaseException:
+                self.peer.close();self.sampler.finish();self.worker.close()
+                raise
 
     @contextmanager
     def data(self,request):
@@ -163,6 +172,9 @@ class NodeControl:
             raise ValueError('Invalid management token')
         op=request['op']
         with self.admin_lock:
+            if op=='admin_replica':
+                if self.replica_service is None:raise ValueError('Replica service disabled')
+                return self.replica_service.handle({**request['request'],'token':self.token})['result']
             if op=='admin_status':return self.status()
             if op=='admin_network_metrics':
                 runtime=getattr(self.peer,'runtime',None)
@@ -173,11 +185,11 @@ class NodeControl:
             if op=='admin_snapshot':
                 raw=msgpack.packb(self.metrics(),use_bin_type=True)
                 self.snapshot_id=uuid.uuid4().hex;self.snapshot_data=raw
-                return dict(snapshot_id=self.snapshot_id,bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest())
+                return dict(snapshot_id=self.snapshot_id,bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest(),chunk_bytes=self.c['metrics'].get('snapshot_chunk_bytes',262144))
             if op=='admin_chunk':
                 offset=request['offset'];count=request['count']
                 if (self.snapshot_data is None or request['snapshot_id']!=self.snapshot_id or type(offset)is not int or
-                        type(count)is not int or offset<0 or not 0<count<=262144 or offset>len(self.snapshot_data or b'')):
+                        type(count)is not int or offset<0 or not 0<count<=self.c['metrics'].get('snapshot_chunk_bytes',262144) or offset>len(self.snapshot_data or b'')):
                     raise ValueError('Invalid metrics chunk')
                 return {'data':self.snapshot_data[offset:offset+count]}
             with self.lock:
@@ -237,6 +249,7 @@ class NodeControl:
     def close(self):
         with self.admin_lock:
             self.accepting=False
+            if self.replica_service is not None:self.replica_service.close()
             if self.transaction is not None:
                 peers={id(p):p for p in (self.peer,self.transaction['old_peer'],self.transaction['candidate_peer'])}
             else:peers={id(self.peer):self.peer}

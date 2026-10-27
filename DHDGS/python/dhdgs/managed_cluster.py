@@ -105,6 +105,9 @@ class ClusterHead:
             journal=dict(transaction=tx,phase='draining',target_revision=revision(candidate),patch=patch)
             save_json(log,journal)
             try:
+                # Quality calibration belongs to a search configuration. Stop
+                # new replica routing and drain it before changing budgets.
+                if hasattr(self.engine,'stop_load_balancer'):self.engine.stop_load_balancer()
                 states=self.quiescent()
                 for n,s in zip(self.nodes(),states):
                     if s['epoch']!=self.engine.manifest['epoch']:raise ValueError('Data node index epoch mismatch')
@@ -129,6 +132,8 @@ class ClusterHead:
                 if not all(s['accepting'] and s['revision']==revision(candidate) for s in states):
                     raise RuntimeError('Cluster configuration verification failed')
                 self.ready=True;self.error=None;journal.update(phase='complete',nodes=states)
+                if self.c.get('load_balance',{}).get('enabled'):
+                    self.engine.start_load_balancer(self.token,self.root/'load_balance')
                 save_json(log,journal);return dict(revision=revision(candidate),nodes=states,transaction=tx)
             except Exception as exc:
                 self.error=str(exc);journal.update(phase='failed',error=self.error);save_json(log,journal)
@@ -164,8 +169,9 @@ class ClusterHead:
     def pull(self):
         def node_metrics(n):
             meta=self.rpc(n,'admin_snapshot');pieces=[]
-            for offset in range(0,meta['bytes'],262144):
-                reply=self.rpc(n,'admin_chunk',snapshot_id=meta['snapshot_id'],offset=offset,count=262144)
+            chunk=min(meta.get('chunk_bytes',262144),self.c['metrics'].get('snapshot_chunk_bytes',262144))
+            for offset in range(0,meta['bytes'],chunk):
+                reply=self.rpc(n,'admin_chunk',snapshot_id=meta['snapshot_id'],offset=offset,count=chunk)
                 pieces.append(reply['data'])
             raw=b''.join(pieces)
             if len(raw)!=meta['bytes'] or hashlib.sha256(raw).hexdigest()!=meta['sha256']:

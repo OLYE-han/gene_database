@@ -72,6 +72,16 @@ def echo(req, server):
 
 @unittest.skipUnless(_native is not None and hasattr(_native, 'NativeWireClient'), 'native wire unavailable')
 class NativeWireTests(unittest.TestCase):
+    def test_reconnect_before_reusing_server_expired_idle_socket(self):
+        server,client,endpoint=self.connect(connections=1)
+        client.submit(endpoint,dict(request_id='before-idle'))
+        self.assertTrue(self.collect(client,1)[0]['ok'])
+        time.sleep(2.2)  # Fixture expires idle sockets after two seconds.
+        client.submit(endpoint,dict(request_id='after-idle'))
+        result=self.collect(client,1)[0]
+        self.assertTrue(result['ok'],result['error'])
+        self.assertEqual(server.accepted,2)
+
     def connect(self, action=echo, **kwargs):
         server = Server(action)
         self.addCleanup(server.close)

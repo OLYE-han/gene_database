@@ -1,5 +1,6 @@
 #include "native_network.hpp"
 #include "native_head.hpp"
+#include "logical_region.hpp"
 #include "native_pool.hpp"
 #include <algorithm>
 #include <chrono>
@@ -27,7 +28,7 @@ std::string digest(const V &v) {
   SHA256(data.data(), data.size(), hash);
   return std::string(reinterpret_cast<char *>(hash), sizeof(hash));
 }
-const std::vector<std::string> counters = {"file_read_bytes",
+const std::vector<std::string> counters = {"region_exclusion_ids_inherited","region_excluded_candidates","region_exclusion_ids_added","region_unexpanded_at_handoff","region_handoffs","same_host_region_handoffs","hotness_record_ms","hotness_expansions_recorded","duplicate_local_expansions_avoided","physical_node_revisits","cross_dwell_blocked_decisions","cross_dwell_exhaustion_escapes","peer_replica_selected","replica_record_reads","replica_local_expansions","file_read_bytes",
                                            "pread_calls",
                                            "cache_hits",
                                            "scanned_edges",
@@ -73,11 +74,13 @@ void record_rpc(M &m, const dhwire::Result &r) {
 }
 } // namespace
 bool validate_manifests(const V &reports, const std::string &root, size_t node,
-                        size_t budget, size_t slots, size_t node_count) {
+                        size_t budget, size_t slots, size_t node_count, bool revisits) {
   struct Credit {
     std::string parent;
     size_t node, budget, slots;
     std::vector<size_t> path;
+    size_t fallback=SIZE_MAX;
+    std::vector<std::string> regions;
   };
   std::map<std::string, const V *> by_id;
   for (const auto &r : array(reports))
@@ -99,8 +102,19 @@ bool validate_manifests(const V &reports, const std::string &root, size_t node,
       continue;
     }
     const auto &r = *it->second;
-    const auto credit = expected.at(bid);
-    check(nodes.insert(credit.node).second &&
+    auto credit = expected.at(bid);
+    if(optional<bool>(r,"replica_unavailable_fallback",false)){
+      check(credit.fallback<node_count,"Undeclared replica fallback");
+      credit.node=credit.fallback;credit.path.back()=credit.node;
+      if(!credit.regions.empty())credit.regions.back()=dhregion::base(credit.node);
+    }
+    if(has(r,"logical_region")){
+      const auto rp=get<std::vector<std::string>>(r,"visited_regions");
+      const auto region=has(r,"replica_version")?"replica:"+get<std::string>(r,"replica_version"):dhregion::base(credit.node);
+      if(credit.regions.empty()){check(bid==root,"Missing child logical identity");credit.regions={region};}
+      check(rp==credit.regions&&get<std::string>(r,"logical_region")==region&&rp.back()==region,"Logical branch region/path mismatch");
+    }else check(credit.regions.empty(),"Missing logical region report");
+    check((revisits || nodes.insert(credit.node).second) &&
               get<std::vector<size_t>>(r, "visited_nodes") == credit.path,
           "Repeated data node or invalid visited-node path");
     const auto &parent = at(r, "parent_branch_id");
@@ -131,8 +145,10 @@ bool validate_manifests(const V &reports, const std::string &root, size_t node,
       check(get<std::string>(child, "parent_branch_id") == bid &&
                 !expected.count(id),
             "Invalid child manifest");
-      check(std::find(credit.path.begin(), credit.path.end(), n) ==
-                credit.path.end(),
+      const auto child_region=optional<std::string>(child,"logical_region","");
+      const bool same_host_region=!credit.regions.empty()&&!child_region.empty()&&child_region!=credit.regions.back();
+      check((n != credit.node||same_host_region) && (revisits || std::find(credit.path.begin(), credit.path.end(), n) ==
+                credit.path.end()),
             "Child revisits a data node");
       if (has(r, "decisions")) {
         size_t approvals = 0;
@@ -145,7 +161,10 @@ bool validate_manifests(const V &reports, const std::string &root, size_t node,
       }
       auto path = credit.path;
       path.push_back(n);
-      expected.emplace(id, Credit{bid, n, b, s, std::move(path)});
+      auto fallback=optional<size_t>(child,"fallback_node",SIZE_MAX);
+      check(fallback==SIZE_MAX||(fallback<node_count&&fallback!=credit.node),"Invalid fallback node");
+      auto rp=credit.regions;if(!rp.empty()){check(!child_region.empty(),"Missing child logical region");rp.push_back(child_region);}
+      expected.emplace(id, Credit{bid, n, b, s, std::move(path),fallback,std::move(rp)});
       pending.push_back(id);
     }
     check(remaining == 0, "Global work credit conservation violation");
@@ -200,10 +219,10 @@ V aggregate_native(const V &c, const V &reports, const V &transfer,
     nodes.insert(node);
     const auto &rs = at(r, "stats");
     for (const auto &key : sums)
-      add(stats, key, get<double>(rs, key));
+      add(stats, key, optional<double>(rs, key,0));
     auto &ps = per_shard.at(std::to_string(node)).map();
     for (const auto &key : counters)
-      add(ps, key, get<double>(rs, key));
+      add(ps, key, optional<double>(rs, key,0));
     for (const char *k : {"expanded", "batches", "server_thread_cpu_ms"})
       add(ps, k, get<double>(rs, k));
     for (auto id : get<std::vector<uint64_t>>(r, "expanded_ids")) {
@@ -283,7 +302,21 @@ V aggregate_native(const V &c, const V &reports, const V &transfer,
   stats["max_discovery_depth"] = V();
   stats["graph_rounds"] = V();
   stats["server_to_server_migrations"] = uint64_t(0);
-  stats["server_to_server_branches"] = uint64_t(rows.size() - 1);
+  // Logical region transitions can stay on the same physical host. Count
+  // actual parent/child placements, including a resolved replica fallback.
+  std::map<std::string, size_t> placements;
+  for (const auto &r : rows)
+    placements.emplace(get<std::string>(r,"branch_id"),get<size_t>(r,"node_id"));
+  uint64_t crossings=0, local_handoffs=0;
+  for (const auto &r : rows) {
+    const auto &parent=at(r,"parent_branch_id");
+    if (!null(parent)) {
+      if (placements.at(str(parent))==get<size_t>(r,"node_id")) ++local_handoffs;
+      else ++crossings;
+    }
+  }
+  stats["server_to_server_branches"] = crossings;
+  stats["same_host_branches"] = local_handoffs;
   stats["exact_reranked"] = stats["exact_distance_evaluations"];
   // The public API may still use TCP; this field describes inter-node RPCs.
   std::string transport = "tcp";
@@ -291,7 +324,7 @@ V aggregate_native(const V &c, const V &reports, const V &transfer,
     transport = optional<std::string>(at(at(c, "native_runtime"), "network_module"),
                                       "transport", "tcp");
   stats["transport"] = transport;
-  stats["execution"] = "peer_single_visit_parallel_local";
+  stats["execution"] = optional<bool>(at(c,"peer"),"allow_node_revisit",false)?"peer_bounded_revisit_parallel_local":"peer_single_visit_parallel_local";
   stats["stop_reason"] = "all_branch_manifests_complete";
   stats["branch_stop_reasons"] = std::move(stop_reasons);
   stats["pending_at_stop"] = pending;
@@ -307,8 +340,11 @@ struct HeadRuntime::Impl {
   struct Query {
     std::mutex mu;
     std::string id, token, root, error;
-    V query_id, state;
+    V query_id, state, original_seeds;
+    M route_profile;
+    bool replica_fallback=false;
     HeadRuntime::Completion completion;
+    V replica_validation;
     std::vector<double> input;
     std::map<std::string, V> reports;
     std::map<std::string, std::string> digests;
@@ -331,6 +367,15 @@ struct HeadRuntime::Impl {
   };
   V config, manifest;
   RouteFunction route;
+  struct ReplicaRoute {size_t source,target;std::string version;double fraction,min_score,max_score;uint64_t expires;};
+  using ReplicaRoutes=std::unordered_map<uint64_t,ReplicaRoute>;
+  std::shared_ptr<const ReplicaRoutes> replica_directory=std::make_shared<const ReplicaRoutes>();
+  std::atomic<uint64_t> replica_lookup{0},replica_match{0},replica_stale{0},replica_score_reject{0},replica_probability_reject{0};
+  std::atomic<uint64_t> replica_selected{0}, observation_sequence{0}, observation_dropped{0};
+  mutable std::mutex observation_mu;
+  A observations;
+  M replica_access_counts;
+  size_t observation_every=0,observation_limit=0;
   size_t node_count, capacity, max_retries, budget, slots;
   bool move_head_reports = false;
   bool per_node_maintenance = false;
@@ -357,6 +402,10 @@ struct HeadRuntime::Impl {
   A head_endpoint;
   Impl(V c, V m, RouteFunction fn)
       : config(std::move(c)), manifest(std::move(m)), route(std::move(fn)) {
+    if(has(config,"load_balance")&&get<bool>(at(config,"load_balance"),"enabled")) {
+      observation_every=get<size_t>(at(config,"load_balance"),"sample_every");
+      observation_limit=get<size_t>(at(config,"load_balance"),"max_observations");
+    }
     const auto &p = at(config, "peer");
     const auto &nc = at(config, "native_runtime");
     move_head_reports = optional<bool>(nc, "move_head_reports", false);
@@ -483,9 +532,26 @@ struct HeadRuntime::Impl {
                   try {
                     check(r.ok, r.error.c_str());
                     check(get<bool>(r.response, "ok"), "Entry rejected query");
+                    const auto& answer=at(r.response,"result");
+                    if(!get<bool>(answer,"accepted")&&optional<std::string>(answer,"reason","")=="replica_unavailable"&&
+                       has(q->state,"replica_version")&&null(q->replica_validation)) {
+                      const auto rejected=get<size_t>(q->state,"target_node");
+                      const auto source=get<size_t>(q->state,"original_entry_node");
+                      auto& sm=q->state.map();sm.erase("replica_version");
+                      sm["seeds"]=std::move(q->original_seeds);sm["target_node"]=uint64_t(source);
+                      sm["entry_node"]=uint64_t(source);sm["visited_nodes"]=A{uint64_t(source)};
+                      if(optional<bool>(at(config,"peer"),"logical_region_visits",false)){
+                        sm["logical_region"]=dhregion::base(source);sm["visited_regions"]=A{dhregion::base(source)};
+                      }
+                      q->nodes.erase(rejected);track_node(q,source);
+                      if(per_node_maintenance){std::lock_guard<std::mutex> registry(mu);
+                        live[rejected].erase(q->id);q->maintenance_owner=source;}
+                      q->replica_fallback=true;retry=true;
+                    } else {
                     check(get<bool>(at(r.response, "result"), "accepted"),
                           "Entry not accepted");
                     q->acked = true;
+                    }
                   } catch (const std::exception &e) {
                     retry = q->attempts <= max_retries && stamp() < q->deadline;
                     if (!retry)
@@ -519,6 +585,47 @@ struct HeadRuntime::Impl {
     double cpu_start = cpu.tv_sec * 1000. + cpu.tv_nsec / 1e6;
     try {
       V s = route(q->input, q->query_id);
+      M route_profile;
+      if(has(s,"_head_route_profile")) {
+        route_profile = std::move(s.map().at("_head_route_profile").map());
+        s.map().erase("_head_route_profile"); // Never transmit head-only diagnostics to peers.
+      }
+      auto &sm=s.map();const auto& entry=array(array(at(s,"seeds")).front());
+      const auto entry_id=cast<uint64_t>(entry[0]);const double estimate=number(entry[1]);
+      sm["route_entry_id"]=entry_id;sm["route_entry_estimate"]=estimate;
+      sm["original_entry_node"]=at(s,"target_node");
+      auto directory=std::atomic_load(&replica_directory);auto found=directory->find(entry_id);
+      ReplicaRoute forced{};bool validating=!null(q->replica_validation);
+      if(!validating){++replica_lookup;if(found!=directory->end())++replica_match;}
+      if(validating){const auto& v=q->replica_validation;
+        check(entry_id==get<uint64_t>(v,"entry_id")&&get<size_t>(s,"target_node")==get<size_t>(v,"source"),"Validation entry changed");
+        auto target=get<size_t>(v,"target");check(target<node_count,"Invalid validation destination");
+        forced={get<size_t>(v,"source"),target,get<std::string>(v,"version"),1.,-1e300,1e300,stamp()+timeout_ns};}
+      if(validating||found!=directory->end()) {
+        const auto& r=validating?forced:found->second;uint64_t hash=1469598103934665603ULL;
+        for(unsigned char ch:q->id){hash^=ch;hash*=1099511628211ULL;}
+        const double draw=double(hash>>11)*(1.0/9007199254740992.0);
+        if(!validating){
+          if(r.source!=get<size_t>(s,"target_node")||stamp()>=r.expires)++replica_stale;
+          else if(estimate<r.min_score||estimate>r.max_score)++replica_score_reject;
+          else if(draw>=r.fraction)++replica_probability_reject;
+        }
+        if(r.source==get<size_t>(s,"target_node")&&stamp()<r.expires&&estimate>=r.min_score&&estimate<=r.max_score&&draw<r.fraction) {
+          q->original_seeds=at(s,"seeds");
+          sm["target_node"]=uint64_t(r.target);sm["entry_node"]=uint64_t(r.target);
+          sm["visited_nodes"]=A{uint64_t(r.target)};if(!r.version.empty()){sm["replica_version"]=r.version;sm["replica_access_kind"]="entry";}
+          auto &row=std::get<A>(std::get<A>(sm["seeds"].data).front().data);
+          auto &owners=std::get<A>(row[3].data);bool present=false;
+          for(auto& n:owners)present|=cast<size_t>(n)==r.target;
+          if(!present)owners.emplace_back(uint64_t(r.target));
+          if(!validating){++replica_selected;std::lock_guard<std::mutex> lock(observation_mu);
+            if(!replica_access_counts.count(r.version))replica_access_counts[r.version]=M{};
+            add(replica_access_counts[r.version].map(),"entry_selected",1);
+          }
+        }
+      }
+      sm["internal_validation"]=validating;
+      if(optional<bool>(at(config,"peer"),"logical_region_visits",false))dhregion::normalize(s);
       q->input.clear();
       {
         std::lock_guard<std::mutex> l(q->mu);
@@ -541,6 +648,7 @@ struct HeadRuntime::Impl {
           q->maintenance_owner = target;
         }
         q->state = std::move(s);
+        q->route_profile = std::move(route_profile);
         q->trace["routing_done_ns"] = stamp();
         q->trace["entry_submit_enter_ns"] = stamp();
         clock_gettime(CLOCK_THREAD_CPUTIME_ID, &cpu);
@@ -553,7 +661,7 @@ struct HeadRuntime::Impl {
       maybe_merge(q);
     }
   }
-  std::string submit(std::vector<double> query, V qid, std::string request_id, HeadRuntime::Completion completion) {
+  std::string submit(std::vector<double> query, V qid, std::string request_id, HeadRuntime::Completion completion, V validation) {
     auto q = std::make_shared<Query>();
     q->id = request_id.empty() ? identifier() : std::move(request_id);
     q->token = identifier();
@@ -561,6 +669,7 @@ struct HeadRuntime::Impl {
     q->query_id = std::move(qid);
     q->input = std::move(query);
     q->completion = std::move(completion);
+    q->replica_validation=std::move(validation);
     q->submitted = stamp();
     q->deadline = q->submitted + timeout_ns;
     q->next_lease = q->submitted + heartbeat_ns;
@@ -653,7 +762,7 @@ struct HeadRuntime::Impl {
         try {
           q->all_reports = validate_manifests(
               reports(*q), q->root, get<size_t>(q->state, "target_node"),
-              budget, slots, node_count);
+              budget, slots, node_count, optional<bool>(at(config,"peer"),"allow_node_revisit",false));
         } catch (const std::exception &e) {
           q->error = e.what();
         }
@@ -781,11 +890,18 @@ struct HeadRuntime::Impl {
   }
   void merge(std::shared_ptr<Query> q) {
     const double cpu_start = thread_cpu_ms();
+    const auto worker_enter = stamp();
+    M profile = M{};
     V result;
     std::vector<size_t> cancel_nodes;
     {
       std::lock_guard<std::mutex> l(q->mu);
-      q->trace["merge_started_ns"] = stamp();
+      const auto query_locked = stamp();
+      q->trace["merge_started_ns"] = query_locked;
+      q->trace["merge_worker_enter_ns"] = worker_enter;
+      profile = q->route_profile;
+      profile["merge_query_lock_wait_ms"] = (query_locked-worker_enter)/1e6;
+      const double prepare_cpu = thread_cpu_ms();
       try {
         if (!q->error.empty())
           throw std::runtime_error(q->error);
@@ -797,9 +913,15 @@ struct HeadRuntime::Impl {
           for(auto& [id,report]:q->reports)owned.push_back(std::move(report));
           q->reports.clear();rs=std::move(owned);
         } else rs = reports(*q);
+        const double aggregate_cpu = thread_cpu_ms();
+        const auto aggregate_wall = stamp();
+        profile["merge_report_prepare_cpu_ms"] = aggregate_cpu-prepare_cpu;
         result = aggregate_native(
             config, rs, q->entry,
             vector(std::vector<size_t>(q->nodes.begin(), q->nodes.end())));
+        const double aggregate_done_cpu = thread_cpu_ms();
+        profile["merge_aggregate_cpu_ms"] = aggregate_done_cpu-aggregate_cpu;
+        profile["merge_aggregate_wall_ms"] = (stamp()-aggregate_wall)/1e6;
         auto &out = result.map();
         auto &stats = out.at("stats").map();
         check(number(stats.at("expanded")) <= budget, "Global budget exceeded");
@@ -808,6 +930,35 @@ struct HeadRuntime::Impl {
         out["epoch"] = at(manifest, "epoch");
         out["metric"] = at(manifest, "metric");
         out["branch_reports"] = std::move(rs);
+        stats["route_entry_id"]=at(q->state,"route_entry_id");
+        stats["original_entry_node"]=at(q->state,"original_entry_node");
+        stats["replica_unavailable_fallback"]=q->replica_fallback;
+        if(has(q->state,"replica_version"))stats["replica_version"]=at(q->state,"replica_version");
+        if(null(q->replica_validation)){
+          std::lock_guard<std::mutex> lock(observation_mu);
+          for(const auto& b:array(out.at("branch_reports")))if(has(b,"replica_version")){
+            auto version=get<std::string>(b,"replica_version");
+            if(!replica_access_counts.count(version))replica_access_counts[version]=M{};
+            auto& counts=replica_access_counts[version].map();
+            const auto kind=optional<std::string>(b,"replica_access_kind",null(at(b,"parent_branch_id"))?"entry":"peer");
+            add(counts,kind+"_completed",1);add(counts,kind+"_expanded",double(get<size_t>(b,"work_spent")));
+          }
+        }
+        if(null(q->replica_validation)&&observation_every&&observation_sequence.fetch_add(1)%observation_every==0) {
+          A branches;for(const auto& b:array(out.at("branch_reports"))) {
+            const auto& bs=at(b,"stats");
+            branches.emplace_back(M{{"node",at(b,"node_id")},{"expanded_ids",at(b,"expanded_ids")},
+              {"cpu_ms",at(bs,"server_thread_cpu_ms")},{"work",at(b,"work_spent")}});
+          }
+          V observation=M{{"entry",at(q->state,"route_entry_id")},{"source",at(q->state,"original_entry_node")},
+            {"query_id",q->query_id},{"score",at(q->state,"route_entry_estimate")},
+            {"replica",has(q->state,"replica_version")?at(q->state,"replica_version"):V()},
+            {"branches",std::move(branches)},{"result_ids",out.at("ids")}};
+          if(optional<std::string>(at(config,"load_balance"),"validation_mode","ground_truth")=="shadow")
+            observation.map()["query_f32"]=at(q->state,"query_f32");
+          std::lock_guard<std::mutex> lock(observation_mu);
+          if(observations.size()<observation_limit)observations.push_back(std::move(observation));else ++observation_dropped;
+        }
         stats["entry_rpc"] = q->entry;
         stats["branch_report_received_ns"] = q->branch_received;
         stats["branch_report_ack_sent_ns"] = q->branch_ack;
@@ -837,6 +988,8 @@ struct HeadRuntime::Impl {
         stats["transfer_metrics_complete"]=transfers_complete;
         stats["metrics_complete"]=cast<bool>(stats["metrics_complete"])&&transfers_complete;
         stats["head_merge_cpu_ms"] = thread_cpu_ms() - cpu_start;
+        profile["merge_metadata_cpu_ms"] = thread_cpu_ms()-aggregate_done_cpu;
+        stats["head_stage_timings_ms"] = profile;
         stats["coordinator_thread_cpu_ms"] =
             q->route_cpu + number(stats["head_merge_cpu_ms"]);
         const auto finished_at = stamp();
@@ -878,8 +1031,11 @@ struct HeadRuntime::Impl {
       q->reports.clear();
       q->state = V();
     }
+    const auto registry_requested = stamp();
     {
       std::lock_guard<std::mutex> l(mu);
+      if(has(result,"stats"))
+        result.map().at("stats").map()["head_finalize_registry_wait_ms"] = (stamp()-registry_requested)/1e6;
       if (!q->completion && has(result,"stats") && has(at(result,"stats"),"native_head_timestamps"))
         result.map().at("stats").map().at("native_head_timestamps").map()["completed_enqueued_ns"]=stamp();
       // Direct native capture bypasses the consumer queue. Errors also have
@@ -940,8 +1096,33 @@ struct HeadRuntime::Impl {
     snapshot["network_entry"] = entries->metrics();
     snapshot["network_lease"] = leases->metrics();
     snapshot["entry_pending"] = uint64_t(entries->pending());
+    snapshot["replica_selected"]=replica_selected.load();
+    snapshot["replica_routing_funnel"]=M{{"queries",replica_lookup.load()},{"directory_match",replica_match.load()},
+      {"stale_or_source_mismatch",replica_stale.load()},{"score_rejected",replica_score_reject.load()},
+      {"probability_rejected",replica_probability_reject.load()},{"selected",replica_selected.load()}};
+    {std::lock_guard<std::mutex> lock(observation_mu);snapshot["replica_access_counts"]=replica_access_counts;}
+    snapshot["replica_observation_dropped"]=observation_dropped.load();
     return snapshot;
   }
+  void replica_routes(V rows) {
+    auto next=std::make_shared<ReplicaRoutes>();
+    for(const auto& row:array(rows)) {
+      auto source=get<size_t>(row,"source"),target=get<size_t>(row,"target");
+      auto fraction=get<double>(row,"fraction");auto version=get<std::string>(row,"version");
+      double lower=get<double>(row,"min_score"),upper=get<double>(row,"max_score");
+      auto ttl=get<uint64_t>(row,"ttl_ms");
+      check(source<node_count&&target<node_count&&source!=target&&std::isfinite(fraction)&&fraction>=0&&fraction<=1&&
+        !version.empty()&&version.size()<=128&&std::isfinite(lower)&&std::isfinite(upper)&&lower<=upper&&ttl>0&&ttl<=60000,"Invalid replica route");
+      ReplicaRoute r{source,target,version,fraction,lower,upper,stamp()+ttl*1000000};
+      for(const auto& id:array(at(row,"entries"))){auto weighted=r;
+        if(has(row,"entry_weights")){const auto& weights=at(row,"entry_weights").map();auto i=weights.find(std::to_string(cast<uint64_t>(id)));
+          check(i!=weights.end(),"Missing entry weight");double weight=number(i->second);check(std::isfinite(weight)&&weight>=0&&weight<=1,"Invalid entry weight");weighted.fraction*=weight;}
+        check(next->emplace(cast<uint64_t>(id),weighted).second,"Ambiguous replica entry");
+      }
+    }
+    std::atomic_store(&replica_directory,std::shared_ptr<const ReplicaRoutes>(next));
+  }
+  V replica_observations(){A out;std::lock_guard<std::mutex> lock(observation_mu);out.swap(observations);return out;}
   void close() {
     std::lock_guard<std::mutex> closing(close_mu);
     if (closed)
@@ -978,12 +1159,14 @@ struct HeadRuntime::Impl {
 HeadRuntime::HeadRuntime(V c, V m, RouteFunction r)
     : impl_(std::make_unique<Impl>(std::move(c), std::move(m), std::move(r))) {}
 HeadRuntime::~HeadRuntime() { close(); }
-std::string HeadRuntime::submit(std::vector<double> q, V id, std::string request_id, Completion completion) {
-  return impl_->submit(std::move(q), std::move(id), std::move(request_id), std::move(completion));
+std::string HeadRuntime::submit(std::vector<double> q, V id, std::string request_id, Completion completion, V validation) {
+  return impl_->submit(std::move(q), std::move(id), std::move(request_id), std::move(completion),std::move(validation));
 }
 V HeadRuntime::completed(size_t n, uint64_t ms) {
   return impl_->completed(n, ms);
 }
 V HeadRuntime::metrics() const { return impl_->metrics(); }
+void HeadRuntime::replica_routes(V routes){impl_->replica_routes(std::move(routes));}
+V HeadRuntime::replica_observations(){return impl_->replica_observations();}
 void HeadRuntime::close() { impl_->close(); }
 } // namespace dhruntime

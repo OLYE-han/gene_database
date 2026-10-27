@@ -27,6 +27,25 @@ StrictLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _ma
 
 # Types are the schema, not a second set of parameter defaults.
 SCHEMA = {
+    "hotness": {"enabled":bool,"half_life_ms":float,"merge_interval_ms":float,"local_capacity":int,"queue_batches":int,"max_candidates":int,"top_k":int,"max_lanes":int,"min_score":float},
+    "load_balance": {"replica_id_lookup_bytes":int,"progressive_validation":bool,"validation_publish_batch":int,"portal_budget_fraction":float,"native_replica_pack":bool,"copy_pressure_source_queue":bool,"quality_weight_routing":bool,"reuse_observed_baseline":bool,"lifecycle_poll_ms":int,"max_total_replica_bytes":int,"selection_policy":str,"target_queue_limit_ms":float,"min_entry_validation_queries":int,"validation_mode":str,"max_validation_queries":int,"shadow_overlap_min":float,
+        "min_replica_expansions":int,"max_early_exit_fraction":float,"quality_walk_steps":int,
+        "entry_weight_floor":float,"entry_weight_power":float,"max_peer_entries":int,
+        "peer_routes_enabled":bool,"max_target_shard_fraction":float,
+        "enabled":bool,"mode":str,"sample_every":int,"max_observations":int,
+        "max_history":int,"min_group_queries":int,"min_entry_queries":int,"load_interval_ms":int,
+        "control_interval_ms":int,"sustained_windows":int,"source_util_high":float,"target_util_low":float,
+        "target_util_limit":float,"util_gap":float,"queue_high_ms":float,"queue_low_ms":float,
+        "max_load_age_ms":int,"max_core_rows":int,"halo_hops":int,"max_region_rows":int,"max_region_bytes":int,"max_code_bytes":int,
+        "min_coverage":float,"port_offset":int,"chunk_bytes":int,"inflight_chunks":int,
+        "copy_mib_per_s":float,"warm_bytes":int,"reserve_disk_bytes":int,"operation_timeout_s":float,
+        "initial_fraction":float,"fraction_step":float,"max_fraction":float,"route_adjust_ms":int,
+        "cooldown_ms":int,"min_residency_ms":int,"idle_retire_ms":int,"max_replicas":int,
+        "calibration_file":str,"min_validation_queries":int,"recall_min":float,"recall_margin":float,
+        "validation_workers":int,"maintenance_min_reactors":int,"maintenance_max_reactors":int,
+        "maintenance_connections":int,"copy_pressure_queue_tasks":int,"copy_pressure_check_ms":int,
+        "copy_pressure_rate_factor":float},
+
     "version": int, "seed": int,
     "benchmark_results": {"memory_limit_bytes":int,"json_shard_bytes":int,"processor_timeout_seconds":int},
     "runtime": {"blas_threads": int,"python_switch_interval_ms":float},
@@ -41,7 +60,7 @@ SCHEMA = {
                        "result_sink":{"enabled":bool,"writers":int,"batch_records":int,"batch_bytes":int,"completion":str,"max_retained_bytes":int},
                        "head_entry_network":{"enabled":bool,"send_min_reactors":int,"send_max_reactors":int,
                                              "connections_per_endpoint_per_reactor":int},
-                       "network_module":{"scale_up_busy_fraction":float,"async_connect_progress":bool,"async_connect":bool,"cpu_ids":list,"transport":str,"rdma_poll_interval_us":int,"min_connections_per_endpoint_per_reactor":int,"max_connecting_per_reactor":int,"send_pressure_mode":str,"rebalance_connections":bool,"rebalance_interval_ms":int,"rebalance_batch":int,"enabled":bool,"send_min_reactors":int,"send_max_reactors":int,
+                       "network_module":{"idle_probe_ms":int,"scale_up_busy_fraction":float,"async_connect_progress":bool,"async_connect":bool,"cpu_ids":list,"transport":str,"rdma_poll_interval_us":int,"min_connections_per_endpoint_per_reactor":int,"max_connecting_per_reactor":int,"send_pressure_mode":str,"rebalance_connections":bool,"rebalance_interval_ms":int,"rebalance_batch":int,"enabled":bool,"send_min_reactors":int,"send_max_reactors":int,
                            "receive_min_reactors":int,"receive_max_reactors":int,"handlers_per_receive_reactor":int,
                            "connections_per_endpoint_per_reactor":int,"send_queue_capacity":int,
                            "receive_queue_capacity_per_reactor":int,"max_receive_connections":int,
@@ -50,7 +69,7 @@ SCHEMA = {
                        "adaptive_control":{"enabled":bool,"min_lanes":int,"max_lanes":int,
                            "command_queue_high":int,"network_pending_high":int,"high_samples":int,
                            "sample_interval_ms":int,"cooldown_ms":int,"idle_ms":int}},
-    "metrics": {"expansion_counter_stripes":int,"detailed_trace": bool,"trace_query_ids":list,"lifecycle_trace":bool,"gc_trace":bool, "resource_sample_interval_ms": int, "resource_max_samples": int},
+    "metrics": {"snapshot_chunk_bytes":int,"expansion_counter_stripes":int,"detailed_trace": bool,"trace_query_ids":list,"lifecycle_trace":bool,"gc_trace":bool, "resource_sample_interval_ms": int, "resource_max_samples": int},
     "paths": {"dataset": str, "output": str},
     "data": {"metric": str, "dimension": int, "row_limit": int, "block_rows": int, "inspection_rows": int},
     "partition": {"method": str, "overlap_fraction": float, "max_copies": int, "train_rows": int,
@@ -68,7 +87,7 @@ SCHEMA = {
     "search": {"skip_seen_estimates": bool,"execution": str, "top_k": int, "frontier_size": int, "max_expansions": int, "local_beam": int,
                "max_inflight": int, "exclude_self": bool, "fallback_enabled": bool,
                "max_fallback_entries": int, "stagnation_batches": int},
-    "peer": {"execution_model": str,"max_branches": int,"child_budget_fraction": float,"worker_threads": int,
+    "peer": {"replica_child_budget_fraction":float,"logical_region_visits":bool,"max_excluded_region_ids":int,"deduplicate_node_expansions":bool,"allow_node_revisit":bool,"min_expansions_after_cross":int,"cross_on_local_exhaustion":bool,"execution_model": str,"max_branches": int,"child_budget_fraction": float,"worker_threads": int,
              "max_active_queries": int,"heartbeat_interval_ms": int,"lease_timeout_ms": int,
              "query_timeout_seconds": float,"control_timeout_seconds": float,"handoff_timeout_seconds": float,
              "retention_seconds": float,"max_tombstones": int,"head_bind_host": str,
@@ -116,17 +135,18 @@ SCHEMA = {
 
 def _check(values, schema, path=""):
     optional={'listen_backlog','rpc_tcp_nodelay'} if path=='network' else set()
-    if path=='':optional={'native_runtime','benchmark_results'}  # Archived plans remain usable.
+    if path=='':optional={'native_runtime','benchmark_results','load_balance','hotness'}  # Archived plans remain usable.
+    if path=='load_balance':optional={'replica_id_lookup_bytes','progressive_validation','validation_publish_batch','portal_budget_fraction','native_replica_pack','copy_pressure_source_queue','quality_weight_routing','reuse_observed_baseline','lifecycle_poll_ms','max_total_replica_bytes','selection_policy','target_queue_limit_ms','min_entry_validation_queries','validation_mode','max_validation_queries','shadow_overlap_min','min_replica_expansions','max_early_exit_fraction','quality_walk_steps','entry_weight_floor','entry_weight_power','max_peer_entries','peer_routes_enabled','max_target_shard_fraction'}
     if path=='search':optional={'skip_seen_estimates'}
-    if path=='metrics':optional={'expansion_counter_stripes'}
+    if path=='metrics':optional={'snapshot_chunk_bytes','expansion_counter_stripes'}
     if path=='storage':optional={'native_id_lookup_bytes'}
     if path=='native_runtime':optional={'compute_cpu_ids','report_network','result_sink','report_capacity_retry_ms','adaptive_control','network_module','early_parent_report','queued_control_registration','move_head_reports','search_thread_reports','head_maintenance_mode','head_entry_network'}
-    if path=='native_runtime.network_module':optional={'scale_up_busy_fraction','async_connect_progress','async_connect','cpu_ids','transport','rdma_poll_interval_us','min_connections_per_endpoint_per_reactor','max_connecting_per_reactor','send_pressure_mode','rebalance_connections','rebalance_interval_ms','rebalance_batch'}
+    if path=='native_runtime.network_module':optional={'idle_probe_ms','scale_up_busy_fraction','async_connect_progress','async_connect','cpu_ids','transport','rdma_poll_interval_us','min_connections_per_endpoint_per_reactor','max_connecting_per_reactor','send_pressure_mode','rebalance_connections','rebalance_interval_ms','rebalance_batch'}
     if path=='native_runtime.result_sink':optional={'max_retained_bytes'}
     if path=='peer.connection_pool':optional={'head_scheduling','data_scheduling'}
     if path=='peer.head_pipeline':optional={'ack_inline'}
     if path=='peer.head_direct':optional={'queued_reports','result_channels','report_queue_capacity','report_connections_per_channel','completion_threads','report_backend','report_registration','completion_dispatch','result_backend'}
-    if path=='peer':optional={'locking','adaptive_services','head_receiver_processes','head_receiver_ipc','head_query_workers','head_entry_workers','head_pipeline','head_direct','head_lanes'}
+    if path=='peer':optional={'replica_child_budget_fraction','logical_region_visits','max_excluded_region_ids','deduplicate_node_expansions','allow_node_revisit','min_expansions_after_cross','cross_on_local_exhaustion','locking','adaptive_services','head_receiver_processes','head_receiver_ipc','head_query_workers','head_entry_workers','head_pipeline','head_direct','head_lanes'}
     if not isinstance(values, dict) or (set(values)-set(schema)) or (set(schema)-set(values)-optional):
         missing = set(schema) - set(values) if isinstance(values, dict) else set(schema)
         extra = set(values) - set(schema) if isinstance(values, dict) else set()
@@ -153,6 +173,51 @@ def validate(c):
         raise ValueError('expansion_counter_stripes must be in [1, 4096]')
     if any(v <= 0 for v in c.get('benchmark_results',{}).values()):
         raise ValueError('benchmark_results limits must be positive')
+    h=c.get('hotness')
+    if h:
+        for key in ('half_life_ms','merge_interval_ms','local_capacity','queue_batches','max_candidates','top_k','max_lanes'):
+            if h[key]<=0:raise ValueError('Invalid hotness parameter: '+key)
+        if h['top_k']>h['max_candidates'] or h['min_score']<0:raise ValueError('Invalid hotness capacity/score')
+        if h['enabled'] and (not c.get('native_runtime',{}).get('data_enabled') or not c['peer'].get('deduplicate_node_expansions',False)):
+            raise ValueError('Hotness requires native data runtime and physical-node query deduplication')
+    if c['peer'].get('logical_region_visits',False):
+        if not c['peer'].get('allow_node_revisit',False) or c['peer'].get('max_excluded_region_ids',0)<=0:raise ValueError('Logical regions require physical revisits and bounded exclusion capacity')
+        if not c.get('native_runtime',{}).get('data_enabled') or not c.get('native_runtime',{}).get('head_enabled'):raise ValueError('Logical regions require native data/head runtime')
+        if c['peer']['max_excluded_region_ids']*8+c['data']['dimension']*4+65536>c['network']['max_message_bytes']:raise ValueError('Logical exclusion payload exceeds network frame budget')
+    chunk=c['metrics'].get('snapshot_chunk_bytes',262144)
+    if not 0<chunk<=min(16777216,c['network']['max_message_bytes']//2):raise ValueError('Invalid metrics snapshot chunk limit')
+    lb=c.get('load_balance')
+    if lb is not None:
+        if lb.get('selection_policy','entry_worksets') not in ('entry_worksets','hotness_worksets','cpu_worksets'):raise ValueError('Invalid replica selection policy')
+        if lb['enabled'] and lb.get('selection_policy','entry_worksets')=='hotness_worksets' and not c.get('hotness',{}).get('enabled'):raise ValueError('Hotness selection requires enabled hotness statistics')
+        if lb['enabled'] and c['peer'].get('logical_region_visits',False) and lb['max_region_rows']>c['peer']['max_excluded_region_ids']:raise ValueError('Replica row cap exceeds full-region exclusion capacity')
+        if lb.get('validation_mode','ground_truth') not in ('ground_truth','shadow'):raise ValueError('Invalid replica validation mode')
+        for key in ('shadow_overlap_min','max_early_exit_fraction','entry_weight_floor'):
+            if key in lb and not 0<lb[key]<=1:raise ValueError('Invalid load_balance fraction: '+key)
+        if lb.get('max_target_shard_fraction',1.)<=0:raise ValueError('Invalid replica shard fraction')
+        if lb.get('target_queue_limit_ms',1.)<=0:raise ValueError('Invalid target queue limit')
+        if lb.get('entry_weight_power',1.)<=0:raise ValueError('Invalid entry weight exponent')
+        if lb.get('max_validation_queries',4096)<lb['min_validation_queries']:raise ValueError('Replica validation cap below minimum')
+        if lb['mode'] not in ('observe','static','dynamic'):raise ValueError('Invalid load_balance.mode')
+        fractions=('source_util_high','target_util_low','target_util_limit','util_gap','min_coverage','initial_fraction','fraction_step','max_fraction','recall_min','recall_margin')
+        for key in fractions:
+            if not 0<=lb[key]<=1:raise ValueError('Invalid load_balance fraction: '+key)
+        for key,value in lb.items():
+            if type(value) is int and (value<0 if key in ('halo_hops','replica_id_lookup_bytes') else value<=0):raise ValueError('Invalid load_balance integer: '+key)
+        if not 0<=lb.get('portal_budget_fraction',0)<1:raise ValueError('Invalid portal budget fraction')
+        if lb['max_core_rows']>lb['max_region_rows']:raise ValueError('Replica core exceeds region limit')
+        if not 0<lb['copy_pressure_rate_factor']<=1:raise ValueError('Invalid replica pressure rate factor')
+        if lb['initial_fraction']>lb['max_fraction']:raise ValueError('Initial replica fraction exceeds maximum')
+        if lb['chunk_bytes']+4096>c['network']['max_message_bytes']:raise ValueError('Replica chunk exceeds wire frame')
+        if lb['maintenance_min_reactors']>lb['maintenance_max_reactors']:raise ValueError('Invalid maintenance reactor range')
+        if lb['copy_mib_per_s']<=0 or lb['operation_timeout_s']<=0:raise ValueError('Invalid maintenance limit')
+        if any(n['port']+lb['port_offset']>65535 for n in c['cluster']['nodes']):raise ValueError('Invalid replica service port')
+        if lb['enabled'] and (not c.get('native_runtime',{}).get('data_enabled') or not c.get('native_runtime',{}).get('head_enabled') or c['storage']['io']['backend']!='sync_pread'):
+            raise ValueError('Load balancing requires native head/data and sync_pread')
+    if not 0<c['peer'].get('replica_child_budget_fraction',.5)<1:raise ValueError('Invalid replica child budget fraction')
+    if c['peer'].get('min_expansions_after_cross',0)<0:raise ValueError('Minimum local expansions cannot be negative')
+    if c['peer'].get('allow_node_revisit',False) and not (c.get('native_runtime',{}).get('head_enabled') and c.get('native_runtime',{}).get('data_enabled')):
+        raise ValueError('Bounded revisits require native head/data runtime')
     nr = c.get('native_runtime', {})
     if nr.get('head_maintenance_mode','single') not in ('single','per_node'):
         raise ValueError('head_maintenance_mode must be single or per_node')
@@ -228,6 +293,7 @@ def validate(c):
     zero_allowed = {("data", "row_limit"), ("storage", "cache_bytes_per_shard"), ("storage", "native_id_lookup_bytes"),
                     ("search", "max_fallback_entries"), ("network", "max_retries"), ("query", "row"),
                     ("experiment", "warmup_queries")}
+    zero_allowed.add(("peer", "min_expansions_after_cross"))
     zero_allowed.add(("peer", "head_port"))
     zero_allowed.add(("peer", "head_receiver_processes"))
     zero_allowed.add(("peer", "head_query_workers"))
@@ -276,7 +342,7 @@ def validate(c):
         raise ValueError('head_receiver_processes requires optimized mode and must be in [0,32]')
     if c['peer']['head_port']+max(0,receivers-1)>65535:
         raise ValueError('Head receiver port range exceeds 65535')
-    zero_allowed.update({("scheduler", "remote_weight"), ("scheduler", "kappa"),
+    zero_allowed.update({("load_balance", "replica_id_lookup_bytes"),("load_balance", "halo_hops"), ("scheduler", "remote_weight"), ("scheduler", "kappa"),
                          ("scheduler", "remote_rtt_ms")})
     for section, fields in c.items():
         if not isinstance(fields, dict):

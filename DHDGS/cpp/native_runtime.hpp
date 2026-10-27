@@ -8,7 +8,8 @@ namespace dhruntime {
 using V = dhwire::Value;
 using SearchFunction = std::function<void(
     const V &, const std::vector<double> &, std::shared_ptr<dhsearch::Control>,
-    const std::function<V(V)> &, std::shared_ptr<dhcontrol::Ticket>)>;
+    const std::function<V(V)> &, std::shared_ptr<dhcontrol::Ticket>, std::shared_ptr<void>)>;
+using SearchPrepare = std::function<std::shared_ptr<void>(const V&)>;
 // No Python objects, callbacks or APIs are used by this runtime.
 class DataRuntime {
   struct Impl;
@@ -16,7 +17,7 @@ class DataRuntime {
 
 public:
   DataRuntime(V config, V shard_metadata, std::string signature,
-              SearchFunction);
+              SearchFunction, SearchPrepare = {});
   ~DataRuntime();
   dhwire::Reply handle(V request, uint64_t received_ns, size_t rx_bytes);
   V metrics() const;

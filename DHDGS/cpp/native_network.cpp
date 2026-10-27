@@ -7,6 +7,7 @@
 #include <cmath>
 #include <condition_variable>
 #include <mutex>
+#include <future>
 #include <thread>
 #include <pybind11/pybind11.h>
 namespace dhnet {
@@ -24,6 +25,7 @@ Policy::Policy(const V& config) {
   async_connect=dhvalue::optional<bool>(p,"async_connect",false);
   async_connect_progress=dhvalue::optional<bool>(p,"async_connect_progress",true);
   auto pressure=dhvalue::optional<std::string>(p,"send_pressure_mode","pending");
+  idle_probe_ms=dhvalue::optional<uint64_t>(p,"idle_probe_ms",1000);
   if(pressure!="pending"&&pressure!="queued")throw std::invalid_argument("Invalid send pressure mode");
   queued_pressure=pressure=="queued";
   scale_busy_fraction=dhvalue::optional<double>(p,"scale_up_busy_fraction",0.5);
@@ -46,7 +48,7 @@ struct Client::Core {
   std::vector<std::shared_ptr<Lane>> lanes;std::map<std::string,dhwire::Endpoint> known;std::thread monitor;bool stopping=false;
   std::atomic<size_t> total{0};size_t rr=0,ups=0,downs=0,peak=1,peak_pending=0,rejected=0;A events;
   explicit Core(dhwire::Config c,const V& v):p(v),config(c){
-    config.cpu_ids=p.cpu_ids;config.transport=p.transport;config.rdma_poll_interval_us=p.rdma_poll_interval_us;config.async_connect=p.async_connect;config.async_connect_progress=p.async_connect_progress;
+    config.cpu_ids=p.cpu_ids;config.transport=p.transport;config.rdma_poll_interval_us=p.rdma_poll_interval_us;config.async_connect=p.async_connect;config.async_connect_progress=p.async_connect_progress;config.idle_probe_ms=p.idle_probe_ms;
     if(p.enabled){config.max_pending=std::min(c.max_pending,p.send_capacity);config.max_connections_per_endpoint=p.connections;config.connection_idle_ms=p.connections?0:p.idle_ms;config.min_connections_per_endpoint=p.warm_connections;config.max_connecting=p.max_connecting;}
     for(size_t i=0;i<p.tx_min;++i){lanes.push_back(std::make_shared<Lane>(config));}
     peak=lanes.size();
@@ -184,6 +186,43 @@ V Server::metrics()const{
 } // namespace dhnet
 namespace dhnet {
 namespace py=pybind11;
+// Separate bounded maintenance channel. Query RPCs never acquire the GIL.
+class MaintenanceServer {
+  py::object handler_;
+  std::unique_ptr<Server> server_;
+public:
+  MaintenanceServer(const V& c,const std::string& host,uint16_t port,py::object handler):handler_(std::move(handler)) {
+    dhwire::ServerConfig sc;sc.host=host;sc.port=port;
+    sc.max_message_bytes=dhvalue::get<size_t>(dhvalue::at(c,"network"),"max_message_bytes");
+    sc.idle_timeout_ms=uint64_t(dhvalue::get<double>(dhvalue::at(c,"network"),"timeout_seconds")*1000);
+    server_=std::make_unique<Server>(sc,[this](V request,uint64_t,size_t){
+      py::gil_scoped_acquire gil;V response;
+      try{response=dhwire::from_python(handler_(dhwire::to_python(request)));}
+      catch(py::error_already_set& e){auto error=std::string(e.what());e.restore();PyErr_Clear();response=M{{"ok",false},{"error",error}};}
+      return dhwire::Reply{std::move(response),{}};
+    },Server::Handler{},c);
+  }
+  ~MaintenanceServer(){py::gil_scoped_release release;close();}
+  void close(){if(server_)server_->close();}
+  uint16_t port()const{return server_->port();}
+  V metrics()const{return server_->metrics();}
+};
+class MaintenanceClient {
+  Client client_;
+  static dhwire::Config wire_config(const V& c){dhwire::Config w;const auto& n=dhvalue::at(c,"network");
+    w.max_message_bytes=dhvalue::get<size_t>(n,"max_message_bytes");w.timeout_ms=uint64_t(dhvalue::get<double>(n,"timeout_seconds")*1000);return w;}
+public:
+  explicit MaintenanceClient(const V& c):client_(wire_config(c),c){}
+  V request(const std::string& host,uint16_t port,V value){
+    auto promise=std::make_shared<std::promise<dhwire::Result>>();auto result=promise->get_future();
+    if(!client_.submit(dhwire::Endpoint(host,port),value,[promise](dhwire::Result r){promise->set_value(std::move(r));}))throw std::runtime_error("Maintenance channel capacity exceeded");
+    auto r=result.get();if(!r.ok)throw std::runtime_error(r.error);
+    return M{{"response",std::move(r.response)},{"request_bytes",r.request_bytes},{"response_bytes",r.response_bytes},
+      {"elapsed_ms",double(r.done_ns-r.queued_ns)/1e6}};
+  }
+  void close(){client_.close();}
+  V metrics()const{return client_.metrics();}
+};
 struct ProbeClient {
   Client wire;std::mutex mu;A done;
   explicit ProbeClient(V c):wire(dhwire::Config{},c){}
@@ -203,6 +242,17 @@ struct ProbeServer {
   },{},c){}
 };
 void bind_native_network(py::module_& m){
+  py::class_<MaintenanceServer>(m,"MaintenanceServer")
+    .def(py::init([](py::dict c,std::string host,uint16_t port,py::object handler){return std::make_unique<MaintenanceServer>(dhwire::from_python(c),host,port,std::move(handler));}))
+    .def("port",&MaintenanceServer::port)
+    .def("metrics",[](MaintenanceServer& s){return dhwire::to_python(s.metrics());})
+    .def("close",&MaintenanceServer::close,py::call_guard<py::gil_scoped_release>());
+  py::class_<MaintenanceClient>(m,"MaintenanceClient")
+    .def(py::init([](py::dict c){return std::make_unique<MaintenanceClient>(dhwire::from_python(c));}))
+    .def("request",[](MaintenanceClient& c,std::string host,uint16_t port,py::object request){auto v=dhwire::from_python(request);V reply;
+      {py::gil_scoped_release release;reply=c.request(host,port,std::move(v));}return dhwire::to_python(reply);})
+    .def("metrics",[](MaintenanceClient& c){return dhwire::to_python(c.metrics());})
+    .def("close",&MaintenanceClient::close,py::call_guard<py::gil_scoped_release>());
   py::class_<ProbeServer>(m,"NetworkProbeServer")
     .def(py::init([](py::dict c,uint64_t delay){return std::make_unique<ProbeServer>(dhwire::from_python(c),delay);}),py::arg("config"),py::arg("delay_ms")=0)
     .def("port",[](ProbeServer& s){return s.wire.port();})

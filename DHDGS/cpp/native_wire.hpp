@@ -47,6 +47,7 @@ struct Config {
   size_t max_pending = 4096;
   size_t max_connections_per_endpoint = 2; // 0: no application-level count limit
   uint64_t connection_idle_ms = 0; // 0 disables trimming excess idle connections
+  uint64_t idle_probe_ms = 1000; // Check a long-idle socket before assigning a new RPC.
   size_t min_connections_per_endpoint = 0; // 0 preserves on-demand connection setup
   size_t max_connecting = 4; // per reactor, across endpoints
   bool async_connect = false; // bounded connector pool; reactor retains framing ownership

@@ -46,7 +46,15 @@ class NativeEngine:
         self.lock = threading.Lock()
         self.pending = {}
         self.closed = False
+        self.load_balancer = None
         self._start()
+
+    def start_load_balancer(self, token, directory):
+        if self.load_balancer is not None:
+            raise RuntimeError('Replica controller already started')
+        from .load_balance import LoadBalancer
+        self.load_balancer = LoadBalancer(self, token, directory)
+        return self.load_balancer
 
     def _router(self, c):
         m, r = self.manifest, c['routing']
@@ -150,6 +158,7 @@ class NativeEngine:
         with self.lock:
             if self.pending:
                 raise RuntimeError('Cannot reconfigure active native head')
+        self.stop_load_balancer()
         old_c, old_router = self.c, self.router
         self._stop()
         self.c = c
@@ -161,8 +170,14 @@ class NativeEngine:
             self._start()
             raise
 
+    def stop_load_balancer(self):
+        if self.load_balancer is not None:
+            controller, self.load_balancer = self.load_balancer, None
+            controller.close()
+
     def close(self):
         if self.closed:
             return
         self.closed = True
-        self._stop()
+        try:self.stop_load_balancer()
+        finally:self._stop()

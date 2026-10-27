@@ -442,6 +442,7 @@ public:
   }
 };
 
+#include "replica_pack.hpp"
 #include "search_loop.hpp"
 #include "runtime_bindings.hpp"
 
@@ -449,6 +450,7 @@ void register_async_io(py::module_ &m);
 void register_read_metrics(py::module_ &m);
 
 PYBIND11_MODULE(_native, m) {
+  dhpack::bind(m);
   register_async_io(m);
   register_read_metrics(m);
   register_native_search(m);

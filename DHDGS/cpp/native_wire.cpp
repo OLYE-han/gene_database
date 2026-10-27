@@ -208,7 +208,16 @@ struct Client::Impl {
     auto n=waiting.size();while(n--){auto j=std::move(waiting.front());waiting.pop_front();
       if(now_ns()>=j->deadline){--queued_count;finish(std::move(j),"RPC timeout in queue");continue;}
       Conn *available=nullptr,*cold=nullptr;size_t occupied=0;
-      for(auto& c:conns)if(c.endpoint.key==j->endpoint.key){++occupied;if(!c.job&&!c.connecting&&!c.opening){if(c.fd>=0)available=&c;else if(c.retry_after<=now_ns())cold=&c;}}
+      for(auto& c:conns)if(c.endpoint.key==j->endpoint.key){++occupied;if(!c.job&&!c.connecting&&!c.opening){
+        if(c.fd>=0&&c.idle_since&&now_ns()-c.idle_since>=config.idle_probe_ms*1000000){
+          // An idle pooled socket is not polled. The peer can have expired it
+          // during a long copy/warm phase. Probe before attaching a job, so a
+          // confirmed EOF costs a reconnect, not a failed search or replay.
+          char byte;ssize_t n;do{n=io.recv(c.fd,&byte,1,MSG_PEEK|MSG_DONTWAIT);}while(n<0&&errno==EINTR);
+          if(n>=0||(errno!=EAGAIN&&errno!=EWOULDBLOCK)){close_conn(c,"Stale idle connection");c.retry_after=0;}
+          else c.idle_since=now_ns();
+        }
+        if(c.fd>=0)available=&c;else if(c.retry_after<=now_ns())cold=&c;}}
       if(!available){
         bool can_connect=(!config.min_connections_per_endpoint&&!config.async_connect)||connecting_count<config.max_connecting;
         if(!cold&&(!config.max_connections_per_endpoint||occupied<config.max_connections_per_endpoint)&&can_connect){conns.emplace_back(j->endpoint);cold=&conns.back();}

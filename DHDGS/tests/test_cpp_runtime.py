@@ -93,6 +93,17 @@ class NativeRuntimeTests(unittest.TestCase):
         self.assertLessEqual(offered, result['stats']['native_head_timestamps']['native_ready_ns'])
         self.assertLessEqual(result['stats']['native_head_timestamps']['native_ready_ns'], delivered)
         self.assertNotIn('api_result_delivery_ms', result['stats'])
+        stamps = result['stats']['native_head_timestamps']
+        self.assertLessEqual(stamps['merge_enqueued_ns'], stamps['merge_worker_enter_ns'])
+        self.assertLessEqual(stamps['merge_worker_enter_ns'], stamps['merge_started_ns'])
+        stages = result['stats']['head_stage_timings_ms']
+        for name in ('hnsw_cpu_ms', 'hnsw_wall_ms', 'seed_prepare_cpu_ms',
+                     'merge_query_lock_wait_ms', 'merge_report_prepare_cpu_ms',
+                     'merge_aggregate_cpu_ms', 'merge_metadata_cpu_ms'):
+            self.assertGreaterEqual(stages[name], 0, name)
+        self.assertAlmostEqual(stages['merge_query_lock_wait_ms'],
+                               (stamps['merge_started_ns']-stamps['merge_worker_enter_ns'])/1e6)
+        self.assertGreaterEqual(result['stats']['head_finalize_registry_wait_ms'], 0)
 
     def test_archived_configuration_keeps_legacy_runtime(self):
         c = {k: v for k, v in self.base.items() if not k.startswith('_')}
@@ -289,6 +300,9 @@ class NativeRuntimeTests(unittest.TestCase):
 
     def test_native_head_data_equivalence_and_gil_independence(self):
         c = self.config()
+        # This checks execution equivalence/GIL independence, not a wall-clock
+        # policy. A concurrent run may otherwise hit max-wait at another step.
+        c['scheduler'].update(mode='reference',max_wait_ms=1e9)
         self.start(c)
         legacy = Engine(c)
         self.addCleanup(legacy.close)
@@ -308,7 +322,11 @@ class NativeRuntimeTests(unittest.TestCase):
             self.assertEqual(a['stats']['visited_nodes'], b['stats']['visited_nodes'])
             self.assertEqual(a['stats']['expanded'], b['stats']['expanded'])
             self.assertLess(b['stats']['native_head_timestamps']['native_ready_ns'], released)
-            self.assertGreater(b['stats']['api_result_delivery_ms'], 50)
+            # Completion may occur late within the GIL hold under CPU load.
+            # Verify the measured hold actually overlaps delivery, rather than
+            # assuming every native query finishes within the first 100 ms.
+            self.assertGreaterEqual(b['stats']['api_result_delivery_ms'],
+                (released-b['stats']['native_head_timestamps']['native_ready_ns'])/1e6-1.)
             self.assertAlmostEqual(sum(b['stats']['latency_breakdown_ms'].values()), b['stats']['latency_ms'], places=5)
             self.assertEqual(b['stats']['metrics_complete'], b['stats']['metrics_complete_excluding_pending_transfers'] and b['stats']['transfer_metrics_complete'])
 

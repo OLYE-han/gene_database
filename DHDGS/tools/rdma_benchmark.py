@@ -2,6 +2,7 @@
 from pathlib import Path
 import os,sys,json,yaml,subprocess,shlex,time,copy,concurrent.futures,hashlib,threading
 import msgpack
+import gzip
 CODE=Path(__file__).resolve().parents[1]
 P=Path(os.environ.get('DHDGS_PROJECT_ROOT',str(CODE)))
 SETTINGS=Path(os.environ['DHDGS_LOAD_SETTINGS']);S=yaml.safe_load(SETTINGS.read_text())
@@ -76,9 +77,12 @@ for line in (root/'numa_maps').read_text().splitlines():
   if word.startswith('N') and '=' in word and word[1:word.index('=')].isdigit():
    key,val=word.split('=');pages[key]+=int(val)
    if 'anon=' in line:anon[key]+=int(val)
-masks=collections.Counter(','.join(map(str,sorted(os.sched_getaffinity(int(t.name))))) for t in (root/'task').iterdir())
+masks=collections.Counter(); vanished_threads=0
+for t in (root/'task').iterdir():
+ try:masks[','.join(map(str,sorted(os.sched_getaffinity(int(t.name)))))] += 1
+ except ProcessLookupError:vanished_threads += 1  # Dynamic reactors may retire during this read-only snapshot.
 libs=set(line.split()[-1] for line in (root/'maps').read_text().splitlines() if any(k in line for k in ['_native.','librdmacm.so','libjemalloc.so']))
-print(json.dumps({'all_mapped_pages':dict(pages),'anonymous_pages':dict(anon),'thread_cpu_masks':dict(masks),'loadavg':Path('/proc/loadavg').read_text().strip(),'libraries':{f:hashlib.sha256(Path(f).read_bytes()).hexdigest() for f in libs}}))
+print(json.dumps({'all_mapped_pages':dict(pages),'anonymous_pages':dict(anon),'thread_cpu_masks':dict(masks),'vanished_threads_during_snapshot':vanished_threads,'loadavg':Path('/proc/loadavg').read_text().strip(),'libraries':{f:hashlib.sha256(Path(f).read_bytes()).hexdigest() for f in libs}}))
 """
 SAMPLER = r"""import time,sys,json,threading,os,subprocess
 from pathlib import Path
@@ -135,6 +139,12 @@ def case(spec):
  merge(c['native_runtime'],S['data_runtime_overrides'])
  plan={'dhdgs':c,'control':copy.deepcopy(S['control']),'deployment':{'hosts':copy.deepcopy(hosts)}}
  for config in [c,headc]:
+  if spec.get('hotness_overrides'):config.setdefault('hotness',{}).update(spec['hotness_overrides'])
+  config['search'].update(spec.get('search_overrides',{}))
+  config['scheduler'].update(spec.get('scheduler_overrides',{}))
+  config['storage'].update(spec.get('storage_overrides',{}))
+  config['metrics'].update(spec.get('metrics_overrides',{}))
+  if spec.get('load_balance_overrides'):config['load_balance'].update(spec['load_balance_overrides'])
   config['peer']['worker_threads']=spec['threads'];config['native_runtime']['network_module']['transport']=spec['transport'];config['search']['max_expansions']=S['experiment']['search_budget']
   config['peer'].update(spec.get('peer_overrides',{}))
   config['native_runtime']['route_threads']=spec.get('route_threads',S['experiment']['route_threads']);config['native_runtime']['merge_threads']=spec.get('merge_threads',S['experiment']['merge_threads'])
@@ -167,10 +177,31 @@ def case(spec):
   for n in collector.nodes():
    state=collector.rpc(n,'admin_status');assert state['pid']==next(x['pid'] for x in launched if x['id']==n['id']);collector.rpc(n,'admin_resume',revision=revision(c))
   headc['_cluster_revision']=revision(headc);assert revision(c)==revision(headc)
+  deferred_mode=headc.get('load_balance',{}).get('mode')
+  if spec.get('replica_start_with_measurement'):headc['load_balance']['mode']='observe'
   engine=NativeEngine(headc,external_completion=True);engine.runtime.start_api(api_options(headc,effective_settings))
-  def client(label,count):
+  balance=engine.start_load_balancer(token,dest/'load_balance') if headc.get('load_balance',{}).get('enabled') else None
+  def client(label,count,selection_file=None):
+   client_plan=case/'plan.yaml'
+   if selection_file:
+    selected_plan=copy.deepcopy(plan);selected_plan['control']['query_selection']=selection_file
+    client_plan=case/(label+'_plan.yaml');client_plan.write_text(yaml.safe_dump(selected_plan))
    with (dest/(label+'.log')).open('w') as log:
-    subprocess.run(spec.get('client_prefix',[])+[py,str(SRC/'tools/network_load.py'),'--plan',str(case/'plan.yaml'),'--settings',str(settings_path),'--output',str(case/label),'--count',str(count),'--concurrency',str(concurrency)],stdout=log,stderr=log,check=True,timeout=600)
+    subprocess.run(spec.get('client_prefix',[])+[py,str(SRC/'tools/network_load.py'),'--plan',str(client_plan),'--settings',str(settings_path),'--output',str(case/label),'--count',str(count),'--concurrency',str(concurrency)],stdout=log,stderr=log,check=True,timeout=600)
+  if spec.get('replica_profile_selection'):
+   client('profile',spec['replica_profile_count'],spec['replica_profile_selection']);collector.idle();time.sleep(.5)
+   assert balance is not None
+   with balance.lock:save(dest/'hotspot_observations.json',[{k:v for k,v in q.items() if k!='query_f32'} for q in balance.history])
+   if spec.get('replica_create'):
+    if spec.get('replica_plan_file'):replica_plan=json.loads(Path(spec['replica_plan_file']).read_text())
+    else:replica_plan=balance.propose(spec['replica_source'],spec['replica_target'])
+    save(dest/'replica_plan.json',replica_plan)
+    try:
+     replica_version=balance.create(replica_plan).result(headc['load_balance']['operation_timeout_s']*2)
+     balance.set_fraction(spec['replica_fraction']);save(dest/'replica_ready.json',dict(version=replica_version))
+    except Exception as e:
+     save(dest/'replica_rejected.json',dict(error=str(e)))
+     if not spec.get('allow_replica_rejection',False):raise
   client('warmup',spec['warmup']);collector.idle()
   from dhdgs.network_api import records
   assert all(q['transport_ok'] and q['result'].get('status')=='ok' for q in records(case/'warmup/results')),'Warmup failed'
@@ -202,16 +233,36 @@ def case(spec):
    begin=time.monotonic_ns();v=command(h,'import time,json;print(json.dumps({"now":time.monotonic_ns()}))',{});end=time.monotonic_ns()
    return dict(id=h['id'],head_begin_ns=begin,head_end_ns=end,data_ns=v['now'],offset_min_ns=v['now']-end,offset_max_ns=v['now']-begin)
   with concurrent.futures.ThreadPoolExecutor(3)as pool:save(dest/'clock_bounds.json',list(pool.map(clock_bound,hosts)))
+  if balance and headc.get('hotness',{}).get('enabled'):
+   for n in c['cluster']['nodes']:balance.rpc(n['id'],'hotness_reset')
+   save(dest/'hotness_before.json',{n['id']:balance.rpc(n['id'],'hotness') for n in c['cluster']['nodes']})
   head_before=process_snapshot();api_before=engine.runtime.api_metrics();samples=[];stop=threading.Event()
   def monitor():
    while not stop.is_set():samples.append(dict(time_ns=time.monotonic_ns(),head=engine.runtime.metrics(),api=engine.runtime.api_metrics()));stop.wait(.2)
   monitor_thread=threading.Thread(target=monitor);monitor_thread.start()
   samplers=start_samplers(launched,dest)
+  if balance and spec.get('replica_start_with_measurement'):
+   with balance.lock:
+    balance.history.clear();balance.rates.clear();balance.streak=0;balance.last_pair=None
+    balance.b['mode']=deferred_mode
+   balance.log('MEASUREMENT_CONTROLLER_START',mode=deferred_mode,history_reset=True)
   try:client('measured',spec['count'])
   finally:
    stop.set();monitor_thread.join();stop_samplers(samplers)
-  head_after=process_snapshot();state=collector.idle();after=collector.pull();head_final=engine.runtime.metrics();api_final=engine.runtime.api_metrics()
-  (case/'nodes_before.msgpack').write_bytes(msgpack.packb(before,use_bin_type=True));(case/'nodes_after.msgpack').write_bytes(msgpack.packb(after,use_bin_type=True))
+  if balance:balance.save_counters()
+  head_after=process_snapshot();state=collector.idle()
+  if balance and headc.get('hotness',{}).get('enabled'):
+   time.sleep(2*headc['hotness']['merge_interval_ms']/1000)
+   save(dest/'hotness_after.json',{n['id']:balance.rpc(n['id'],'hotness') for n in c['cluster']['nodes']})
+  after=collector.pull();head_final=engine.runtime.metrics();api_final=engine.runtime.api_metrics()
+  capture_hashes={}
+  for label,value in [('nodes_before',before),('nodes_after',after)]:
+   raw=msgpack.packb(value,use_bin_type=True);path=case/(label+'.msgpack')
+   if spec.get('compress_snapshots'):
+    with gzip.open(str(path)+'.gz','wb',compresslevel=1) as output:output.write(raw)
+   else:path.write_bytes(raw)
+   capture_hashes[label]=dict(bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest())
+  save(dest/'snapshot_hashes.json',capture_hashes)
   save(dest/'head_samples.json',samples);save(dest/'final.json',dict(spec=spec,nodes=state,head=head_final,api=api_final,api_before=api_before,head_process_before=head_before,head_process_after=head_after))
   manifest=json.loads((case/'measured/manifest.json').read_text());save(dest/'manifest.json',manifest);save(dest/'finished.json',dict(directory=str(case),time_ns=time.monotonic_ns(),head_pid=os.getpid(),client_pid=manifest['process_after']['pid']))
   print('MEASURED',name,manifest['received']/((manifest['last_received_ns']-manifest['offered_ns'])/1e9),flush=True)

@@ -18,7 +18,7 @@ struct Policy {
   size_t tx_min=1,tx_max=1,rx_min=1,rx_max=1,handlers=4;
   size_t connections=8,send_capacity=4096,receive_capacity=4096,max_connections=4096;
   size_t tx_high=8,rx_high=4,high_samples=2;
-  uint64_t sample_ms=20,cooldown_ms=100,idle_ms=1000;
+  uint64_t sample_ms=20,cooldown_ms=100,idle_ms=1000,idle_probe_ms=1000;
   explicit Policy(const dhwire::Value& config);
 };
 class Client {

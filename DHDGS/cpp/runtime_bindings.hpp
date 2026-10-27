@@ -8,6 +8,7 @@
 #include "pcg64_compat.hpp"
 #include <condition_variable>
 #include <shared_mutex>
+#include <future>
 
 namespace dhruntime {
 struct CompletedRecord {
@@ -63,7 +64,13 @@ class HeadBinding {
     bool excluded = exclude_ && !null(qid) &&
                     std::binary_search(ids_, ids_ + rows_, cast<uint64_t>(qid));
     require(topk_ <= rows_ - size_t(excluded), "top_k exceeds eligible rows");
+    const bool profile = optional<bool>(at(config_, "metrics"), "lifecycle_trace", false);
+    const auto cpu_ms = [] { timespec t{}; clock_gettime(CLOCK_THREAD_CPUTIME_ID, &t); return t.tv_sec*1000. + t.tv_nsec/1e6; };
+    const auto index_wall = profile ? dhsearch::now_ns() : 0;
+    const double index_cpu = profile ? cpu_ms() : 0.;
     auto entries = router_->search_native(query.data(), entries_);
+    const double index_done_cpu = profile ? cpu_ms() : 0.;
+    const auto index_done_wall = profile ? dhsearch::now_ns() : 0;
     require(!entries.empty(), "No HNSW entries");
     auto prepared = quantizer_->prepare_native(query.data());
     A seeds;
@@ -89,7 +96,7 @@ class HeadBinding {
     std::memcpy(bytes.data(), query.data(), bytes.size());
     A initial{seeds.front()};
     seeds.erase(seeds.begin());
-    return M{{"target_node", uint64_t(home)},
+    V result = M{{"target_node", uint64_t(home)},
              {"entry_node", uint64_t(home)},
              {"epoch", at(manifest_, "epoch")},
              {"signature", signature_},
@@ -107,9 +114,31 @@ class HeadBinding {
               double(std::max(median, std::numeric_limits<float>::epsilon()))},
              {"ancestry", A{}},
              {"decision_seed", at(config_, "seed")}};
+    if(profile) result.map()["_head_route_profile"] = M{
+      {"hnsw_cpu_ms", index_done_cpu-index_cpu},
+      {"hnsw_wall_ms", (index_done_wall-index_wall)/1e6},
+      {"seed_prepare_cpu_ms", cpu_ms()-index_done_cpu},
+      {"seed_prepare_wall_ms", (dhsearch::now_ns()-index_done_wall)/1e6}};
+    return result;
   }
 
 public:
+  py::object route_info(Array<double> query,py::object id){
+    require(query.ndim()==1&&size_t(query.size())==dim_,"Wrong validation query dimension");
+    std::vector<double> raw(query.data(),query.data()+query.size());auto qid=dhwire::from_python(id);V state;
+    {py::gil_scoped_release release;state=route(raw,qid);}
+    const auto& first=dhvalue::array(dhvalue::array(dhvalue::at(state,"seeds")).front());
+    return dhwire::to_python(V::Map{{"entry_id",first[0]},{"score",first[1]},{"source",dhvalue::at(state,"target_node")}});
+  }
+  py::object validate_replica(Array<double> query,py::object id,py::object descriptor){
+    require(query.ndim()==1&&size_t(query.size())==dim_,"Wrong validation query dimension");
+    std::vector<double> raw(query.data(),query.data()+query.size());auto qid=dhwire::from_python(id),v=dhwire::from_python(descriptor);
+    auto promise=std::make_shared<std::promise<V>>();auto result=promise->get_future();V out;
+    {py::gil_scoped_release release;runtime_->submit(std::move(raw),qid,{},[promise](V r){promise->set_value(std::move(r));},std::move(v));out=result.get();}
+    return dhwire::to_python(out);
+  }
+  void replica_routes(py::object routes){auto v=dhwire::from_python(routes);py::gil_scoped_release release;runtime_->replica_routes(std::move(v));}
+  py::object replica_observations(){V v;{py::gil_scoped_release release;v=runtime_->replica_observations();}return dhwire::to_python(v);}
   HeadBinding(py::dict config, py::dict manifest, std::string signature,
               py::object router, py::object quantizer, py::dict bank,
               Array<uint64_t> ids, Array<uint8_t> membership)
@@ -375,6 +404,10 @@ inline void bind_runtime(py::module_ &m) {
     return result;
   });
   py::class_<HeadBinding>(m, "NativeHead")
+      .def("route_info",&HeadBinding::route_info)
+      .def("validate_replica",&HeadBinding::validate_replica)
+      .def("replica_routes",&HeadBinding::replica_routes)
+      .def("replica_observations",&HeadBinding::replica_observations)
       .def(py::init<py::dict, py::dict, std::string, py::object, py::object,
                     py::dict, Array<uint64_t>, Array<uint8_t>>())
       .def("start_api", &HeadBinding::start_api)
@@ -394,10 +427,16 @@ inline void bind_runtime(py::module_ &m) {
   });
   m.def("validate_manifests",
         [](py::object reports, std::string root, size_t node, size_t budget,
-           size_t slots, size_t nodes) {
+           size_t slots, size_t nodes, bool revisits) {
           return validate_manifests(dhwire::from_python(reports), root, node,
-                                    budget, slots, nodes);
-        });
+                                    budget, slots, nodes, revisits);
+        },py::arg("reports"),py::arg("root"),py::arg("node"),py::arg("budget"),py::arg("slots"),py::arg("nodes"),py::arg("revisits")=false);
+  py::class_<dhsearch::DecayedHotness,std::shared_ptr<dhsearch::DecayedHotness>>(m,"DecayedHotness")
+      .def(py::init([](py::dict c){return std::make_shared<dhsearch::DecayedHotness>(dhwire::from_python(c));}))
+      .def("record",[](dhsearch::DecayedHotness& h,const std::vector<uint64_t>& ids){py::gil_scoped_release g;auto l=h.lane();if(l)l->record(ids,dhsearch::DecayedHotness::clock());})
+      .def("flush",[](dhsearch::DecayedHotness& h){py::gil_scoped_release g;auto l=h.lane();if(l)l->flush();})
+      .def("snapshot",[](dhsearch::DecayedHotness& h){return dhwire::to_python(h.snapshot());})
+      .def("close",&dhsearch::DecayedHotness::close,py::call_guard<py::gil_scoped_release>());
   m.def("aggregate_native", [](py::dict config, py::object reports,
                                py::object transfer, py::object involved) {
     return dhwire::to_python(aggregate_native(
@@ -409,16 +448,17 @@ inline void bind_runtime(py::module_ &m) {
                        std::shared_ptr<dhsearch::Shard> shard) {
         auto config = dhwire::from_python(c),
              metadata = dhwire::from_python(meta);
+        shard->configure_hotness(config);
         return std::make_shared<DataRuntime>(
             config, std::move(metadata), std::move(signature),
             [shard, config](const V &state, const std::vector<double> &draws,
                             std::shared_ptr<dhsearch::Control> control,
                             const std::function<V(V)> &spawn,
-                            std::shared_ptr<dhcontrol::Ticket> ticket) {
+                            std::shared_ptr<dhcontrol::Ticket> ticket, std::shared_ptr<void> context) {
               shard->run_value(
                   state, config, draws, std::move(control), {}, [] {}, spawn,
-                  std::move(ticket));
-            });
+                  std::move(ticket), std::move(context));
+            },[shard](const V& state){return shard->pin_replica(state);});
       }))
       .def("metrics",
            [](DataRuntime &r) {

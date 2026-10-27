@@ -18,6 +18,7 @@ class Pool {
   size_t capacity_, active_ = 0, ready_ = 0, peak_ = 0, rejected_ = 0,
                     errors_ = 0;
   bool stopping_ = false;
+  std::function<void()> idle_flush_;
   void run() {
     {
       std::lock_guard<std::mutex> l(mu_);
@@ -41,17 +42,21 @@ class Pool {
         std::lock_guard<std::mutex> l(mu_);
         ++errors_;
       }
+      bool flush=false;
       {
         std::lock_guard<std::mutex> l(mu_);
         --active_;
+        flush=queue_.empty();
         if (!active_ && queue_.empty())
           idle_.notify_all();
       }
+      if(flush&&idle_flush_)idle_flush_();
     }
   }
 
 public:
-  Pool(size_t workers, size_t capacity, const std::vector<int>& cpus = {}, bool individual_cpu = true) : capacity_(capacity) {
+  Pool(size_t workers, size_t capacity, const std::vector<int>& cpus = {}, bool individual_cpu = true,
+       std::function<void()> idle_flush = {}) : capacity_(capacity),idle_flush_(std::move(idle_flush)) {
     if (!workers || !capacity)
       throw std::invalid_argument("Invalid native worker pool limits");
     try {

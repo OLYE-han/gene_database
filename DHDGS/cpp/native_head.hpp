@@ -15,14 +15,16 @@ public:
   // Invoked after releasing head/query locks and the active-query slot.
   using Completion = std::function<void(V)>;
   std::string submit(std::vector<double>, V query_id, std::string request_id = {},
-                     Completion completion = {});
+                     Completion completion = {}, V replica_validation = {});
   V completed(size_t maximum, uint64_t timeout_ms);
   V metrics() const;
+  void replica_routes(V);
+  V replica_observations();
   void close();
 };
 // Also exposed for protocol/adversarial tests without running searches.
 bool validate_manifests(const V &reports, const std::string &root, size_t node,
-                        size_t budget, size_t slots, size_t node_count);
+                        size_t budget, size_t slots, size_t node_count, bool revisits=false);
 V aggregate_native(const V &config, const V &reports, const V &transfer,
                    const V &involved);
 } // namespace dhruntime

@@ -55,10 +55,19 @@ def run_native(state, shard, directory, c, spawn, cancelled, *, control=None, io
                  'ancestry': [*state.get('ancestry', []),
                               {'branch_id': state['branch_id'], 'node_id': state['target_node']}],
                  'decision_seed': int(child_rng.integers(0, 2**32))}
+        for key in ('replica_version','replica_access_kind','replica_fallback_source','replica_unavailable_fallback'):
+            if key not in payload:child.pop(key,None)
+        if c['peer'].get('logical_region_visits',False):
+            region=lambda s:'replica:'+s['replica_version'] if 'replica_version' in s else 'base:'+str(s['target_node'])
+            path=state.get('visited_regions',[f'base:{n}' for n in state['visited_nodes']])
+            path=[*path[:-1],region(state)]
+            child['logical_region']=region(child);child['visited_regions']=[*path,region(child)]
         descriptor = {'decision_id': child['dispatch_decision_id'],
                       'branch_id': child['branch_id'], 'node_id': child['target_node'],
                       'work_grant': child['work_grant'], 'branch_slots': child['branch_slots'],
                       'parent_branch_id': state['branch_id']}
+        if 'logical_region' in child:descriptor['logical_region']=child['logical_region']
+        if 'replica_fallback_source' in child:descriptor['fallback_node']=child['replica_fallback_source']
         spawn(child, descriptor)
         return descriptor
 

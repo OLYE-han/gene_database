@@ -1,5 +1,7 @@
 # DHDGS
 
+后续优化入口：[Research.md](Research.md)。按问题记录证据、候选方案及每轮尝试；验证可行后更新 [DESIGN.md](DESIGN.md) 并标记解决，实验轮次仍统一记录在 [TestLog.md](TestLog.md)。当前首个主攻方向是 [R001：负载不均与热点子图复制](Research.md#r001)。
+
 **当前默认（2026-10-23）：四机 RDMA 已验收方案。** Intel-35 顶层、Intel-31/32/30 数据节点，每节点64搜索线程、预算200，推荐并发1024。配置在 [configs/dhdgs.yaml](configs/dhdgs.yaml) 和 [configs/rdma_deployment.yaml](configs/rdma_deployment.yaml)，使用 `.venv/bin/python tools/rdma_default.py check` 核验、`benchmark` 启动。CPU/NUMA、jemalloc 和固定 RDMA 运行库由启动器加载，操作说明见 [RDMA_DEFAULT.md](docs/RDMA_DEFAULT.md)。本机小规模验证显式使用 `configs/dhdgs_pilot.yaml`。以下早期默认值与部署描述为历史记录，以本段和当前操作说明为准。
 
 
@@ -132,3 +134,5 @@ cmake --build build --parallel 4
 C++完成报告和控制发送路径已实现。在完整实验YAML中设置`peer.control.scheduler: native`，同时使用`peer.execution_model: native`、`network.transport: tcp`、`storage.io.backend: sync_pread`、`peer.communication.mode: optimized`、`reuse_connections: true`和`peer.control.completion_fast_path: false`。重新编译原生模块、重启服务即可使用，不需要重建索引。该路径用一个原生事件线程和一个TCP reactor替代Python完成/控制发送队列；接纳、远程分支派发和入口merge仍由Python执行。通用默认保持event以兼容其他后端。
 
 可复用的完整配置、222项回归和2000查询ABBA对照见 [C++控制路径测试报告](test/native_control_20261018/REPORT.md)。同负载p99约降低25.9%，报告控制等待大幅缩短，但接纳队列仍未满足100ms系统等待目标。
+
+负载均衡研究原型：见 [R001实现与配置](research/R001_IMPLEMENTATION.md)、[质量/性能实验](test/load_balance_20261026/REPORT.md)。`load_balance.enabled` 默认关闭；只有独立质量及来源净卸载校准通过的副本才能分流。

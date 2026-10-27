@@ -59,6 +59,7 @@ experiment:
   train_rows: 2048
   warmup_queries: 2
 metrics:
+  snapshot_chunk_bytes: 262144
   detailed_trace: false
   gc_trace: true
   lifecycle_trace: true
@@ -125,6 +126,7 @@ native_runtime:
   merge_threads: 8
   move_head_reports: true
   network_module:
+    idle_probe_ms: 1000
     async_connect: true
     async_connect_progress: true
     connections_per_endpoint_per_reactor: 128
@@ -220,6 +222,12 @@ paths:
   dataset: /sharenvme/usershome/xulihan/gene_database/Data/seq_2M
   output: /sharenvme/usershome/xulihan/gene_database/DHDGS/artifacts/seq2m_runtime/build
 peer:
+  logical_region_visits: true
+  max_excluded_region_ids: 131072
+  deduplicate_node_expansions: true
+  allow_node_revisit: true
+  min_expansions_after_cross: 32
+  cross_on_local_exhaustion: true
   adaptive_services:
     admission: true
     admission_max: 8
@@ -252,6 +260,7 @@ peer:
     queue_capacity: 2048
     queue_lock: shared
   child_budget_fraction: 0.5
+  replica_child_budget_fraction: 0.5
   communication:
     connections_per_endpoint: 128
     control_workers: 16
@@ -352,7 +361,7 @@ scheduler:
   probability_temperature: 1.0
   remote_rtt_ms: 0.5
   remote_selection: probabilistic
-  remote_weight: 1.0
+  remote_weight: 0.25
 search:
   exclude_self: true
   execution: peer
@@ -381,3 +390,89 @@ storage:
     worker_threads: 2
   page_bytes: 4096
 version: 1
+load_balance:
+  # Replica relief controls; experiment overrides stay in each round YAML.
+  replica_id_lookup_bytes: 0
+  progressive_validation: false
+  validation_publish_batch: 32
+  portal_budget_fraction: 0.0
+  native_replica_pack: false
+  copy_pressure_source_queue: true
+  quality_weight_routing: true
+  reuse_observed_baseline: false
+  lifecycle_poll_ms: 100
+  max_total_replica_bytes: 2147483648
+  selection_policy: hotness_worksets
+  target_queue_limit_ms: 16.0
+  min_entry_validation_queries: 2
+  validation_mode: ground_truth
+  max_validation_queries: 256
+  shadow_overlap_min: 0.95
+  min_replica_expansions: 32
+  max_early_exit_fraction: 0.20
+  quality_walk_steps: 8
+  entry_weight_floor: 0.10
+  entry_weight_power: 1.0
+  max_peer_entries: 2048
+  peer_routes_enabled: true
+  max_target_shard_fraction: 0.10
+  enabled: false
+  mode: dynamic
+  sample_every: 20
+  max_observations: 8192
+  max_history: 20000
+  min_group_queries: 128
+  min_entry_queries: 4
+  load_interval_ms: 100
+  control_interval_ms: 1000
+  sustained_windows: 5
+  source_util_high: 0.85
+  target_util_low: 0.65
+  target_util_limit: 0.80
+  util_gap: 0.20
+  queue_high_ms: 5.0
+  queue_low_ms: 2.0
+  max_load_age_ms: 300
+  max_core_rows: 50000
+  halo_hops: 0
+  max_region_rows: 50000
+  max_region_bytes: 1073741824
+  max_code_bytes: 536870912
+  min_coverage: 0.90
+  port_offset: 100
+  chunk_bytes: 262144
+  inflight_chunks: 8
+  copy_mib_per_s: 256.0
+  warm_bytes: 268435456
+  reserve_disk_bytes: 1073741824
+  operation_timeout_s: 300.0
+  initial_fraction: 0.05
+  fraction_step: 0.05
+  max_fraction: 0.50
+  route_adjust_ms: 500
+  cooldown_ms: 30000
+  min_residency_ms: 60000
+  idle_retire_ms: 10000
+  max_replicas: 1
+  calibration_file: ''
+  min_validation_queries: 128
+  recall_min: 0.95
+  recall_margin: 0.002
+  validation_workers: 4
+  maintenance_min_reactors: 1
+  maintenance_max_reactors: 4
+  maintenance_connections: 8
+  copy_pressure_queue_tasks: 128
+  copy_pressure_check_ms: 100
+  copy_pressure_rate_factor: 0.25
+
+hotness:
+  enabled: true
+  half_life_ms: 1000.0
+  merge_interval_ms: 25.0
+  local_capacity: 1024
+  queue_batches: 16
+  max_candidates: 65536
+  top_k: 4096
+  max_lanes: 256
+  min_score: 0.01
