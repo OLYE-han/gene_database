@@ -12,6 +12,7 @@ struct Policy {
   bool async_connect_progress=true;
   bool queued_pressure=false,rebalance_connections=false;
   uint64_t rebalance_interval_ms=20;
+  uint64_t send_warmup_grace_ms=0; // Optional: observe a new lane before expanding again.
   size_t rebalance_batch=8;
   double scale_busy_fraction=0.5; // Grow only when existing lanes are substantially busy.
   bool enabled=false;

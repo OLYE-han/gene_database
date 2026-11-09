@@ -21,6 +21,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <vector>
+#include <optional>
 
 namespace dhruntime {
 class PCG64 {
@@ -81,6 +82,26 @@ public:
     while (n--)
       out.push_back(random());
     return out;
+  }
+};
+
+// Work credit counts expanded vertices, not policy decisions. A merged region
+// can discard already-claimed candidates without spending that credit, so a
+// work_grant-sized random prefix is not a hard upper bound on decision count.
+// Lazily continue the identical PCG stream; keep the supplied prefix unchanged.
+class DecisionRandomStream {
+  const std::vector<double>& prefix_;
+  uint64_t seed_;
+  std::optional<PCG64> continuation_;
+  size_t next_ = 0;
+public:
+  DecisionRandomStream(const std::vector<double>& prefix, uint64_t seed)
+      : prefix_(prefix), seed_(seed) {}
+  double at(size_t index) {
+    if(index < prefix_.size()) return prefix_[index];
+    if(!continuation_ || index < next_) {continuation_.emplace(seed_); next_=0;}
+    while(next_<index){continuation_->random();++next_;}
+    ++next_; return continuation_->random();
   }
 };
 } // namespace dhruntime

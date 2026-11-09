@@ -139,6 +139,7 @@ public:
   }
   void replica_routes(py::object routes){auto v=dhwire::from_python(routes);py::gil_scoped_release release;runtime_->replica_routes(std::move(v));}
   py::object replica_observations(){V v;{py::gil_scoped_release release;v=runtime_->replica_observations();}return dhwire::to_python(v);}
+  py::object replica_entry_statistics(){V v;{py::gil_scoped_release release;v=runtime_->replica_entry_statistics();}return dhwire::to_python(v);}
   HeadBinding(py::dict config, py::dict manifest, std::string signature,
               py::object router, py::object quantizer, py::dict bank,
               Array<uint64_t> ids, Array<uint8_t> membership)
@@ -301,7 +302,9 @@ public:
     server_ = std::make_unique<dhnet::Server>(
         sc,
         [this](V request, uint64_t ns, size_t bytes) {
+          dhwire::handler_timing.gate_enter_ns=dhsearch::now_ns();
           std::shared_lock<std::shared_mutex> l(gate_);
+          dhwire::handler_timing.gate_acquired_ns=dhsearch::now_ns();
           if (dhvalue::get<std::string>(request, "op") == "peer_submit") {
             if (!accepting_)
               throw std::runtime_error("Data node is paused for configuration");
@@ -366,6 +369,41 @@ public:
   V metrics() const { return server_->metrics(); }
 };
 inline void bind_runtime(py::module_ &m) {
+  dhonesided::bind(m);
+  m.def("one_sided_probe",[](std::shared_ptr<dhsearch::Shard> shard,py::dict settings,std::vector<uint64_t> ids,size_t bytes,std::map<uint64_t,unsigned> known,std::string mode,bool demand_shared){
+    V cfg=dhwire::from_python(settings),output;
+    {py::gil_scoped_release release;
+      auto image=shard->export_one_sided(cfg);dhonesided::Source source(cfg,image);
+      dhonesided::Client client(cfg,bytes,1,[&source](size_t,V request,dhonesided::Complete done){
+        dhwire::Result result;try{result.response=V::Map{{"ok",true},{"result",source.connect(dhvalue::at(request,"qp"))}};result.ok=true;}
+        catch(const std::exception& e){result.error=e.what();}done(std::move(result));return true;});
+      std::promise<dhwire::Result> p;auto f=p.get_future();
+      if(!client.submit(0,V::Map{{"epoch",image->epoch},{"read_mode",mode},{"demand_shared",demand_shared}},ids,[&p](dhwire::Result value){p.set_value(std::move(value));},[known](uint64_t id){auto i=known.find(id);return i==known.end()?0:i->second;}))throw std::runtime_error("Probe submission failed");
+      auto result=f.get();client.close();if(!result.ok)throw std::runtime_error(result.error);
+      const auto& direct=dhvalue::at(result.response,"result");auto reference=shard->read_records(ids,bytes);
+      auto expected_records=std::get<V::Bytes>(dhvalue::at(reference,"records").data);
+      const size_t stride=dhvalue::get<size_t>(reference,"record_stride"),dim=image->dimension;
+      for(size_t off=0;off<expected_records.size();off+=stride){
+        if(mode=="adjacency")std::fill(expected_records.begin()+off,expected_records.begin()+off+dim*4,0);
+        if(mode=="vectors")std::fill(expected_records.begin()+off+dim*4,expected_records.begin()+off+stride,0);}
+      const auto& all=std::get<V::Bytes>(dhvalue::at(reference,"codes").data);V::Bytes expected;
+      for(size_t off=0;off<all.size();off+=image->code_width){uint64_t id;std::memcpy(&id,all.data()+off,8);
+        if(mode=="vectors"||(dhvalue::optional<bool>(cfg,"missing_codes_only",false)&&known.count(id)&&known.at(id)))continue;
+        expected.insert(expected.end(),all.begin()+off,all.begin()+off+image->code_width);}
+      if(demand_shared&&mode!="vectors"){
+        std::map<uint64_t,V::Bytes> rows;
+        for(size_t off=0;off<expected.size();off+=image->code_width){uint64_t id;std::memcpy(&id,expected.data()+off,8);rows[id]=V::Bytes(expected.begin()+off,expected.begin()+off+image->code_width);}
+        for(auto id:ids){if(dhvalue::optional<bool>(cfg,"missing_codes_only",false)&&known.count(id)&&known.at(id))continue;
+          const auto at=image->directory.at((id-image->base)*2+1)*image->code_width;
+          rows[id]=V::Bytes(image->codes.begin()+at,image->codes.begin()+at+image->code_width);}
+        expected.clear();for(const auto& [id,row]:rows)expected.insert(expected.end(),row.begin(),row.end());
+      }
+      output=V::Map{{"records_equal",std::get<V::Bytes>(dhvalue::at(direct,"records").data)==expected_records},
+        {"codes_equal",std::get<V::Bytes>(dhvalue::at(direct,"codes").data)==expected},
+        {"reference_code_rows",uint64_t(all.size()/image->code_width)},{"returned_code_rows",uint64_t(expected.size()/image->code_width)},
+        {"client",client.metrics()},{"source",source.metrics()}};
+    }return dhwire::to_python(output);
+  },py::arg("shard"),py::arg("settings"),py::arg("ids"),py::arg("bytes"),py::arg("known")=std::map<uint64_t,unsigned>{},py::arg("mode")="full",py::arg("demand_shared")=false);
   py::class_<CompletedRecord>(m, "CompletedRecord")
       .def_property_readonly("request_id", &CompletedRecord::request_id)
       .def_readonly("retained_bytes", &CompletedRecord::retained_bytes)
@@ -408,6 +446,7 @@ inline void bind_runtime(py::module_ &m) {
       .def("validate_replica",&HeadBinding::validate_replica)
       .def("replica_routes",&HeadBinding::replica_routes)
       .def("replica_observations",&HeadBinding::replica_observations)
+      .def("replica_entry_statistics",&HeadBinding::replica_entry_statistics)
       .def(py::init<py::dict, py::dict, std::string, py::object, py::object,
                     py::dict, Array<uint64_t>, Array<uint8_t>>())
       .def("start_api", &HeadBinding::start_api)
@@ -427,10 +466,10 @@ inline void bind_runtime(py::module_ &m) {
   });
   m.def("validate_manifests",
         [](py::object reports, std::string root, size_t node, size_t budget,
-           size_t slots, size_t nodes, bool revisits) {
+           size_t slots, size_t nodes, bool revisits,bool fanout) {
           return validate_manifests(dhwire::from_python(reports), root, node,
-                                    budget, slots, nodes, revisits);
-        },py::arg("reports"),py::arg("root"),py::arg("node"),py::arg("budget"),py::arg("slots"),py::arg("nodes"),py::arg("revisits")=false);
+                                    budget, slots, nodes, revisits,fanout);
+        },py::arg("reports"),py::arg("root"),py::arg("node"),py::arg("budget"),py::arg("slots"),py::arg("nodes"),py::arg("revisits")=false,py::arg("fanout")=false);
   py::class_<dhsearch::DecayedHotness,std::shared_ptr<dhsearch::DecayedHotness>>(m,"DecayedHotness")
       .def(py::init([](py::dict c){return std::make_shared<dhsearch::DecayedHotness>(dhwire::from_python(c));}))
       .def("record",[](dhsearch::DecayedHotness& h,const std::vector<uint64_t>& ids){py::gil_scoped_release g;auto l=h.lane();if(l)l->record(ids,dhsearch::DecayedHotness::clock());})
@@ -454,11 +493,14 @@ inline void bind_runtime(py::module_ &m) {
             [shard, config](const V &state, const std::vector<double> &draws,
                             std::shared_ptr<dhsearch::Control> control,
                             const std::function<V(V)> &spawn,
-                            std::shared_ptr<dhcontrol::Ticket> ticket, std::shared_ptr<void> context) {
+                            std::shared_ptr<dhcontrol::Ticket> ticket, std::shared_ptr<void> context,
+                            const std::function<V(int,const std::vector<uint64_t>&)>& fetch) {
               shard->run_value(
                   state, config, draws, std::move(control), {}, [] {}, spawn,
-                  std::move(ticket), std::move(context));
-            },[shard](const V& state){return shard->pin_replica(state);});
+                  std::move(ticket), std::move(context),fetch);
+            },[shard](const V& state){return shard->pin_replica(state);},
+            [shard](const std::vector<uint64_t>& ids,size_t bytes){return shard->read_records(ids,bytes);},
+            [shard](const V& cfg){return shard->export_one_sided(cfg);});
       }))
       .def("metrics",
            [](DataRuntime &r) {

@@ -18,8 +18,11 @@ static uint64_t stamp(){return std::chrono::duration_cast<std::chrono::nanosecon
 static void check(bool x,const char* s){if(!x)throw std::invalid_argument(s);}
 SearchApi::SearchApi(HeadRuntime& head,size_t dim,const V& options){
  dhwire::ServerConfig sc;sc.host=get<std::string>(options,"host");sc.port=get<uint16_t>(options,"port");sc.workers=get<size_t>(options,"handlers");sc.queue_capacity=get<size_t>(options,"queue_capacity");sc.max_connections=get<size_t>(options,"max_connections");sc.max_message_bytes=get<size_t>(options,"max_message_bytes");sc.listen_backlog=4096;sc.idle_timeout_ms=180000;
+ sc.thread_role="dhdgs-api";const bool profile_response=optional<bool>(options,"profile_response",false);
+ sc.response_batch_size=optional<size_t>(options,"response_batch_size",0);
+ check(sc.response_batch_size<=4096,"Invalid API response batch size");
  // This adapter owns only the public endpoint. Graph routing remains HeadRuntime's job.
- server_=std::make_unique<dhnet::Server>(sc,[&head,dim](V request,uint64_t received,size_t){
+ server_=std::make_unique<dhnet::Server>(sc,[&head,dim,profile_response](V request,uint64_t received,size_t){
   auto handled=stamp();check(get<uint64_t>(request,"version")==1&&get<std::string>(request,"op")=="search","Unsupported search API operation");
   check(get<std::string>(request,"encoding")=="float64_le","Unsupported vector encoding");
   const auto& bytes=std::get<V::Bytes>(at(request,"vector").data);check(bytes.size()==dim*sizeof(double),"Invalid query dimensions");
@@ -27,11 +30,11 @@ SearchApi::SearchApi(HeadRuntime& head,size_t dim,const V& options){
   std::vector<double> vector(dim);std::memcpy(vector.data(),bytes.data(),bytes.size());for(double x:vector)check(std::isfinite(x),"Nonfinite query");
   V qid=at(request,"query_id");if(!null(qid))cast<uint64_t>(qid);
   dhwire::Reply reply;
-  reply.deferred=[&head,vector=std::move(vector),qid=std::move(qid),received,handled](auto deliver)mutable{
+  reply.deferred=[&head,vector=std::move(vector),qid=std::move(qid),received,handled,profile_response](auto deliver)mutable{
    auto submitted=stamp();
-   head.submit(std::move(vector),std::move(qid),{},[deliver,received,handled,submitted](V result)mutable{
+   head.submit(std::move(vector),std::move(qid),{},[deliver,received,handled,submitted,profile_response](V result)mutable{
     result.map()["api_timestamps"]=M{{"message_received_ns",received},{"handler_started_ns",handled},{"submit_ns",submitted},{"completion_callback_ns",stamp()}};
-    dhwire::Reply r;r.message=std::move(result);deliver(std::move(r));
+    dhwire::Reply r;r.trace_response=profile_response;r.message=std::move(result);deliver(std::move(r));
    });
   };return reply;
  },dhwire::Server::Handler{},options);
@@ -40,12 +43,17 @@ static void write_all(int fd,const std::vector<uint8_t>& b){size_t n=0;while(n<b
 V run_network_load(const double* vectors,const uint64_t* ids,size_t count,size_t dim,size_t concurrency,const V& opts,const std::string& directory){
  size_t lanes=get<size_t>(opts,"lanes"),capacity=get<size_t>(opts,"consumer_queue_records"),memory=get<size_t>(opts,"consumer_queue_bytes"),message=get<size_t>(opts,"max_message_bytes"),connections=get<size_t>(opts,"connections");
  check(lanes&&lanes<=64&&count&&concurrency>=lanes&&capacity&&memory&&connections>=concurrency,"Invalid load settings");
+ const double target_qps=has(opts,"target_qps")?number(at(opts,"target_qps")):0.;
+ check(std::isfinite(target_qps)&&target_qps>=0,"Invalid offered query rate");
+ check(!target_qps||double(count)/target_qps<=86400.,"Offered-rate schedule exceeds one day");
+ const auto startup_ms=optional<uint64_t>(opts,"pacing_startup_ms",100);
+ check(startup_ms<=60000,"Invalid offered-rate startup delay");
  check(std::filesystem::create_directory(directory),"Load output directory exists");
  struct Item{V value;uint64_t bytes;};
  struct Lane{std::mutex mu;std::condition_variable cv;std::deque<Item> queue;size_t active=0,received=0,consumed=0,peak=0,used=0,peak_bytes=0;bool done=false;std::string error;uint64_t last=0,encode_ns=0,write_ns=0,sync_started=0,sync_barrier_ns=0;};
  std::vector<std::unique_ptr<Lane>> state;for(size_t i=0;i<lanes;++i)state.emplace_back(new Lane);
  dhwire::Endpoint endpoint(get<std::string>(opts,"host"),get<uint16_t>(opts,"port"));
- uint64_t offered=stamp();std::vector<std::thread> producers,consumers;
+ uint64_t offered=stamp()+(target_qps>0?startup_ms*1000000:0);std::vector<std::thread> producers,consumers;
  std::mutex sync_mu;std::condition_variable sync_cv;bool all_network_done=false;
  // Each network lane has a producer, an asynchronous reactor, and an independent
  // consuming writer. No service object or shared result registry crosses this API.
@@ -72,11 +80,14 @@ V run_network_load(const double* vectors,const uint64_t* ids,size_t count,size_t
     dhwire::Config config;config.max_pending=concurrency/lanes+2;config.max_connections_per_endpoint=connections/lanes;config.max_message_bytes=message;config.timeout_ms=get<uint64_t>(opts,"timeout_ms");dhwire::Client client(config);
     size_t window=concurrency/lanes+(lane<concurrency%lanes);
     for(size_t job=lane;job<count;job+=lanes){
+     const uint64_t scheduled=target_qps>0?offered+uint64_t(double(job)*1e9/target_qps):0;
+     if(scheduled)std::this_thread::sleep_until(std::chrono::steady_clock::time_point(std::chrono::nanoseconds(scheduled)));
      {std::unique_lock<std::mutex> lock(x.mu);x.cv.wait(lock,[&]{return !x.error.empty()||x.active<window;});if(!x.error.empty())break;++x.active;}
      V::Bytes vector(dim*sizeof(double));std::memcpy(vector.data(),vectors+job*dim,vector.size());
      V request=M{{"version",uint64_t(1)},{"op","search"},{"encoding","float64_le"},{"query_id",ids[job]},{"vector",std::move(vector)}};auto start=stamp();
-     bool accepted=client.submit(endpoint,request,[&,job,start](dhwire::Result r){
-      V value=M{{"job",uint64_t(job)},{"client_start_ns",start},{"client_done_ns",r.done_ns},{"queued_ns",r.queued_ns},{"send_start_ns",r.send_start_ns},{"send_done_ns",r.send_done_ns},{"request_bytes",r.request_bytes},{"response_bytes",r.response_bytes},{"transport_ok",r.ok},{"transport_error",r.error},{"result",std::move(r.response)}};
+     bool accepted=client.submit(endpoint,request,[&,job,start,scheduled](dhwire::Result r){
+      V value=M{{"response_first_byte_ns",r.response_first_byte_ns},{"response_frame_complete_ns",r.response_frame_complete_ns},{"response_decode_done_ns",r.response_decode_done_ns},{"job",uint64_t(job)},{"client_start_ns",start},{"client_done_ns",r.done_ns},{"queued_ns",r.queued_ns},{"send_start_ns",r.send_start_ns},{"send_done_ns",r.send_done_ns},{"request_bytes",r.request_bytes},{"response_bytes",r.response_bytes},{"transport_ok",r.ok},{"transport_error",r.error},{"result",std::move(r.response)}};
+      if(scheduled)value.map()["client_scheduled_ns"]=scheduled;
       auto bytes=retained_extra_bytes(value)+sizeof(Item);auto received=stamp();value.map()["consumer_enqueued_ns"]=received;
       std::lock_guard<std::mutex> lock(x.mu);--x.active;++x.received;x.last=std::max(x.last,r.done_ns);
       if(x.queue.size()>=capacity||bytes>memory-x.used){x.error="Client result consumer capacity exceeded; run invalid";}
@@ -95,6 +106,6 @@ V run_network_load(const double* vectors,const uint64_t* ids,size_t count,size_t
  for(auto& t:consumers)t.join();
  A summaries;uint64_t last=0,total=0;std::string error;
  for(auto& p:state){last=std::max(last,p->last);total+=p->received;if(!p->error.empty())error=p->error;summaries.emplace_back(M{{"received",uint64_t(p->received)},{"consumed",uint64_t(p->consumed)},{"peak_consumer_queue",uint64_t(p->peak)},{"peak_consumer_bytes",uint64_t(p->peak_bytes)},{"encode_ms",p->encode_ns/1e6},{"write_sync_ms",p->write_ns/1e6},{"output_sync_started_ns",p->sync_started},{"output_sync_barrier_ms",p->sync_barrier_ns/1e6},{"error",p->error}});}
- return M{{"count",uint64_t(count)},{"received",total},{"concurrency",uint64_t(concurrency)},{"offered_ns",offered},{"last_received_ns",last},{"all_consumed_synced_ns",stamp()},{"error",error},{"lanes",std::move(summaries)}};
+ return M{{"count",uint64_t(count)},{"received",total},{"concurrency",uint64_t(concurrency)},{"target_qps",target_qps},{"offered_ns",offered},{"last_received_ns",last},{"all_consumed_synced_ns",stamp()},{"error",error},{"lanes",std::move(summaries)}};
 }
 }

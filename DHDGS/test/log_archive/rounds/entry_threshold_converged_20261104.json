@@ -1,0 +1,64 @@
+{
+  "id": "entry_threshold_converged_20261104",
+  "round_id": "entry_threshold_converged_20261104",
+  "title": "R001 固定查询与副本的入口阈值收敛实验",
+  "research_ids": [
+    "R001-A15",
+    "R005",
+    "R006",
+    "R008"
+  ],
+  "log_group": "负载均衡：选图、入口覆盖与源节点卸载",
+  "summary": "用户改为每次检索期望回源预算；旧条件均值轮次排空中断，保留T100与T20前缀证据；原始明细已清理",
+  "purpose": "R001/F02/R008：同配置测量入口关闭策略收敛后的接流、回源、Recall、QPS和源负载",
+  "hypothesis": "未成熟入口收敛后接流可能显著下降，短测排名可能反转；以观测为准",
+  "expected": "逐档严格判定收敛，采集学习过程和两次入口不变正式测量，未达到门槛不得声称收敛",
+  "configuration": "相同200K文件/ID/truth、冻结模块、D200/beam11/C1536/64线程及绑定、固定254369记录/2527入口/.9份额、pull关闭；用户新要求min_returns=20；稀疏样本率仍1/1000",
+  "variables": "T=20至100；连续3个1M批次闭集不变且无待关闭入口，成熟入口覆盖各批至少80%副本接流，接流范围<=0.05pp；两批1M验证保留在线关闭且仍满足判据；未成熟长尾单列；每档600轮安全上限",
+  "code_changes": "无生产代码修改；新增同配置收敛runner和判定器、YAML及离线报告；删除旧短测数据并撤销结论；按用户新要求生产配置与实验配置min_returns统一20；用户确认以成熟入口80%接流覆盖取代全部开放入口满20次的收敛要求，关闭规则本身不变；严格学习前缀保留；用户将成熟接流覆盖从99.9%改为80%，实验控制器新增按排空批次读取该YAML参数，查询关闭与搜索逻辑不变",
+  "results": "旧语义仅T100完成保持检验，T20尚未收敛；不与新语义混用，不完成旧九档排名",
+  "artifacts": [
+    "test/entry_threshold_converged_20261104/PLAN.md",
+    "test/entry_threshold_converged_20261104/attempt1_preflight_blocked/experiment.json"
+  ],
+  "next_steps": "转入entry_expected_work_sweep_20261104；旧原始记录保留",
+  "report": "test/entry_threshold_converged_20261104/INTERRUPTED.md",
+  "report_label": "中断记录",
+  "previous_attempts": [
+    {
+      "directory": "test/entry_threshold_converged_20261104/attempt1_preflight_blocked",
+      "started_at": "2026-11-04T14:52:42+08:00",
+      "ended_at": "2026-11-04T14:52:46+08:00",
+      "outcome": "预检发现另一轮使用同一批服务器，未发送测试查询；用户现确认另一轮暂停"
+    },
+    {
+      "directory": "test/entry_threshold_converged_20261104/attempt2_strict_prefix",
+      "started_at": "2026-11-04T14:59:30+08:00",
+      "ended_at": "2026-11-04T15:13:28+08:00",
+      "outcome": "按用户确认的新收敛口径中断"
+    },
+    {
+      "directory": "test/entry_threshold_converged_20261104/attempt3_orphan_service_preflight",
+      "outcome": "另一轮残留数据服务占CPU，预检阻止正式启动；随后用户要求暂停，现明确恢复"
+    },
+    {
+      "directory": "test/entry_threshold_converged_20261104/attempt4_coverage999_prefix",
+      "started_at": "2026-11-04T15:50:39+08:00",
+      "ended_at": "2026-11-04T16:02:18+08:00",
+      "outcome": "按用户要求将成熟接流覆盖改为80%而中断"
+    }
+  ],
+  "pause_record": "test/entry_threshold_converged_20261104/paused_20261104_152050/experiment.json",
+  "status": "中断（用户更改指标）",
+  "started_at": "2026-11-04T16:03:13+08:00",
+  "ended_at": "2026-11-04T16:32:46+08:00",
+  "updated_at": "2026-11-04T16:40:32+08:00",
+  "revision": "53b3b953d0f491019429da3535e182d7e56a804d",
+  "data_retention": {
+    "updated_at": "2026-11-05T11:00:47+08:00",
+    "maintenance_only": true,
+    "report": "test/storage_cleanup_keep_latest2_20261105/README.md",
+    "raw_measurements_partially_removed": true,
+    "retained": "报告/图表、汇总、源码与配置保留；详细删除路径见清单；最近两轮和共享复测资产未改动"
+  }
+}

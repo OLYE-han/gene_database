@@ -312,8 +312,12 @@ class Shard:
             raise ValueError("Unsupported shard format")
         self.ids = load_complete_npy(self.directory/"ids.npy")
         self.code_ids = load_complete_npy(self.directory/"code_ids.npy")
-        for values in (self.ids, self.code_ids):
-            if values.ndim != 1 or values.dtype != np.dtype("uint64") or np.any(values[1:] <= values[:-1]):
+        order=m.get('replica_record_order','sorted_v1')
+        if order not in ('sorted_v1','admission_v1'):
+            raise ValueError('Unsupported replica record order')
+        for name,values in (('records',self.ids),('codes',self.code_ids)):
+            ordered=np.sort(values) if name=='records' and order=='admission_v1' else values
+            if values.ndim != 1 or values.dtype != np.dtype("uint64") or np.any(ordered[1:] <= ordered[:-1]):
                 raise ValueError("Invalid shard IDs")
         if len(self.ids) != m["rows"] or len(self.code_ids) != m["code_rows"]:
             raise ValueError("Shard ID count mismatch")

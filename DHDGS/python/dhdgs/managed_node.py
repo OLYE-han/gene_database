@@ -76,6 +76,11 @@ def idle(metrics):
            'waiting_transfer','admission_queue_depth','admission_pending_start','control_active')):return False
     queues=list((metrics.get('send_queues') or {}).values())+[metrics.get('compute_queue') or {}]
     if any(q.get('queued',0) or q.get('active',0) for q in queues):return False
+    pull=metrics.get('pull_scheduler') or {}
+    if pull.get('contexts',0) or pull.get('pending',0) or pull.get('batch_reserved_bytes',0) or any(pull.get('inflight',[])):return False
+    for key in ('compute','source_read'):
+        queue=pull.get(key) or {}
+        if queue.get('active',0) or queue.get('queued',0):return False
     n=metrics.get('native_control') or {}
     return not any(n.get(k,0) for k in ('client_pending','command_queue_depth','control_active'))
 
@@ -145,9 +150,9 @@ class NodeControl:
         finally:
             with self.lock:self.readers-=1
 
-    def status(self):
+    def status(self, _peer_metrics=None):
         with self.lock:
-            metrics=self.peer.metrics()
+            metrics=self.peer.metrics() if _peer_metrics is None else _peer_metrics
             return dict(node_id=self.sid,pid=os.getpid(),hostname=socket.gethostname(),
                 epoch=self.worker.meta['epoch'],revision=self.rev,settings=hot_values(self.c),
                 accepting=self.accepting,quiescent=self.readers==0 and idle(metrics),
@@ -163,7 +168,7 @@ class NodeControl:
             result['network_receiver']=transport.metrics()
         from .gc_profile import snapshot
         result['gc_profile']=snapshot();result['resource_samples']=list(self.sampler.samples)
-        result['managed']=self.status()
+        result['managed']=self.status(result['peer_lifecycle'])
         return result
 
     def command(self,request):

@@ -1,0 +1,29 @@
+{
+  "id": "hop_return_20261030",
+  "round_id": "hop_return_20261030",
+  "title": "完整h跳副本的预算扩展与有界RDMA拉取",
+  "status": "已完成",
+  "started_at": "2026-10-30T01:42:25+08:00",
+  "ended_at": "2026-10-30T04:51:36+08:00",
+  "purpose": "减少回源及其源计算，以QPS和源整进程卸载验收",
+  "hypothesis": "完整连接扩展改善未来覆盖；仅小尾部远程读取有望卸载CPU而不引入过多串行往返",
+  "expected": "不预设收益；质量约95%、预算守恒、失败为0",
+  "configuration": "seq_2M/2560D ESM2原始L2、RaBitQ1bit；顶层Intel-35，数据Intel-31/32/30，内部RDMA。64搜索线程/节点，预算200、top10、并发1024；每组预热2000。源0→副本2，分流0.8；预建4区域，历史/校验/测试ID互斥。30×200K主对照：5方法×饱和/6000QPS×3重复，块内随机顺序。受控热点200K次出现含42898个不同ID。",
+  "variables": "- H0原H768（715.81MiB、停留0）；H/HP为H1280（1071.28MiB、停留144）；F/FP为完整球闭包扩图FM1072（1070.75MiB、停留144）。P为批读64剩余授权/8轮/每批8记录或512KiB/总4MiB。\n- 校验选择图容量、候选/轮数、停留0/144/176、批读阈值与4/8记录批次；最终图和主对照先冻结，主测未换源码或调参。完整参数见settings.yaml和frozen_finalists.json。\n- 扩图主候选6轮、1024候选/轮、12次价格二分、历史混合0.7、最大包1072MiB、码512MiB、工作空间估计1GiB、合作式规划期限180s。\n- 主测后4×20K校验包络探索：无批读、64/8轮/4MiB、96或128/16轮/8MiB；后两者不只是阈值单变量。未替换主对照。",
+  "code_changes": "新增cpp/replica_hop_expand.hpp及python/dhdgs/hop_expansion.py：完整核心与附着球的最大权闭包割、共享记录/量化依赖计费、容量及证书重放；接入community/locality。搜索循环增加仅副本向原源的驻留阈值、有界消息式RDMA批读和安全回退；runtime校验epoch/合同/令牌、源保留权，网络池传输；源仅读向量/邻接/量化依赖，副本消费原授权计算。补齐pull RPC、CPU、I/O、字节、等待/剩余额度指标；YAML/schema及15项针对性最终回归、此前10项区域回归。默认选择改为完整h跳，负载均衡和新扩图/批读仍默认关闭。实测source_v2与交付source_final分开：后者另有核心行数和pending/opened源区域防御，仅正确性回归。保留已有未提交改动，未commit/push。",
+  "revision": "53b3b953d0f491019429da3535e182d7e56a804d",
+  "results": "主对照600万请求无失败、预算超额、同机重复展开或重复区域执行，离线补齐后通信计数完整；每组整体和命中Recall均≥95%。同容量H→F：饱和QPS中位10164→10850（+6.74%），固定6000QPS源进程39.47→37.51核（−4.96%），最大/平均负载1.717→1.680；相对小容量H0 QPS+11.09%、源CPU−11.86%，包含容量/驻留变化。命中群体源展开112.96→79.59，F仍95.65%计算回源；FP降至55.39%，但相对F QPS−6.56%、源CPU+3.84%，因此不默认启用。补充96/128包络未见QPS和源成本同时改善。F整体/命中Recall约97.07%/95.98%；不是严格等召回校准；固定6000QPS p99 H33.73ms→F56.47ms未改善。规划+校验90.57s起自预建核心，复制部署另计，未证明在线全周期收益。工作权重用历史，在线默认入口先验不保证同图。共享机、热缓存、tmpfs、少量重复和已研究评估集；API入口/merge慢轮保留，不能完全归因于批读或外部负载。两次早期夹具/计数测试失败及source_v1网络计数修复完整保留；32项调度作业成功。R001保持开放。",
+  "artifacts": "- [完整报告及4组PNG/SVG图](test/hop_return_20261030/REPORT.md)\n- [QPS与进程负载](test/hop_return_20261030/throughput_load.png)\n- [回源与源工作](test/hop_return_20261030/return_work.png)\n- [网络/延迟](test/hop_return_20261030/network_latency.png)\n- [构建/发布阶段](test/hop_return_20261030/build_phases.png)\n- [配置与复现](test/hop_return_20261030/REPRODUCE.md)\n- [全量/筛选审计](test/hop_return_20261030/audit_final.json)\n- [交付与48链接核验](test/hop_return_20261030/delivery_checks.json)\n- [实测源码哈希](test/hop_return_20261030/source_v2_hashes.json) / [交付源码哈希](test/hop_return_20261030/source_final_hashes.json) / [差异](test/hop_return_20261030/delivered_vs_measured.json)\n- [R001-A24研究](research/R001_HOP_RETURN_REDUCTION.md) / [DESIGN §57](DESIGN.md#hop-return-reduction)",
+  "next_steps": "F优先做新独立查询、受控漂移及在线尾部权重/构建摊销验证；保留容量和质量门控。批读先消除重复量化依赖与源打包成本，再研究注册内存一侧READ、冷SSD异步服务/协作恢复；用QPS和固定速率源整进程CPU验收。API入口/merge慢轮另做冻结后端的调度/容量消融。",
+  "updated_at": "2026-10-30T04:53:07+08:00",
+  "log_group": "副本回源与RDMA尾部执行",
+  "summary": "同容量完整h跳预算扩展提升QPS约6.74%，有界拉取降低回源却使QPS下降6.56%，600万请求零失败，拉取不默认开启；原始明细已清理",
+  "report": "test/hop_return_20261030/REPORT.md",
+  "data_retention": {
+    "updated_at": "2026-11-05T11:00:47+08:00",
+    "maintenance_only": true,
+    "report": "test/storage_cleanup_keep_latest2_20261105/README.md",
+    "raw_measurements_partially_removed": true,
+    "retained": "报告/图表、汇总、源码与配置保留；详细删除路径见清单；最近两轮和共享复测资产未改动"
+  }
+}

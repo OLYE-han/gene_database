@@ -1,0 +1,29 @@
+{
+  "id": "region_tasks_20261027",
+  "round_id": "region_tasks_20261027",
+  "title": "R001/R010查询级逻辑区域任务、多目标分支和副本源节点保留权",
+  "status": "已完成（协议子项通过；性能与负载均衡质量未达标）",
+  "started_at": "2026-10-27T12:52:05+08:00（四机部分最早保留的启动记录；此前协议回归未保存完整墙钟起止）",
+  "ended_at": "2026-10-27T14:16:07+08:00",
+  "purpose": "替代整区已访问排除，支持多目标派发与同区域候选合并",
+  "hypothesis": "将到访标记解释为执行任务归属可以保留后续候选且避免同区域重复执行",
+  "expected": "预算守恒、无同物理节点重复展开、无同逻辑区域并发执行；先验证协议再评估召回/性能",
+  "configuration": "Intel-35顶层＋独立客户端，Intel-31/32/30数据节点0/1/2；每节点64搜索线程、展开预算200、并发1024、2000预热；各组同序200K原始查询；RDMA rsockets、热缓存buffered pread。最终接纳32768、保留1200000、搜索派发16384、广播队列512；网络动态扩缩容上限0表示不设配置上限。",
+  "variables": "- v1旧协议/新协议；初始外部CPU干扰与共享广播队列失败单列，不混入正式性能对照\n- v2 old_protocol_v2、region_base_v2、region_replica：相同扩大的接纳容量；广播改用独立发送客户端，失败终态返回取消确认\n- v2 region_no_broadcast：仅关闭主动广播；v3 region_local_lock/region_replica_local_lock：广播开启，改为区域授权锁并将普通目录合并移出全局锁\n- v4 region_delta/region_replica_delta：去掉根接纳与相同目录重复广播；最终副本组在线检测、最多2副本、16K核心/32K区域上限、渐进验证、子预算比例0.5；peer副本重定向关闭\n- 协议夹具覆盖并发首次接纳、运行中/空闲后候选合并、源权限竞态、两个不同目标、预算幂等、广播队列1饱和、迟到失败查询取消确认；最终28项通过",
+  "code_changes": "C++查询区域目录/唯一执行器/有界候选收件箱；多目标分支预算与清单校验、源首次启动保留RPC、已有任务候选合并；新模式取消全α排除；独立尽力广播客户端及冗余事件抑制；区域锁和收尾时间点；失败终态迟到消息取消ACK；离线通信对账和快照复用；YAML校验/签名v4、功能回归与本轮分析绘图脚本。",
+  "revision": "53b3b953d0f491019429da3535e182d7e56a804d",
+  "results": "最终三组各200K均0失败：旧协议17300.49QPS/p99 186.86ms/Recall96.9989%；新协议7199.03/666.74/97.2590%；在线副本5113.61/991.33/97.2221%。最终两组494772/520487授权时间线全覆盖，未见同区域多执行器/重叠、同物理节点重复展开或预算违规。副本两次32768行，5.584/16.495s发布，7634根入口命中，peer副本命中0；条件Recall95.4467%→94.2979%，源CPU7.708→6.124ms，总CPU9.965→12.999ms。缩锁单独无吞吐收益；精简广播4913.93→7199.03，但关闭广播对照11885.85仍低于旧基线。新协议接收至校验结束累计均值155.789/219.447ms，计算队列1.118/2.185ms；分支累计值不可作为端到端比例。通信对账后8/1319条仍不完整，尽力通知队列13720/11036次拒绝不引发查询失败，搜索派发容量拒绝0。初版1713失败/未排空、环境CPU竞争、重启失败及夹具失败完整保留。各配置一次共享机器测量，无稳定加速比证明；默认region_tasks仍关闭，R001未解决。",
+  "artifacts": "- [完整报告](test/region_tasks_20261027/REPORT.md)\n- [指标对比](test/region_tasks_20261027/comparison.png)\n- [负载与复制/发布时间图](test/region_tasks_20261027/load_comparison.png)\n- [命中查询配对质量与卸载](test/region_tasks_20261027/paired_effects.png)\n- [副本组p99接纳细分图](test/region_tasks_20261027/runs/region_replica_delta/cases/region_replica_delta/p99_admission.png)\n- [28项回归](test/region_tasks_20261027/correctness_v4.log)\n- [v4源码/部署哈希](test/region_tasks_20261027/source_hashes_v4.json)\n- [最终YAML](test/region_tasks_20261027/settings_v4.yaml)\n- [设计](DESIGN.md#query-region-tasks)、[研究台账](Research.md)、[锁说明](LOCKS.md)",
+  "next_steps": "优先分离目的节点handler排队、解码/校验和身份注册时间；验证合并目录消息/随必要消息同步以及接收资源隔离。保持搜索线程不变，复用区域查询准备/frontier/top-K，减少每份授权初始化/报告；对预算切分、候选裁剪及跨物理节点重复展开做质量消融。质量保持后再验收有效卸载；预算回收和排队任务迁移另行实现。",
+  "updated_at": "2026-10-27T14:16:07+08:00",
+  "log_group": "负载均衡：访问语义与正确性",
+  "summary": "查询级区域任务与多目标分支修复访问语义，但新协议QPS由17,300降至7,199，接收校验等待显著增加，默认关闭；原始明细已清理",
+  "report": "test/region_tasks_20261027/REPORT.md",
+  "data_retention": {
+    "updated_at": "2026-11-05T11:00:47+08:00",
+    "maintenance_only": true,
+    "report": "test/storage_cleanup_keep_latest2_20261105/README.md",
+    "raw_measurements_partially_removed": true,
+    "retained": "报告/图表、汇总、源码与配置保留；详细删除路径见清单；最近两轮和共享复测资产未改动"
+  }
+}

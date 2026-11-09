@@ -1,0 +1,29 @@
+{
+  "id": "admission_stall_20261103",
+  "round_id": "admission_stall_20261103",
+  "title": "R002：持续负载接纳停顿定位",
+  "status": "已完成（根因定位与局部修复验证；系统级目标未全部解决）",
+  "started_at": "2026-11-03T16:01:42+08:00",
+  "ended_at": "2026-11-03T16:52:31+08:00",
+  "purpose": "R002/R008：定位持续查询低QPS与搜索线程空闲，验证查询上下文回收的针对性修复",
+  "hypothesis": "节点身份锁内回收大批到期上下文导致接纳断供；栈与无LB对照验证",
+  "expected": "恢复持续吞吐，保留残余失败及内存稳态限制",
+  "configuration": "Intel-35顶层+独立API客户端，31/32/30数据；C1024/D200，64/68/68计算线程，200K自然回放，RDMA，暖缓存，retention120s",
+  "variables": "- observe诊断480秒：关闭自动规划，捕获接收等待栈；顶层分配器/NUMA遗漏、ptrace及符号工具重写映射模块干扰，性能对照作废\n- control/fixed各600秒，统一jemalloc/NUMA配置；fixed使用锁外context销毁及每轮256个到期context检查\n- control发送期无调试/编译干扰；617.34秒后编译与末尾排空重叠，主比较固定前600秒成功完成量，完整QPS仍附限制",
+  "code_changes": "cpp/native_runtime.cpp：提取到期context map节点，锁外销毁、分批256和3项轻量回收计数；config.py/YAML增加兼容可选参数与范围检查；新增生命周期回归；冻结测试runner/汇总绘图、DESIGN/LOCKS/Research更新；未覆盖其它任务改动",
+  "revision": "53b3b953d0f491019429da3535e182d7e56a804d",
+  "results": "16个handler同mutex等待、维护线程QueryContext→RegionInbox→jemalloc/madvise。前600秒成功QPS6692.42→13588.09（+103%），p99 277.91→194.58ms；三池断供采样266.08→2.13s。最终失败386532/4401988→89/8153967；成功Recall97.3953%→97.3481%。11项region+18项native通过；既有聚合测试原版同样失败。初始诊断异常和配置兼容失败已保留。仍有197ms临界区、89例未分类失败、RSS增长；不宣称零失败/<100ms/长期稳态。所有本轮数据进程已退出。",
+  "artifacts": "- [报告](test/admission_stall_20261103/REPORT.md)\n- [对照图](test/admission_stall_20261103/comparison.png)\n- [指标](test/admission_stall_20261103/comparison.json)\n- [栈证据](test/admission_stall_20261103/evidence/stack_summary.json)\n- [原版审计](test/admission_stall_20261103/control/audit.json)\n- [修复审计](test/admission_stall_20261103/fixed/audit.json)\n- [设计](DESIGN.md#bounded-query-context-reclamation)",
+  "next_steps": "有界聚合失败类型/样本；细分并限额处理记录及墓碑更新；记录到期积压与回收速率，验证30分钟以上内存稳态；R002系统级目标及R001负载均衡仍开放",
+  "updated_at": "2026-11-03T16:52:31+08:00",
+  "log_group": "查询接纳、锁等待与长期稳定性",
+  "summary": "查询上下文锁外分批回收使600秒QPS约翻倍至13,588、搜索断供266.08→2.13秒，但仍有89条失败和RSS增长；原始明细已清理",
+  "report": "test/admission_stall_20261103/REPORT.md",
+  "data_retention": {
+    "updated_at": "2026-11-05T11:00:47+08:00",
+    "maintenance_only": true,
+    "report": "test/storage_cleanup_keep_latest2_20261105/README.md",
+    "raw_measurements_partially_removed": true,
+    "retained": "报告/图表、汇总、源码与配置保留；详细删除路径见清单；最近两轮和共享复测资产未改动"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "id": "dynamic_replica_policy_20261104",
+  "round_id": "dynamic_replica_policy_20261104",
+  "title": "单区域α与在线副本布局闭环",
+  "research_ids": [
+    "R001"
+  ],
+  "log_group": "负载均衡：自动构建、复制与发布",
+  "summary": "α改为单小图上限，三轮连续发布2/4/2份、峰值总α≈.596；最终20,091QPS零失败但未改善基线与源排队，149项回归通过。；原始明细已清理",
+  "report": "test/dynamic_replica_policy_20261104/REPORT.md",
+  "report_label": "报告",
+  "status": "已完成",
+  "started_at": "2026-11-04T01:23:09+08:00",
+  "ended_at": "2026-11-04T02:21:39+08:00",
+  "purpose": "R001：修复仅发布一次、同图扩份和持续大图未接线的问题。",
+  "hypothesis": "单区域α与总体预算分离后可连续建设不同区域；有质量与成本证据的扩份/升级才能减轻持续拥塞。",
+  "expected": "验证多份容量守恒、满份额迁移、持续/周期升级和失败保留旧布局；吞吐和队列收益以真实测量为准。",
+  "configuration": "继承D200、64搜索线程、RDMA消息传输，尾部拉取关闭；详细配置记录在子测试。",
+  "variables": [
+    "pilot：独立单区域预算与在线策略，300秒",
+    "verify：忙目标保留/热周期判定/严格分层校准/入口合同与过渡槽位，390秒",
+    "shares：构建与已有图份额调节解耦，180秒；严格校准自然未通过持续上调条件",
+    "三轮为联合改动与不同墙钟，后台负载存在，不作为跨轮单变量性能证据"
+  ],
+  "code_changes": "新增replica_budget与online_replica_policy；调整automatic_replica/load_balance、增长预约/接收、完整结构合同/校准入口分离、源取消、配置和测试。最终份额调整不再等待构建。旧可选字节参数回退在测量后单独保存。",
+  "results": "单区域容量、在线多热点、满份额迁移、后台校准、持续/周期升级和分阶段替换已接线；受控机制验证通过，三机自然回放未触发同图扩份或大图。三轮动态QPS20536/19151/20091，成功6163513/7471798/3619201，失败0；各自observe21131/19359/20614，无QPS净收益。最高同时安装/排空6.884GB约源.5955。源ready仍约107–122ms；缺命中群体配对，未验收0.5pp。149项综合回归通过；三机第二版各93项部署测试，测量后47项兼容回归通过。保留初始夹具/预检失败、停测在建取消和30秒端口关闭审计失败，后续自有PID/端口全部复核。R001开放。",
+  "artifacts": [
+    "test/dynamic_replica_policy_20261104/REPORT.md",
+    "test/dynamic_replica_policy_20261104/load_comparison.png",
+    "test/dynamic_replica_policy_20261104/archive_manifest.json",
+    "configs/dhdgs_dynamic_replicas.yaml",
+    "research/R001_ONLINE_REPLICA_POLICY.md",
+    "DESIGN.md#online-replica-policy-20261104"
+  ],
+  "next_steps": "优先验证固定副本的配对质量、稳定入口覆盖与净源CPU节省；补热点时钟/稳定性序列后再验证大图自然触发和经济性。不要以放宽质量换发布次数。",
+  "updated_at": "2026-11-04T02:21:39+08:00",
+  "revision": "53b3b953d0f491019429da3535e182d7e56a804d",
+  "data_retention": {
+    "updated_at": "2026-11-05T11:00:47+08:00",
+    "maintenance_only": true,
+    "report": "test/storage_cleanup_keep_latest2_20261105/README.md",
+    "raw_measurements_partially_removed": true,
+    "retained": "报告/图表、汇总、源码与配置保留；详细删除路径见清单；最近两轮和共享复测资产未改动"
+  }
+}

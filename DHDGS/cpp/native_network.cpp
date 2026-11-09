@@ -26,6 +26,7 @@ Policy::Policy(const V& config) {
   async_connect_progress=dhvalue::optional<bool>(p,"async_connect_progress",true);
   auto pressure=dhvalue::optional<std::string>(p,"send_pressure_mode","pending");
   idle_probe_ms=dhvalue::optional<uint64_t>(p,"idle_probe_ms",1000);
+  send_warmup_grace_ms=dhvalue::optional<uint64_t>(p,"send_warmup_grace_ms",0);
   if(pressure!="pending"&&pressure!="queued")throw std::invalid_argument("Invalid send pressure mode");
   queued_pressure=pressure=="queued";
   scale_busy_fraction=dhvalue::optional<double>(p,"scale_up_busy_fraction",0.5);
@@ -43,10 +44,10 @@ Policy::Policy(const V& config) {
   if((connections&&warm_connections>connections)||!max_connecting||!rebalance_interval_ms||!rebalance_batch||!tx_min||(tx_max&&tx_min>tx_max)||!rx_min||(rx_max&&rx_min>rx_max)||!handlers||!send_capacity||!receive_capacity||!tx_high||!rx_high||!high_samples||!sample_ms||!cooldown_ms||!idle_ms)throw std::invalid_argument("Invalid native network module policy");
 }
 struct Client::Core {
-  struct Lane {std::unique_ptr<dhwire::Client> wire;std::atomic<size_t> pending{0};bool warming=false;explicit Lane(dhwire::Config c):wire(std::make_unique<dhwire::Client>(c)){} };
+  struct Lane {std::unique_ptr<dhwire::Client> wire;std::atomic<size_t> pending{0};bool warming=false;uint64_t warm_started=0;explicit Lane(dhwire::Config c):wire(std::make_unique<dhwire::Client>(c)){} };
   Policy p;dhwire::Config config;mutable std::mutex mu;std::mutex close_mu;std::condition_variable wake;
   std::vector<std::shared_ptr<Lane>> lanes;std::map<std::string,dhwire::Endpoint> known;std::thread monitor;bool stopping=false;
-  std::atomic<size_t> total{0};size_t rr=0,ups=0,downs=0,peak=1,peak_pending=0,rejected=0;A events;
+  std::atomic<size_t> total{0};size_t rr=0,ups=0,downs=0,peak=1,peak_pending=0,rejected=0,warm_deferred=0;A events;
   explicit Core(dhwire::Config c,const V& v):p(v),config(c){
     config.cpu_ids=p.cpu_ids;config.transport=p.transport;config.rdma_poll_interval_us=p.rdma_poll_interval_us;config.async_connect=p.async_connect;config.async_connect_progress=p.async_connect_progress;config.idle_probe_ms=p.idle_probe_ms;
     if(p.enabled){config.max_pending=std::min(c.max_pending,p.send_capacity);config.max_connections_per_endpoint=p.connections;config.connection_idle_ms=p.connections?0:p.idle_ms;config.min_connections_per_endpoint=p.warm_connections;config.max_connecting=p.max_connecting;}
@@ -57,10 +58,11 @@ struct Client::Core {
   void run(){
     size_t high=0;uint64_t changed=now(),idle=0;std::unique_lock<std::mutex> l(mu);
     while(!wake.wait_for(l,std::chrono::milliseconds(p.sample_ms),[&]{return stopping;})){
-      size_t busy_lanes=0;for(auto& x:lanes){busy_lanes+=(p.queued_pressure?x->wire->queued():x->pending.load())>=p.tx_high;if(x->warming&&x->wire->ready_connections()>=known.size()*p.warm_connections)x->warming=false;}bool busy=busy_lanes>=std::max(size_t(1),size_t(std::ceil(p.scale_busy_fraction*lanes.size())));high=busy?high+1:0;auto t=now();
+      const auto observed=now();bool warm_pending=false;size_t busy_lanes=0;for(auto& x:lanes){busy_lanes+=(p.queued_pressure?x->wire->queued():x->pending.load())>=p.tx_high;if(x->warming&&x->wire->ready_connections()>=known.size()*p.warm_connections)x->warming=false;if(x->warming&&p.send_warmup_grace_ms&&observed-x->warm_started<p.send_warmup_grace_ms*1000000)warm_pending=true;}bool busy=busy_lanes>=std::max(size_t(1),size_t(std::ceil(p.scale_busy_fraction*lanes.size())));high=busy?high+1:0;auto t=now();
       if(total)idle=0;else if(!idle)idle=t;
-      if(high>=p.high_samples&&(!p.tx_max||lanes.size()<p.tx_max)&&t-changed>=p.cooldown_ms*1000000){
-        try{auto targets=known;l.unlock();std::shared_ptr<Lane> fresh;try{fresh=std::make_shared<Lane>(config);fresh->warming=p.warm_connections&&!targets.empty();for(const auto& [key,ep]:targets)fresh->wire->prepare(ep);}catch(...){l.lock();throw;}l.lock();lanes.push_back(std::move(fresh));++ups;peak=std::max(peak,lanes.size());event("send_pressure");}catch(const std::exception&){event("scale_up_failed");}
+      if(high>=p.high_samples&&warm_pending)++warm_deferred;
+      if(high>=p.high_samples&&!warm_pending&&(!p.tx_max||lanes.size()<p.tx_max)&&t-changed>=p.cooldown_ms*1000000){
+        try{auto targets=known;l.unlock();std::shared_ptr<Lane> fresh;try{fresh=std::make_shared<Lane>(config);fresh->warming=p.warm_connections&&!targets.empty();fresh->warm_started=now();for(const auto& [key,ep]:targets)fresh->wire->prepare(ep);}catch(...){l.lock();throw;}l.lock();lanes.push_back(std::move(fresh));++ups;peak=std::max(peak,lanes.size());event("send_pressure");}catch(const std::exception&){event("scale_up_failed");}
         changed=t;high=0;
       }
       if(idle&&t-idle>=p.idle_ms*1000000&&lanes.size()>p.tx_min){
@@ -93,7 +95,7 @@ void Client::close(){if(!core_)return;if(callback_owner==core_.get()){
   if(!core_->p.enabled){core_->lanes.front()->wire->close();}
   return;
 }core_->close();}
-V Client::metrics()const{auto c=core_;std::lock_guard<std::mutex> l(c->mu);A depths,wire;for(auto& x:c->lanes){depths.emplace_back(uint64_t(x->pending));wire.emplace_back(x->wire->metrics());}return M{{"transport",c->p.transport},{"enabled",c->p.enabled},{"reactors",uint64_t(c->lanes.size())},{"peak_reactors",uint64_t(c->peak)},{"scale_ups",uint64_t(c->ups)},{"scale_downs",uint64_t(c->downs)},{"pending",uint64_t(c->total)},{"peak_pending",uint64_t(c->peak_pending)},{"capacity_rejections",uint64_t(c->rejected)},{"connections_per_endpoint_per_reactor",uint64_t(c->config.max_connections_per_endpoint)},{"max_reactors",uint64_t(c->p.tx_max)},{"pending_limit",uint64_t(c->config.max_pending)},{"lane_pending",std::move(depths)},{"wire_lanes",std::move(wire)},{"events",c->events}};}
+V Client::metrics()const{auto c=core_;std::lock_guard<std::mutex> l(c->mu);A depths,wire;for(auto& x:c->lanes){depths.emplace_back(uint64_t(x->pending));wire.emplace_back(x->wire->metrics());}return M{{"send_warmup_grace_ms",c->p.send_warmup_grace_ms},{"scale_up_deferred_warming",uint64_t(c->warm_deferred)},{"transport",c->p.transport},{"enabled",c->p.enabled},{"reactors",uint64_t(c->lanes.size())},{"peak_reactors",uint64_t(c->peak)},{"scale_ups",uint64_t(c->ups)},{"scale_downs",uint64_t(c->downs)},{"pending",uint64_t(c->total)},{"peak_pending",uint64_t(c->peak_pending)},{"capacity_rejections",uint64_t(c->rejected)},{"connections_per_endpoint_per_reactor",uint64_t(c->config.max_connections_per_endpoint)},{"max_reactors",uint64_t(c->p.tx_max)},{"pending_limit",uint64_t(c->config.max_pending)},{"lane_pending",std::move(depths)},{"wire_lanes",std::move(wire)},{"events",c->events}};}
 struct Server::Core {
   struct Lane {std::unique_ptr<dhwire::Server> wire;bool draining=false;};
   Policy p;dhwire::ServerConfig config;Handler data,admin;uint16_t bound;

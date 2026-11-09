@@ -1,0 +1,29 @@
+{
+  "id": "replica_region_20261029",
+  "round_id": "replica_region_20261029",
+  "title": "完整区域覆盖与200K在线卸载验证",
+  "status": "已完成",
+  "started_at": "2026-10-29T01:09:00+08:00",
+  "ended_at": "2026-10-29T03:37:54+08:00",
+  "purpose": "在16ms基线上检验区域选择是否改善QPS/源CPU，并测量从零构建至接流的全过程",
+  "hypothesis": "较少热门入口的完整深邻域可提升实际工作覆盖，但可能降低命中率；在线规划可能迟于200K流结束",
+  "expected": "零失败，预算/执行器/去重/排空通过；整体及命中Recall≥95%，提高全请求吞吐与净卸载",
+  "configuration": "冻结A18源码；64线程/节点、预算200、并发1024、RDMA、热缓存；同训练样本，不用真值选区域；静态fraction .8、child .75",
+  "variables": "- 同800MB估计包上限：原51727点88入口、top16、top64完整闭包/PPR；无副本对照；热点60K三次交错筛查\n- 根据筛查冻结候选，原始200K无副本/当前/候选静态/候选在线，每组3次交错；适应成本单列\n- 原始none/current/narrow16第4次补测；6000QPS固定热点发生序列200K×6，客户端定速与scheduled滞后审计",
+  "code_changes": "实验与离线分析脚本；服务端/图搜索冻结A18，无新切图参数推广。固定速率补测仅为隔离原生客户端增加计划到达/限速选项，独立源码快照；生命周期代码另在A20验证，未部署到本轮后端。",
+  "revision": "53b3b953d0f491019429da3535e182d7e56a804d",
+  "results": "36组552万计时请求零失败，8,211,255条分支时间线及预算/区域单执行器/同机去重/排空通过，108个有效组数据PID退出。热点当前副本中位QPS8383→9522（+13.59%）；原始200K 15671→15789且r4配对−0.95%，无稳定收益，根命中1.721%。同6000 requests/s热点源搜索CPU/query−10.97%、源进程核当量−7.03%，全节点搜索CPU/query+8.11%；约32.54%根命中但100%仍回源、约24点重复。条件Recall约−0.5pp，仍≥95%但未通过0.2pp研究界限。原在线组晚发布/44.624s过期计划保留；2s内部规划组4.60–5.99s发布未提升整体吞吐。静态current_r1构建至发布5.251s，阶段重叠与首次接流完整记录。接收池8→28→8与970次迁移同现176.81ms p99，尚未隔离因果。保留预留失败、输出容量失败、NUMA压力异常及SHA验证迁移、离线分析断言修正；4条通信尾部不完整明确原因。热缓存/共享机短测/热点重复及训练部分重用，诊断大文件tmpfs，不能外推冷SSD或SSD输出吞吐。",
+  "artifacts": "- [完整报告/图表](test/replica_region_20261029/REPORT.md)\n- [构建至接流](test/replica_region_20261029/lifecycle_timeline.png)\n- [实际工作分布](test/replica_region_20261029/work_distribution.png)\n- [接收长尾证据](test/replica_region_20261029/control_path_evidence.json)\n- [预登记](test/replica_region_20261029/PLAN.md)\n- [YAML](test/replica_region_20261029/settings.yaml)\n- [逐组审计](test/replica_region_20261029/audit.json)\n- [服务源码哈希](test/replica_region_20261029/source_hashes.json)\n- [独立定速客户端](test/replica_region_20261029/paced_client_hashes.json)\n- [Research](Research.md#r001-a19)",
+  "next_steps": "先固定区域隔离动态/固定8或16接收池及缩容冷却；再按完整包字节的净源CPU收益选择多入口/多小球，归因约24点重复后做授权内批量交接消融；保持质量门槛，补90s以上变化热点与全周期维护成本，再验收A20衰退/多目标策略。",
+  "updated_at": "2026-10-29T03:57:16+08:00",
+  "log_group": "负载均衡：选图、入口覆盖与源节点卸载",
+  "summary": "完整区域副本在热点流QPS提高13.59%，自然200K无稳定收益，源CPU下降但总CPU增加且命中质量未过0.2个百分点门槛；原始明细已清理",
+  "report": "test/replica_region_20261029/REPORT.md",
+  "data_retention": {
+    "updated_at": "2026-11-05T11:00:47+08:00",
+    "maintenance_only": true,
+    "report": "test/storage_cleanup_keep_latest2_20261105/README.md",
+    "raw_measurements_partially_removed": true,
+    "retained": "报告/图表、汇总、源码与配置保留；详细删除路径见清单；最近两轮和共享复测资产未改动"
+  }
+}

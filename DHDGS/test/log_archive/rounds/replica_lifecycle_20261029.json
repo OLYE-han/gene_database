@@ -1,0 +1,29 @@
+{
+  "id": "replica_lifecycle_20261029",
+  "round_id": "replica_lifecycle_20261029",
+  "title": "热点副本自适应衰退与多目标扩展正确性",
+  "status": "已完成",
+  "started_at": "2026-10-29T02:34:28+08:00",
+  "ended_at": "2026-10-29T02:51:47+08:00",
+  "purpose": "验证衰退/回收和多份副本入口分流，避免误删、资源泄漏及隐式查询扇出",
+  "hypothesis": "快慢需求估计与成本/回暖保留、异步排空及受限概率路由能满足动态生命周期不变量",
+  "expected": "正确性测试通过；明确模拟的误删/资源占用权衡，不承诺实机QPS提升",
+  "configuration": "统一主YAML，新开关默认false；纯策略时钟模拟、本地三节点真实构建和检索；不与A19三机性能测量重叠",
+  "variables": "- 健康/缺失/反弹/永久冷却、构建成本、容量压力\n- 单/双副本、份额与TTL、失败回收、正负/过期成本\n- 固定idle与自适应衰退的确定性变化流模拟",
+  "code_changes": "新增replica_policy、非阻塞回收及真实释放前预算保留、控制状态清理、同入口多副本分布及动态扩容；另新增独立原生压测客户端定速选项供A19固定到达率补测",
+  "revision": "53b3b953d0f491019429da3535e182d7e56a804d",
+  "results": "58项定向正确性检查通过；真实本地三节点传输、路由、在途保护及1→2→1→0验证，负载和成本为测试注入。5秒复制模型重建2→1、冷保留158.38→146.79GiB·s；未知遥测时增至207.19。未部署到A19服务，不声称实机动态QPS提升。三个fixture错误及修复、编译和所有失败日志保留。",
+  "artifacts": "- [报告/图](test/replica_lifecycle_20261029/REPORT.md)\n- [研究算法](research/R001_ADAPTIVE_REPLICA_LIFECYCLE.md)\n- [58项检查](test/replica_lifecycle_20261029/focused_attempt8.log)\n- [源码哈希](test/replica_lifecycle_20261029/source_hashes.json)\n- [审计](test/replica_lifecycle_20261029/audit.json)",
+  "next_steps": "根据A19先稳住接收端并提供独立卸载成本校验；再做至少90s恒热、15/30/60/120s降温/回暖/消退和单/双副本阶跃，各三次交错，计QPS/质量/源净CPU/维护成本/冷GiB·s；新开关继续默认false。",
+  "updated_at": "2026-10-29T03:57:16+08:00",
+  "log_group": "负载均衡：复制生效与生命周期",
+  "summary": "自适应衰退与多目标扩退容通过58项检查及本地三节点1→2→1→0验证，负载为注入模型，未证明实机QPS收益；原始明细已清理",
+  "report": "test/replica_lifecycle_20261029/REPORT.md",
+  "data_retention": {
+    "updated_at": "2026-11-05T11:00:47+08:00",
+    "maintenance_only": true,
+    "report": "test/storage_cleanup_keep_latest2_20261105/README.md",
+    "raw_measurements_partially_removed": true,
+    "retained": "报告/图表、汇总、源码与配置保留；详细删除路径见清单；最近两轮和共享复测资产未改动"
+  }
+}

@@ -1,0 +1,106 @@
+# 仅设计参数，尚非DHDGS运行配置；所有数值为待验证起点。
+proposal_version: 2
+research_ids: [R001-A15, R001-A16, R005, R010]
+status: proposed_not_runtime_config
+sampling:
+  request_probability: 0.01
+  max_trace_bytes_per_query: 262144
+  max_buffer_bytes_per_node: 67108864
+  frequency_window_seconds: 30
+  truncated_trace_policy: mark_unknown
+planner:
+  strategy: marginal_net_relief
+  max_candidates: 64
+  max_seed_starts: 4
+  max_plan_ms: 200
+  max_plan_age_ms: 500
+  max_active_regions_first_phase: 1
+  decision_horizon_seconds: 30
+  pressure_price_min: 1.0
+  pressure_price_max: 8.0
+  pressure_price_gain: 1.0
+  pressure_denominator_epsilon: 0.05
+  cost_model: calibrated_bins
+  unknown_model_policy: bounded_exploration_or_reject
+  exploration_route_fraction: 0.02
+  exploration_max_regions_per_window: 1
+  exploration_max_maintenance_cpu_seconds: 5.0
+  target_util_limit: 0.80
+  # 运行时须明确填写每节点实际可用额度，null表示尚未确定、不可执行。
+  replica_ssd_budget_bytes: null
+  replica_ram_budget_bytes: null
+  build_peak_ram_budget_bytes: null
+  maintenance_network_bytes_per_second: null
+  maintenance_io_bytes_per_second: null
+region:
+  strategy: complete_hierarchical_cell
+  universe_scope: source_local_records
+  # 完整域内全量枚举，不按采样/热度删除成员。
+  membership_policy: enumerate_all
+  expansion_policy: complete_parent_subtree
+  leaf_target_rows: 1024 # 候选初值；不是按ID硬截断
+  max_hierarchy_depth: 16
+  degenerate_leaf_policy: reject_if_over_budget
+  compare_strategies: [complete_hierarchical_cell, complete_directed_hop_ball]
+  graph_ball_max_hops: 3
+  partial_layer_policy: reject
+  require_exact_membership_match: true
+  require_entry_reachability: true
+  preserve_original_edges: true
+  include_all_neighbor_codes: true
+  boundary_policy: all_original_outgoing_edges
+  internal_missing_record_policy: fail
+  # null待环境核定；目录和构建资源同样有预算。
+  directory_ram_budget_bytes: null
+  directory_ssd_budget_bytes: null
+  topology_scope: source_induced_graph
+  global_multisource_copy: false
+dependency_evidence:
+  role: region_scoring_only
+  max_parent_sources_per_candidate: 4
+  candidate_chain_max_hops: 2
+  # 链只提供扩张方向，不能直接成为最终稀疏副本。
+routing:
+  phase_one: root_only
+  peer_replica_routes: false
+  fixed_fraction_for_frozen_comparison: 0.25
+  attach_uncovered_portals: false
+execution:
+  modes_to_compare: [per_grant, prepared_query_only, persistent_region_state]
+  max_state_bytes_per_query: 1048576
+  max_state_bytes_per_node: 268435456
+  cross_node_skip_expanded: false
+validation:
+  search_threads_per_node: 64
+  global_search_budget: 200
+  client_concurrency: 1024
+  warmup_queries: 2000
+  measured_queries: 200000
+  interleaved_repeats: 3
+  recall_at_10_min: 0.95
+  max_paired_recall_loss: 0.002 # 0.2个百分点
+  target_qps_gain_fraction: 0.10
+  quality_sample_shortage: inconclusive
+  offline_truth_only: true
+
+# 用户设想的独立候选策略，尚未实现；不覆盖region.strategy。
+hot_entry_community_candidate:
+  enabled: false
+  hot_entry_k_candidates: [16, 64, 256]
+  full_ball_h_candidates: [1, 2]
+  hotness_metric: request_rate_times_source_cpu
+  strict_hot_entry_closure: true
+  closure_over_budget_policy: reject_and_try_smaller_h
+  ppr_restart_probability_candidates: [0.15, 0.30]
+  ppr_distribution: capped_hotness_on_core_entries
+  ppr_outside_mass_policy: explicit_out_state
+  ppr_max_edge_scans: 1000000 # 待验证，不是性能保证
+  ppr_residual_l1_target: 0.0001
+  ppr_max_iterations: 100
+  boundary_proxy: directed_outgoing_edge_ratio
+  expansion_unit: complete_h_ball
+  retrigger_hot_closure_on_expansion: true
+  preserve_core: true
+  allow_candidate_overlap: true
+  remove_overlapping_records: false
+  deployed_regions_first_phase: 1

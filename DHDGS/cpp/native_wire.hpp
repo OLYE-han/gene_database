@@ -67,6 +67,7 @@ struct Result {
   // done is after frame decoding; response wait = done-send_done includes decode.
   uint64_t queued_ns = 0, send_start_ns = 0, send_done_ns = 0, done_ns = 0;
   uint64_t connect_start_ns = 0, connect_done_ns = 0;
+  uint64_t response_first_byte_ns = 0, response_frame_complete_ns = 0, response_decode_done_ns = 0;
   bool connection_created = false;
 };
 class Client {

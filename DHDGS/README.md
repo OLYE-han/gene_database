@@ -2,7 +2,9 @@
 
 后续优化入口：[Research.md](Research.md)。按问题记录证据、候选方案及每轮尝试；验证可行后更新 [DESIGN.md](DESIGN.md) 并标记解决，实验轮次仍统一记录在 [TestLog.md](TestLog.md)。当前首个主攻方向是 [R001：负载不均与热点子图复制](Research.md#r001)。
 
-**当前默认（2026-10-23）：四机 RDMA 已验收方案。** Intel-35 顶层、Intel-31/32/30 数据节点，每节点64搜索线程、预算200，推荐并发1024。配置在 [configs/dhdgs.yaml](configs/dhdgs.yaml) 和 [configs/rdma_deployment.yaml](configs/rdma_deployment.yaml)，使用 `.venv/bin/python tools/rdma_default.py check` 核验、`benchmark` 启动。CPU/NUMA、jemalloc 和固定 RDMA 运行库由启动器加载，操作说明见 [RDMA_DEFAULT.md](docs/RDMA_DEFAULT.md)。本机小规模验证显式使用 `configs/dhdgs_pilot.yaml`。以下早期默认值与部署描述为历史记录，以本段和当前操作说明为准。
+**当前默认（2026-11-05 用户决定）：原成本分支策略，全局搜索预算128，目标 Recall@10 约95%。** RDMA 数据拉取与候选同步默认关闭，代码和历史实验保留但暂停维护；节点间 RDMA 消息传输继续使用。最新预算对照在原策略D128下测得 Recall@10=95.1130%、QPS=29,755.84、p99=128.381ms，条件与限制见[报告](test/budget_sweep_after_return_20261105/REPORT.md)和[基线说明](DESIGN.md#baseline-original-128-20261105)。
+
+四机部署仍为 Intel-35 顶层、Intel-31/32/30 数据节点，每节点64搜索线程。配置在 [configs/dhdgs.yaml](configs/dhdgs.yaml) 和 [configs/rdma_deployment.yaml](configs/rdma_deployment.yaml)，运行预算与压测覆盖项已同步为128。使用 `.venv/bin/python tools/rdma_default.py check` 核验、`benchmark` 启动；该入口仍引用历史发布快照，并非最新预算对照的源码及资源布局，更新YAML不表示已重新部署或验证性能。操作说明见 [RDMA_DEFAULT.md](docs/RDMA_DEFAULT.md)。本机小规模验证显式使用 `configs/dhdgs_pilot.yaml`；以下早期默认值与部署描述为历史记录。
 
 
 原常驻三机部署为 **Intel-35：head + data-0；Intel-32：data-1；Intel-30：data-2**。每节点32个查询工作线程，见 [原入口操作命令](test/managed_continuation_three_20261019/README.md)。
@@ -42,6 +44,8 @@ cmake --build build --parallel 4
 .venv/bin/dhdgs benchmark --config configs/dhdgs_pilot.yaml
 .venv/bin/python -m unittest discover -s tests -v
 ```
+
+性能部署应在各服务器本机以 `-DDHDGS_NATIVE_OPTIMIZATION=ON` 重新配置 CMake，启用本机指令集与 SIMD 距离核；不要把该二进制直接复制到不同 CPU 或 Python ABI 的机器。关闭负载均衡的吞吐恢复对照、完整配置及计时口径见 [实验报告](test/no_lb_qps_recovery_20261103/REPORT.md)。
 
 上述pilot命令从 `seq_2M` 均匀抽取 4096 条 2560 维向量，构建三个分片。`build` 拒绝覆盖已有 `paths.output/index`；已有测试索引只有在构建参数与 YAML 一致时才能直接执行 `query` 和 `benchmark`；例如将 RaBitQ 从 4 bit 改为 1 bit 后，需要新建输出目录并重建。新建实验索引前修改 YAML 的 `paths.output`。每次查询、检查或 benchmark 自动生成独立的 `runs/<操作>_<时间>_<随机标识>/`，保存可重新加载的 `resolved.yaml`、配置来源哈希和 `report.json`。
 
@@ -136,3 +140,5 @@ C++完成报告和控制发送路径已实现。在完整实验YAML中设置`pee
 可复用的完整配置、222项回归和2000查询ABBA对照见 [C++控制路径测试报告](test/native_control_20261018/REPORT.md)。同负载p99约降低25.9%，报告控制等待大幅缩短，但接纳队列仍未满足100ms系统等待目标。
 
 负载均衡研究原型：见 [R001实现与配置](research/R001_IMPLEMENTATION.md)、[质量/性能实验](test/load_balance_20261026/REPORT.md)。`load_balance.enabled` 默认关闭；只有独立质量及来源净卸载校准通过的副本才能分流。
+
+无LB吞吐复验配置：[运行参数](configs/dhdgs_no_lb_throughput.yaml)、[部署参数](configs/rdma_no_lb_throughput.yaml)、[复现](test/no_lb_qps_recovery_20261103/REPRODUCE.md)。200K唯一输入、D200、C1536、三数据节点各64线程，600秒实测21,396成功QPS、零失败、Recall@10 96.884%；暖缓存与长期验证限制见[报告](test/no_lb_qps_recovery_20261103/REPORT.md)。 此处为历史D200测量；运行与部署模板现已改为128，复现历史结果须使用该轮冻结配置。

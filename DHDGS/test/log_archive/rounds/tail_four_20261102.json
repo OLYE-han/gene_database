@@ -1,0 +1,29 @@
+{
+  "id": "tail_four_20261102",
+  "round_id": "tail_four_20261102",
+  "title": "有限召回损失下的四项尾部优化",
+  "status": "已完成",
+  "started_at": "2026-11-02T20:29:27+08:00",
+  "ended_at": "2026-11-02T22:04:48+08:00",
+  "purpose": "实现并分别验证尾部提前结束、邻接先读延迟精排、计算配额与共享续跑、轻载节点分担",
+  "hypothesis": "减少低收益尾部工作及资源分配瓶颈，可在两群体Recall各损失不超过0.5个百分点时提高QPS和源净卸载",
+  "expected": "逐项短批淘汰后确认入选项；不预设每个机制都有效",
+  "configuration": "seq_2M 2560维，Intel-31/32/30数据节点、Intel-35顶层与原生客户端；预算200、阈值39、并发1024、总α≤0.3。热注册内存READ，tmpfs结果输出；固定11K与饱和，独立历史/calibration/test，200K确认含42,898独立ID。",
+  "variables": "- 同期S30基线；两次测量前失败不计性能\n- 尾部额外展开上限16（功能测试8），改善启发式未单独性能验收\n- 邻接先读，延迟精排最多8；直接全记录READ对照\n- 64+8、62+10、72共享池tail CPU fraction0.15\n- 256历史入口两份h=2完整核心+整块扩张；同机两份与两机分放，物理α0.2954\n- 两目标64+4各自专用/共享，contexts32与inflight8各半；总计算线程及RDMA额度固定\n- 前后基线夹住两种分放方案，4组200K饱和+80K固定11K；其余短批50K",
+  "code_changes": "实现tail_policy限额/收益终止、邻接后缀READ与延迟精确向量读取、共享CPU信用队列与节点线程覆盖、完整h核心入口分组多目标规划CLI；修复共享池/网络统计兼容，增加功能与真实RNIC测试。前态/冻结源码及本轮差异保留。",
+  "revision": "53b3b953d0f491019429da3535e182d7e56a804d",
+  "results": "13个有效会话35正式块2,470,000请求，成功块0失败；62项功能/RNIC/网络测试及3机各9网络测试通过。200K前后基线13,753.86/13,751.45 QPS，分放共享17,428.35(+26.7%)、分放专用17,371.56；0.33%差异不能证明共享吞吐更优。源CPU/请求5.035→4.054ms，展开110.67→78.90；11K源ready p95 8.324→0.789ms。实际命中回源39.4%→72.6%、门口预算71→93，早回源仍未解决。整体/同一实际命中群体Recall观察损失0.234–0.245/0.411–0.425pp，均值在0.5pp内，但聚类95%区间到-0.71pp且新增接流子群体损失约1pp，不作为通用保证。上限16损失越界，延迟精排无明确QPS收益；保留可选默认。初始5%基线漂移已保留并补前后确认。报告/曲线/源身份/原始证据远端SHA256归档核对通过，本轮数据服务已停止。",
+  "artifacts": "- [完整报告](test/tail_four_20261102/REPORT.md)\n- [确认图](test/tail_four_20261102/confirmation.png)\n- [固定负载曲线](test/tail_four_20261102/load_comparison.png)\n- [消融图](test/tail_four_20261102/screening.png)\n- [配置、源码及归档导航](test/tail_four_20261102/README.md)\n- [源身份](test/tail_four_20261102/source_identity.json)\n- [前态差异](test/tail_four_20261102/changes.patch)\n- [长期归档校验](test/tail_four_20261102/final_archive.json)\n- [DESIGN §63](DESIGN.md#tail-four-20261102)",
+  "next_steps": "按入口配对质量、净源CPU卸载与目标runnable共同接流；预算倾向过早回源入口的完整扩张。改进43秒规划/在线发布成本，继续漂移/衰退研究。R001/A29整体开放，未声称全面解决。",
+  "updated_at": "2026-11-02T22:05:10+08:00",
+  "log_group": "负载均衡：选图、入口覆盖与源节点卸载",
+  "summary": "同容量分放与尾部优化使受控热点QPS提高26.7%、源CPU减少，命中召回损失区间仍越过0.5个百分点，未形成通用质量保证；原始明细已清理",
+  "report": "test/tail_four_20261102/REPORT.md",
+  "data_retention": {
+    "updated_at": "2026-11-05T11:00:47+08:00",
+    "maintenance_only": true,
+    "report": "test/storage_cleanup_keep_latest2_20261105/README.md",
+    "raw_measurements_partially_removed": true,
+    "retained": "报告/图表、汇总、源码与配置保留；详细删除路径见清单；最近两轮和共享复测资产未改动"
+  }
+}

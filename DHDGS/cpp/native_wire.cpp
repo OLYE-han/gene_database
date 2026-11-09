@@ -215,7 +215,9 @@ struct Client::Impl {
           // confirmed EOF costs a reconnect, not a failed search or replay.
           char byte;ssize_t n;do{n=io.recv(c.fd,&byte,1,MSG_PEEK|MSG_DONTWAIT);}while(n<0&&errno==EINTR);
           if(n>=0||(errno!=EAGAIN&&errno!=EWOULDBLOCK)){close_conn(c,"Stale idle connection");c.retry_after=0;}
-          else c.idle_since=now_ns();
+          // MSG_PEEK does not send traffic or refresh the peer's idle timer.
+          // Keep the last real activity time: another assignment may scan
+          // this socket without using it, and the peer can expire it meanwhile.
         }
         if(c.fd>=0)available=&c;else if(c.retry_after<=now_ns())cold=&c;}}
       if(!available){
@@ -234,9 +236,9 @@ struct Client::Impl {
     if(events&POLLOUT){while(c.sent<c.job->frame.size()){auto n=io.send(c.fd,c.job->frame.data()+c.sent,c.job->frame.size()-c.sent,MSG_NOSIGNAL);if(n>0){c.sent+=n;c.job->result.request_bytes+=n;}else if(n<0&&errno==EINTR)continue;else if(n<0&&(errno==EAGAIN||errno==EWOULDBLOCK))break;else{close_conn(c,"RPC send failed");return;}}if(c.sent==c.job->frame.size()&&!c.job->result.send_done_ns)c.job->result.send_done_ns=now_ns();}
     if(events&(POLLIN|POLLHUP|POLLERR)){
       while(c.job){uint8_t buf[65536];size_t needed=c.expected?c.expected-c.received.size():4-c.received.size();auto n=io.recv(c.fd,buf,std::min(sizeof(buf),needed),0);
-        if(n>0){c.received.insert(c.received.end(),buf,buf+n);c.job->result.response_bytes+=n;}else if(n<0&&errno==EINTR)continue;else if(n<0&&(errno==EAGAIN||errno==EWOULDBLOCK))break;else{close_conn(c,"RPC connection closed during frame");return;}
+        if(n>0){if(!c.job->result.response_first_byte_ns)c.job->result.response_first_byte_ns=now_ns();c.received.insert(c.received.end(),buf,buf+n);c.job->result.response_bytes+=n;}else if(n<0&&errno==EINTR)continue;else if(n<0&&(errno==EAGAIN||errno==EWOULDBLOCK))break;else{close_conn(c,"RPC connection closed during frame");return;}
         if(!c.expected&&c.received.size()==4){uint64_t len=0;for(auto b:c.received)len=(len<<8)|b;if(!len||len>config.max_message_bytes){close_conn(c,"Invalid RPC frame size");return;}c.expected=len+4;}
-        if(c.expected&&c.received.size()==c.expected){try{c.job->result.response=unpack(c.received.data()+4,c.expected-4);if(!std::holds_alternative<Value::Map>(c.job->result.response.data))throw std::invalid_argument("RPC response must be a mapping");if(!c.job->request_id.empty()){auto it=c.job->result.response.map().find("request_id");if(it==c.job->result.response.map().end()||pack(it->second)!=c.job->request_id)throw std::invalid_argument("RPC request ID mismatch");}finish(std::move(c.job));c.idle_since=now_ns();c.received.clear();c.expected=0;c.sent=0;}catch(const std::exception& e){close_conn(c,e.what());}return;}
+        if(c.expected&&c.received.size()==c.expected){try{c.job->result.response_frame_complete_ns=now_ns();c.job->result.response=unpack(c.received.data()+4,c.expected-4);c.job->result.response_decode_done_ns=now_ns();if(!std::holds_alternative<Value::Map>(c.job->result.response.data))throw std::invalid_argument("RPC response must be a mapping");if(!c.job->request_id.empty()){auto it=c.job->result.response.map().find("request_id");if(it==c.job->result.response.map().end()||pack(it->second)!=c.job->request_id)throw std::invalid_argument("RPC request ID mismatch");}finish(std::move(c.job));c.idle_since=now_ns();c.received.clear();c.expected=0;c.sent=0;}catch(const std::exception& e){close_conn(c,e.what());}return;}
       }
     }
     if(c.job&&(events&(POLLNVAL|POLLERR|POLLHUP)))close_conn(c,"RPC socket error");

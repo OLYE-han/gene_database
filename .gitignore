@@ -82,3 +82,7 @@ __pycache__/
 /DHDGS/test/*
 !/DHDGS/test/README.md
 !/DHDGS/test/EXPERIMENT_WORKFLOW.md
+
+# Keep the compact journal's detailed documentation archive versionable.
+!/DHDGS/test/log_archive/
+!/DHDGS/test/log_archive/**

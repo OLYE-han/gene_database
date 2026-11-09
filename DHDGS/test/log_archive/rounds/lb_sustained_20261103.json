@@ -1,0 +1,29 @@
+{
+  "id": "lb_sustained_20261103",
+  "round_id": "lb_sustained_20261103",
+  "title": "R001：30分钟自然200K持续查询观察",
+  "status": "已完成（性能验收未通过）",
+  "started_at": "2026-11-03T13:37:30+08:00",
+  "ended_at": "2026-11-03T14:29:21+08:00",
+  "purpose": "观察当前自动负载均衡副本大小/次数、接流回源、RDMA和三节点排队CPU",
+  "hypothesis": "持续自然流量下算法可辨识失衡并自动发布；容量与回流可能限制收益",
+  "expected": "完成30分钟完整图表，不预设副本成功或QPS改善",
+  "configuration": "Intel-35顶层及独立客户端；31/32/30数据；D200/C1024；源64目标64+4共享；自然200K循环",
+  "variables": "- pilot 90秒；参照observe 120秒；dynamic 1800秒\n- 完成状态retention 600→120秒，max_tombstones 1.2M→12M；其它LB保持推荐配置，pilot后冻结\n- pilot选图超过90秒，正式planner_max_age_ms 10,000→360,000；保留发布前重新校验",
+  "code_changes": "隔离native客户端增加duration循环、5秒聚合、稀疏样本；服务搜索代码不变；测试runner与分析脚本；持久化长测汇总/空窗口/失败口径至test/EXPERIMENT_WORKFLOW.md；未改DESIGN能力声明",
+  "revision": "53b3b953d0f491019429da3535e182d7e56a804d",
+  "results": "正式1800秒自然回放12,635,395请求，失败1,089,121（8.62%）；含排空成功QPS6014.58，全局p99约319.23ms、局部p99达120秒，成功Recall97.386%。5次计划、0切割复制发布；3过期/1容量预约/1负载改变。接纳队列拥堵与搜索空闲约843秒，精确锁根因待定位。完整窗口及样本捕获7.51MiB，无全量逐query轨迹；计数审计通过。pilot及收尾问题详见报告。",
+  "artifacts": "- [报告](test/lb_sustained_20261103/REPORT.md)\n- [QPS/p99/召回](test/lb_sustained_20261103/formal/throughput_quality.png)\n- [副本尝试](test/lb_sustained_20261103/formal/replica_lifecycle.png)\n- [接纳队列](test/lb_sustained_20261103/formal/admission_stalls.png)\n- [计算队列](test/lb_sustained_20261103/formal/compute_queues.png)\n- [CPU/RSS](test/lb_sustained_20261103/formal/cpu_memory.png)\n- [审计](test/lb_sustained_20261103/formal/audit.json)",
+  "next_steps": "修复自动规划预算传递和端到端时限，接入已验证原生流水；独立定位长周期接纳/回收等待，之后做无LB/动态LB配对长测。R001保持开放。",
+  "updated_at": "2026-11-03T14:29:21+08:00",
+  "log_group": "负载均衡：复制生效与生命周期",
+  "summary": "30分钟自然200K回放出现5次计划零发布、8.62%失败和约843秒接纳拥堵伴搜索空闲，长期性能验收未通过；原始明细已清理",
+  "report": "test/lb_sustained_20261103/REPORT.md",
+  "data_retention": {
+    "updated_at": "2026-11-05T11:00:47+08:00",
+    "maintenance_only": true,
+    "report": "test/storage_cleanup_keep_latest2_20261105/README.md",
+    "raw_measurements_partially_removed": true,
+    "retained": "报告/图表、汇总、源码与配置保留；详细删除路径见清单；最近两轮和共享复测资产未改动"
+  }
+}

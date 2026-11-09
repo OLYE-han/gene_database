@@ -1,0 +1,49 @@
+{
+  "id": "candidate_sync_20261104",
+  "round_id": "candidate_sync_20261104",
+  "research_ids": [
+    "R005",
+    "R006",
+    "R010"
+  ],
+  "purpose": "唯一分支与异步候选收件箱，消除重复授权排队并验证固定预算下的质量与性能",
+  "hypothesis": "复用搜索上下文及候选增量交付减少重复排队；独立接收避免计算饱和阻塞同步",
+  "expected_effect": "同配置QPS提升、p99下降；零失败、预算守恒，召回影响如实报告",
+  "configuration": "无LB，原200K自然查询，64搜索线程/节点，D200/beam11，Intel35入口及客户端，31/32/30数据节点",
+  "variables": "sync关闭/10；拉取总上限64/4/1及直接推送/旧成本策略；全根结束屏障→单根快速结束→预算零快速报告；网络idle1500/30000ms、预热观察0/2000ms；预算零目标消息省略false/true；64线程/D200/C1536固定，20K诊断后200K自然查询正式十组",
+  "code_changes": "C++规范分支预约、异步有界Inbox/幂等交付/原预算恢复；单根及预算零快速报告；预算零目标缓存；候选ACK/消费/预算统计与指标白名单；网络预热扩容观察期和YAML校验；30项回归及紧凑实验客户端、离线统计/时序图",
+  "artifacts": [
+    "test/candidate_sync_20261104/REPORT.md",
+    "test/candidate_sync_20261104/comparison.png",
+    "test/candidate_sync_20261104/node_load.png",
+    "test/candidate_sync_20261104/quiet_pooled_p50.png",
+    "test/candidate_sync_20261104/quiet_pooled_p99.png",
+    "test/candidate_sync_20261104/best_latency.yaml",
+    "test/candidate_sync_20261104/best_throughput.yaml",
+    "test/candidate_sync_20261104/source_hashes_quiet.json",
+    "test/candidate_sync_20261104/incremental_build_audit.json",
+    "DESIGN.md#candidate-sync-20261104",
+    "Research.md"
+  ],
+  "log_group": "远端拉取、分支与搜索预算",
+  "summary": "完成唯一分支与异步同步，复测QPS提升8.34%–10.55%、p99降低45.87%–54.71%，召回约97.05%，p50变差且仍慢于原成本策略；原始明细已清理",
+  "status": "已完成",
+  "results": "正式十组6M查询零失败/超预算/预算账目错误，新模式重复分支0；三项关键配置各两次600K合并，基线17414.52QPS/523.74ms，p99优先18866.86/237.20，吞吐优先19250.60/283.47；Recall97.2312%→97.0547%/97.0569%，p50上升；原成本参考22046.34/172.78。早期无收益/343次失败、失效增量构建均保留。暖页缓存、无LB；未验证所有等待<100ms、冷SSD或长时稳定性。",
+  "report": "test/candidate_sync_20261104/REPORT.md",
+  "report_label": "报告",
+  "title": "唯一分支与异步候选同步",
+  "expected": "同配置QPS提升、p99下降；零失败、预算守恒，召回影响如实报告",
+  "next_steps": "保留p99/吞吐两套参数；比较固定预算下首次派发的队列和小剩余工作成本，补充CPU热点剖析、待发背压及冷SSD/长期稳定性；已存在分支不重新拉取或追加预算",
+  "started_at": "2026-11-04T19:43:39+08:00",
+  "updated_at": "2026-11-04T21:29:27+08:00",
+  "revision": "53b3b953d0f491019429da3535e182d7e56a804d",
+  "ended_at": "2026-11-04T21:29:27+08:00",
+  "measurement_ended_at": "2026-11-04T21:17:19+08:00",
+  "data_retention": {
+    "updated_at": "2026-11-05T11:00:47+08:00",
+    "maintenance_only": true,
+    "report": "test/storage_cleanup_keep_latest2_20261105/README.md",
+    "raw_measurements_partially_removed": true,
+    "retained": "报告/图表、汇总、源码与配置保留；详细删除路径见清单；最近两轮和共享复测资产未改动"
+  }
+}

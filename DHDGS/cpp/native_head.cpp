@@ -1,6 +1,8 @@
 #include "native_network.hpp"
 #include "native_head.hpp"
+#include "entry_return_counters.hpp"
 #include "logical_region.hpp"
+#include "replica_pair_scope.hpp"
 #include "native_pool.hpp"
 #include <algorithm>
 #include <chrono>
@@ -28,7 +30,7 @@ std::string digest(const V &v) {
   SHA256(data.data(), data.size(), hash);
   return std::string(reinterpret_cast<char *>(hash), sizeof(hash));
 }
-const std::vector<std::string> counters = {"region_exclusion_ids_inherited","region_excluded_candidates","region_exclusion_ids_added","region_unexpanded_at_handoff","region_handoffs","same_host_region_handoffs","hotness_record_ms","hotness_expansions_recorded","duplicate_local_expansions_avoided","physical_node_revisits","cross_dwell_blocked_decisions","cross_dwell_exhaustion_escapes","peer_replica_selected","replica_record_reads","replica_local_expansions","file_read_bytes",
+const std::vector<std::string> counters = {"demand_wait_ms","demand_resume_batches","demand_fallbacks","demand_fast_rejections","demand_source_already_started","demand_cache_expansions","demand_durable_expansions","remote_first_actions","remote_first_pushes","remote_pull_streak_pushes","remote_pull_disabled_pushes","one_sided_read_ops","one_sided_data_bytes","one_sided_record_ms","one_sided_code_ms","one_sided_filter_ms","one_sided_filter_cpu_ms","one_sided_lane_queue_ms","one_sided_result_cpu_ms","one_sided_result_ms","one_sided_auth_ms","pull_install_ms","pull_install_cpu_ms","tail_policy_expanded","tail_policy_stops","tail_policy_gain_stops","tail_policy_unused_credit","lazy_navigation_vertices","lazy_refined_vectors","lazy_unrefined_vertices","lazy_refine_batches","lazy_refine_cpu_ms","lazy_refine_wait_ms","pull_policy_pause_ms","pull_main_resume_count","pull_tail_resume_count","pull_gate_attempt","pull_gate_disabled","pull_gate_prior_failure","pull_gate_remaining","pull_gate_rounds","pull_gate_bytes","pull_approved_actions","pull_limit_rejections","pull_batches","pull_records","pull_expanded","pull_fallbacks","pull_wait_ms","pull_dispatch_queue_ms","pull_network_ms","pull_resume_queue_ms","pull_source_queue_ms","pull_resume_count","pull_wire_bytes","pull_record_bytes","pull_code_bytes","pull_source_cpu_ms","pull_source_read_ms","pull_source_service_ms","region_exclusion_ids_inherited","region_excluded_candidates","region_exclusion_ids_added","region_unexpanded_at_handoff","region_handoffs","same_host_region_handoffs","hotness_record_ms","hotness_expansions_recorded","duplicate_local_expansions_avoided","physical_node_revisits","cross_dwell_blocked_decisions","cross_dwell_exhaustion_escapes","peer_replica_selected","replica_record_reads","replica_local_expansions","file_read_bytes",
                                            "pread_calls",
                                            "cache_hits",
                                            "scanned_edges",
@@ -44,6 +46,8 @@ const std::vector<std::string> counters = {"region_exclusion_ids_inherited","reg
                                            "io_queue_wait_ms",
                                            "io_read_residence_ms",
                                            "query_ready_queue_ms",
+                                           "query_actor_serial_wait_ms",
+                                           "query_runnable_queue_ms",
                                            "query_compute_slice_wall_ms",
                                            "query_admission_queue_ms",
                                            "query_executor_start_wait_ms",
@@ -74,7 +78,7 @@ void record_rpc(M &m, const dhwire::Result &r) {
 }
 } // namespace
 bool validate_manifests(const V &reports, const std::string &root, size_t node,
-                        size_t budget, size_t slots, size_t node_count, bool revisits) {
+                        size_t budget, size_t slots, size_t node_count, bool revisits, bool fanout) {
   struct Credit {
     std::string parent;
     size_t node, budget, slots;
@@ -132,7 +136,7 @@ bool validate_manifests(const V &reports, const std::string &root, size_t node,
     size_t remaining = credit.budget - spent - unused,
            remaining_slots = credit.slots;
     const auto &children = array(at(r, "children"));
-    check(children.size() <= 1, "A data node may forward only once");
+    check(fanout||children.size() <= 1, "A data node may forward only once");
     for (const auto &child : children) {
       auto id = get<std::string>(child, "branch_id");
       auto n = get<size_t>(child, "node_id"),
@@ -193,7 +197,8 @@ V aggregate_native(const V &c, const V &reports, const V &transfer,
        {"expanded", "batches", "fallback_entries", "frontier_dropped",
         "improved_topk_batches", "server_thread_cpu_ms",
         "visited_node_candidates_dropped",
-        "remote_candidates_dropped_after_forward"})
+        "remote_candidates_dropped_after_forward","region_candidates_merged","region_frontier_saved","replica_overlay_expansions","replica_host_base_expansions",
+        "source_reserved_candidate_checks","source_reserved_credit_unused","candidate_sync_candidates_sent","candidate_sync_batches","candidate_sync_resumes","candidate_sync_resume_queue_ms","candidate_sync_park_ms","candidate_budget_terminal","candidate_receive_to_consume_ms","candidate_timed_consumed","candidate_sync_known_exhausted_skipped","candidate_start_accepted","candidate_start_conflicts","candidate_start_refunded_budget","candidate_early_results"})
     sums.push_back(k);
   for (const auto &key : sums)
     stats[key] = 0.;
@@ -234,12 +239,15 @@ V aggregate_native(const V &c, const V &reports, const V &transfer,
     tx += optional<double>(peer, "peer_request_bytes", 0);
     rx += optional<double>(peer, "peer_response_bytes", 0);
     retries += std::max(0., optional<double>(peer, "peer_rpc_count", 0) -
+                                optional<double>(peer,"peer_visit_rpc_count",0)-optional<double>(peer,"peer_region_reserve_rpc_count",0)-optional<double>(peer,"peer_pull_rpc_count",0)-optional<double>(peer,"peer_candidate_sync_rpc_count",0)-optional<double>(peer,"peer_candidate_claim_rpc_count",0)-optional<double>(peer,"candidate_start_conflict",0)-
                                 array(at(r, "children")).size());
     for (const char *k :
          {"peer_transfer_queue_ms", "peer_pool_wait_ms", "peer_connect_ms",
           "peer_send_ms", "peer_response_wait_ms", "peer_transfer_wall_ms",
-          "peer_connections_created", "peer_connections_reused"})
+          "peer_connections_created", "peer_connections_reused","peer_visit_rpc_count","peer_visit_wall_ms",
+          "peer_region_reserve_rpc_count","peer_region_reserve_wall_ms","peer_pull_rpc_count","peer_pull_wall_ms"})
       add(stats, k, optional<double>(peer, k, 0));
+    for(const auto& [key,value]:peer.map())if(key.rfind("candidate_",0)==0)add(stats,key,cast<double>(value));
     unused += get<double>(r, "work_unused");
     pending += get<double>(rs, "pending_at_stop");
     max_depth = std::max(max_depth, get<double>(rs, "max_expanded_depth"));
@@ -345,8 +353,11 @@ struct HeadRuntime::Impl {
     bool replica_fallback=false;
     HeadRuntime::Completion completion;
     V replica_validation;
+    std::shared_ptr<EntryReturnCounters> entry_returns;
     std::vector<double> input;
     std::map<std::string, V> reports;
+    std::set<std::string> sync_delivered;std::map<std::string,V> sync_delivery_metrics;
+    std::map<std::string,V> sync_idle;bool sync_probing=false;uint64_t sync_epoch=0,sync_probe_start=0;
     std::map<std::string, std::string> digests;
     std::map<std::string,V> announced_children;
     std::set<size_t> nodes;
@@ -356,7 +367,7 @@ struct HeadRuntime::Impl {
     bool acked = false, all_reports = false, merging = false, finished = false;
     size_t responses = 0, attempts = 0;
     size_t maintenance_owner = 0;
-    uint64_t submitted = 0, deadline = 0, next_lease = 0, finished_ns = 0;
+    uint64_t submitted = 0, deadline = 0, next_lease = 0, finished_ns = 0, transfer_recovery_deadline = 0;
     std::vector<uint64_t> node_next_lease;
     double route_cpu = 0;
     Query() {
@@ -367,8 +378,8 @@ struct HeadRuntime::Impl {
   };
   V config, manifest;
   RouteFunction route;
-  struct ReplicaRoute {size_t source,target;std::string version;double fraction,min_score,max_score;uint64_t expires;};
-  using ReplicaRoutes=std::unordered_map<uint64_t,ReplicaRoute>;
+  struct ReplicaRoute {size_t source,target;std::string version,family;double fraction,min_score,max_score;uint64_t expires;std::shared_ptr<EntryReturnCounters> returns{};};
+  using ReplicaRoutes=std::unordered_map<uint64_t,std::vector<ReplicaRoute>>;
   std::shared_ptr<const ReplicaRoutes> replica_directory=std::make_shared<const ReplicaRoutes>();
   std::atomic<uint64_t> replica_lookup{0},replica_match{0},replica_stale{0},replica_score_reject{0},replica_probability_reject{0};
   std::atomic<uint64_t> replica_selected{0}, observation_sequence{0}, observation_dropped{0};
@@ -376,12 +387,14 @@ struct HeadRuntime::Impl {
   A observations;
   M replica_access_counts;
   size_t observation_every=0,observation_limit=0;
+  bool covered_entry_admission=false;
+  size_t entry_counter_stripes=1;
   size_t node_count, capacity, max_retries, budget, slots;
   bool move_head_reports = false;
   bool per_node_maintenance = false;
   size_t maintenance_count = 1, next_maintenance_owner = 0;
   double lease_ms;
-  uint64_t timeout_ns, heartbeat_ns, retention_ns;
+  uint64_t timeout_ns, heartbeat_ns, retention_ns, transfer_recovery_ns = 0;
   std::unique_ptr<Pool> routes, merges;
   std::unique_ptr<dhnet::Client> entries, leases;
   std::unique_ptr<dhnet::Server> server;
@@ -390,6 +403,7 @@ struct HeadRuntime::Impl {
   std::mutex close_mu;
   std::condition_variable wake, done_cv;
   std::unordered_map<std::string, std::shared_ptr<Query>> queries;
+  uint64_t registry_rehashes=0,registry_rehash_ns=0,registry_rehash_max_ns=0;
   // A query is registered with its deadline owner and each involved node.
   // Registry access uses mu; work on each query runs after releasing mu.
   std::vector<std::unordered_map<std::string, std::shared_ptr<Query>>> live;
@@ -397,25 +411,42 @@ struct HeadRuntime::Impl {
   std::vector<uint64_t> maintenance_ticks, maintenance_visits, lease_attempts;
   std::deque<V> finished;
   size_t active = 0;
+  uint64_t successful_queries = 0, failed_queries = 0;
+  std::deque<V> recent_failures;
+  bool profile_head = false;
+  uint64_t maintenance_registry_hold_ns = 0, maintenance_registry_hold_max_ns = 0;
   bool stopping = false, closed = false;
   std::vector<std::thread> timers;
   A head_endpoint;
   Impl(V c, V m, RouteFunction fn)
       : config(std::move(c)), manifest(std::move(m)), route(std::move(fn)) {
+    profile_head = optional<bool>(at(config, "metrics"), "lifecycle_trace", false);
     if(has(config,"load_balance")&&get<bool>(at(config,"load_balance"),"enabled")) {
       observation_every=get<size_t>(at(config,"load_balance"),"sample_every");
       observation_limit=get<size_t>(at(config,"load_balance"),"max_observations");
+      const auto& lb=at(config,"load_balance");
+      if(has(lb,"entry_admission")){
+        const auto& admission=at(lb,"entry_admission");
+        covered_entry_admission=get<bool>(admission,"enabled");
+        entry_counter_stripes=get<size_t>(admission,"counter_stripes");
+        check(entry_counter_stripes>0&&entry_counter_stripes<=64,"Invalid entry counter stripes");
+      }
     }
     const auto &p = at(config, "peer");
     const auto &nc = at(config, "native_runtime");
     move_head_reports = optional<bool>(nc, "move_head_reports", false);
     const auto &net = at(config, "network");
     capacity = get<size_t>(p, "max_active_queries");
+    const auto reserve=optional<size_t>(nc,"registry_reserve_entries",0);
+    if(reserve)queries.reserve(std::min(reserve,capacity+get<size_t>(p,"max_tombstones")));
     budget = get<size_t>(at(config, "search"), "max_expansions");
     slots = get<size_t>(p, "max_branches") - 1;
     max_retries = get<size_t>(net, "max_retries");
     lease_ms = get<double>(p, "lease_timeout_ms");
     timeout_ns = uint64_t(get<double>(p, "query_timeout_seconds") * 1e9);
+    const auto recovery_ms=optional<uint64_t>(p,"transfer_failure_grace_ms",0);
+    check(recovery_ms<=timeout_ns/1000000,"Transfer recovery grace exceeds query deadline");
+    transfer_recovery_ns=recovery_ms*1000000;
     heartbeat_ns = get<uint64_t>(p, "heartbeat_interval_ms") * 1000000;
     retention_ns = uint64_t(get<double>(p, "retention_seconds") * 1e9);
     for (const auto &n : array(at(at(config, "cluster"), "nodes")))
@@ -428,6 +459,7 @@ struct HeadRuntime::Impl {
     maintenance_count = per_node_maintenance ? node_count : 1;
     check(maintenance_count > 0, "Head requires data nodes");
     live.resize(maintenance_count);
+    if(reserve)for(auto& lane:live)lane.reserve(std::min(reserve,capacity));
     expiry.resize(maintenance_count);
     maintenance_ticks.resize(maintenance_count);
     maintenance_visits.resize(maintenance_count);
@@ -453,8 +485,12 @@ struct HeadRuntime::Impl {
     entries = std::make_unique<dhnet::Client>(wc,entry_config);
     wc.timeout_ms = uint64_t(get<double>(p, "control_timeout_seconds") * 1000);
     leases = std::make_unique<dhnet::Client>(wc,config);
-    routes = std::make_unique<Pool>(get<size_t>(nc, "route_threads"), capacity,optional<std::vector<int>>(nc,"compute_cpu_ids",{}));
-    merges = std::make_unique<Pool>(get<size_t>(nc, "merge_threads"), capacity,optional<std::vector<int>>(nc,"compute_cpu_ids",{}));
+    const auto head_cpus=optional<std::vector<int>>(nc,"compute_cpu_ids",{});
+    const bool head_pin=optional<bool>(nc,"head_pin_threads",true);
+    routes = std::make_unique<Pool>(get<size_t>(nc, "route_threads"), capacity,head_cpus,head_pin,
+                                  std::function<void()>{},"dhdgs-route");
+    merges = std::make_unique<Pool>(get<size_t>(nc, "merge_threads"), capacity,head_cpus,head_pin,
+                                  std::function<void()>{},"dhdgs-merge");
     dhwire::ServerConfig sc;
     sc.host = get<std::string>(p, "head_bind_host");
     sc.port = get<uint16_t>(p, "head_port");
@@ -487,10 +523,27 @@ struct HeadRuntime::Impl {
     std::lock_guard<std::mutex> l(mu);
     live.at(node).emplace(q->id, q);
   }
+  // Caller holds q.mu. Early reports may precede the final candidate ACKs.
+  // Both copying and moving report buffers must apply the delivery closure.
+  void apply_delivery_metrics(const Query &q, const std::string &id, V &report) {
+    auto it = q.sync_delivery_metrics.find(id);
+    if (it == q.sync_delivery_metrics.end()) return;
+    auto &peer = report.map()["peer_transfer"].map();
+    const auto &final = it->second;
+    for (auto pair : {std::pair<const char *, const char *>{"peer_rpc_count", "candidate_sync_rpc_count"},
+                      {"peer_candidate_sync_rpc_count", "candidate_sync_rpc_count"},
+                      {"peer_request_bytes", "candidate_sync_tx_bytes"},
+                      {"peer_response_bytes", "candidate_sync_rx_bytes"}})
+      add(peer, pair.first, optional<double>(final, pair.second, 0) - optional<double>(V(peer), pair.second, 0));
+    for (const auto &[key, value] : final.map()) peer[key] = value;
+  }
   V reports(const Query &q) {
     A result;
-    for (const auto &[id, r] : q.reports)
-      result.push_back(r);
+    for (const auto &[id, r] : q.reports) {
+      V copy = r;
+      apply_delivery_metrics(q, id, copy);
+      result.push_back(std::move(copy));
+    }
     return result;
   }
   void maybe_merge(
@@ -499,6 +552,8 @@ struct HeadRuntime::Impl {
       return;
     if (q->error.empty() && (!q->acked || !q->all_reports || q->responses))
       return;
+    if(q->error.empty())for(const auto& [bid,r]:q->reports)
+      if(optional<bool>(r,"candidate_delivery_required",false)&&!q->sync_delivered.count(bid))return;
     q->merging = true;
     q->trace["merge_enqueued_ns"] = stamp();
     if (!merges->submit([this, q] { merge(q); })) {
@@ -597,23 +652,47 @@ struct HeadRuntime::Impl {
       auto directory=std::atomic_load(&replica_directory);auto found=directory->find(entry_id);
       ReplicaRoute forced{};bool validating=!null(q->replica_validation);
       if(!validating){++replica_lookup;if(found!=directory->end())++replica_match;}
+      const ReplicaRoute* selected=nullptr;
       if(validating){const auto& v=q->replica_validation;
         check(entry_id==get<uint64_t>(v,"entry_id")&&get<size_t>(s,"target_node")==get<size_t>(v,"source"),"Validation entry changed");
         auto target=get<size_t>(v,"target");check(target<node_count,"Invalid validation destination");
-        forced={get<size_t>(v,"source"),target,get<std::string>(v,"version"),1.,-1e300,1e300,stamp()+timeout_ns};}
-      if(validating||found!=directory->end()) {
-        const auto& r=validating?forced:found->second;uint64_t hash=1469598103934665603ULL;
+        forced={get<size_t>(v,"source"),target,get<std::string>(v,"version"),"",1.,-1e300,1e300,stamp()+timeout_ns};selected=&forced;
+      }else if(found!=directory->end()){
+        uint64_t hash=1469598103934665603ULL;
         for(unsigned char ch:q->id){hash^=ch;hash*=1099511628211ULL;}
         const double draw=double(hash>>11)*(1.0/9007199254740992.0);
-        if(!validating){
-          if(r.source!=get<size_t>(s,"target_node")||stamp()>=r.expires)++replica_stale;
-          else if(estimate<r.min_score||estimate>r.max_score)++replica_score_reject;
-          else if(draw>=r.fraction)++replica_probability_reject;
+        double end=0.;bool any_fresh=false,any_score=false;
+        std::string admitted_family;
+        for(const auto& r:found->second){
+          // Overlapping graphs register every included portal. Exactly one
+          // positive-share family owns this request; closing its entry exposes
+          // the next family without dispatching a second root search.
+          if(covered_entry_admission){
+            const bool fresh=r.source==get<size_t>(s,"target_node")&&stamp()<r.expires;
+            any_fresh|=fresh;any_score|=fresh&&estimate>=r.min_score&&estimate<=r.max_score;
+            if(r.fraction<=0 || r.source!=get<size_t>(s,"target_node") || stamp()>=r.expires ||
+                estimate<r.min_score || estimate>r.max_score)continue;
+            const auto identity=r.family.empty()?r.version:r.family;
+            if(admitted_family.empty())admitted_family=identity;
+            if(identity!=admitted_family)continue;
+          }
+          const double begin=end;end+=r.fraction;
+          const bool fresh=r.source==get<size_t>(s,"target_node")&&stamp()<r.expires;
+          const bool score=estimate>=r.min_score&&estimate<=r.max_score;
+          any_fresh|=fresh;any_score|=fresh&&score;
+          // Preserve each interval when a destination expires: its probability
+          // returns to the source, without silently enlarging other copies.
+          if(fresh&&score&&draw>=begin&&draw<end){selected=&r;break;}
         }
-        if(r.source==get<size_t>(s,"target_node")&&stamp()<r.expires&&estimate>=r.min_score&&estimate<=r.max_score&&draw<r.fraction) {
+        if(!selected){if(!any_fresh)++replica_stale;else if(!any_score)++replica_score_reject;else ++replica_probability_reject;}
+      }
+      if(selected){const auto& r=*selected;
+          if(!validating)q->entry_returns=r.returns;
           q->original_seeds=at(s,"seeds");
           sm["target_node"]=uint64_t(r.target);sm["entry_node"]=uint64_t(r.target);
-          sm["visited_nodes"]=A{uint64_t(r.target)};if(!r.version.empty()){sm["replica_version"]=r.version;sm["replica_access_kind"]="entry";}
+          sm["visited_nodes"]=A{uint64_t(r.target)};if(!r.version.empty()){sm["replica_version"]=r.version;sm["replica_access_kind"]="entry";
+            if(dhpair::scoped(at(config,"peer"))&&get<bool>(at(at(config,"peer"),"candidate_sync"),"enabled")){
+              sm["replica_pair_source"]=sm.at("original_entry_node");sm["replica_pair_host"]=uint64_t(r.target);sm["replica_pair_version"]=r.version;}}
           auto &row=std::get<A>(std::get<A>(sm["seeds"].data).front().data);
           auto &owners=std::get<A>(row[3].data);bool present=false;
           for(auto& n:owners)present|=cast<size_t>(n)==r.target;
@@ -622,7 +701,6 @@ struct HeadRuntime::Impl {
             if(!replica_access_counts.count(r.version))replica_access_counts[r.version]=M{};
             add(replica_access_counts[r.version].map(),"entry_selected",1);
           }
-        }
       }
       sm["internal_validation"]=validating;
       if(optional<bool>(at(config,"peer"),"logical_region_visits",false))dhregion::normalize(s);
@@ -675,18 +753,29 @@ struct HeadRuntime::Impl {
     q->next_lease = q->submitted + heartbeat_ns;
     q->node_next_lease.assign(node_count, q->next_lease);
     q->trace = {{"search_enter_ns", q->submitted}};
+    const auto registry_requested = profile_head ? stamp() : 0;
     {
       std::lock_guard<std::mutex> l(mu);
+      if (profile_head) q->trace["submit_registry_acquired_ns"] = stamp();
       check(!stopping, "Native head closed");
       check(active + finished.size() < capacity,
             "Native head capacity exceeded");
       check(queries.size() <
                 capacity + get<size_t>(at(config, "peer"), "max_tombstones"),
             "Native head retention capacity exceeded");
+      const auto buckets=queries.bucket_count(),insert_started=stamp();
       check(queries.emplace(q->id, q).second, "Duplicate native request ID");
+      if(queries.bucket_count()!=buckets){const auto ns=stamp()-insert_started;++registry_rehashes;registry_rehash_ns+=ns;registry_rehash_max_ns=std::max(registry_rehash_max_ns,ns);}
       q->maintenance_owner = next_maintenance_owner++ % maintenance_count;
       live[q->maintenance_owner].emplace(q->id, q);
       ++active;
+    }
+    if (profile_head) {
+      const auto registry_released = stamp();
+      std::lock_guard<std::mutex> query_lock(q->mu);
+      q->trace["submit_registry_requested_ns"] = registry_requested;
+      q->trace["submit_registry_released_ns"] = registry_released;
+      q->trace["route_enqueue_ns"] = stamp();
     }
     if (!routes->submit([this, q] { route_query(q); })) {
       std::lock_guard<std::mutex> l(mu);
@@ -697,11 +786,17 @@ struct HeadRuntime::Impl {
     }
     return q->id;
   }
+  #include "candidate_sync_head.inc"
   dhwire::Reply receive(V message, uint64_t received, size_t bytes) {
+    if(optional<std::string>(message,"op","")=="candidate_delivery_done"||optional<std::string>(message,"op","")=="candidate_delivery_failed")return receive_candidate_delivery(std::move(message),bytes);
+    if(optional<std::string>(message,"op","")=="candidate_idle")return receive_candidate_idle(std::move(message),bytes);
     auto id = get<std::string>(message, "query_request_id");
     std::shared_ptr<Query> q;
+    const auto registry_requested = profile_head ? stamp() : 0;
+    uint64_t registry_acquired = 0;
     {
       std::lock_guard<std::mutex> l(mu);
+      if (profile_head) registry_acquired = stamp();
       auto i = queries.find(id);
       check(i != queries.end(), "Unknown query");
       q = i->second;
@@ -712,15 +807,26 @@ struct HeadRuntime::Impl {
     const bool error = has(message, "error") && !null(at(message, "error"));
     const std::string kind =
         (!incoming.empty() || error) ? "result" : "heartbeat";
+    const auto query_lock_requested = profile_head ? stamp() : 0;
     std::lock_guard<std::mutex> l(q->mu);
+    const auto query_lock_acquired = profile_head ? stamp() : 0;
+    if (profile_head) {
+      add(q->route_profile, "report_registry_lock_wait_ms", (registry_acquired-registry_requested)/1e6);
+      add(q->route_profile, "report_query_lock_wait_ms", (query_lock_acquired-query_lock_requested)/1e6);
+      add(q->route_profile, "report_receive_to_handler_ms", (registry_requested-received)/1e6);
+    }
     check(get<std::string>(message, "token") == q->token,
           "Invalid query control token");
+    // A failed query may still have valid, in-flight branch announcements and
+    // reports. Acknowledge cancellation without admitting their payloads; an
+    // unknown-child error here otherwise makes the sender retry forever.
+    const bool cancelled_terminal=!q->error.empty()&&(q->finished||q->merging);
     track_node(q, node);
     for (auto n : get<std::vector<size_t>>(message, "involved_nodes")) {
       check(n < node_count, "Invalid involved node");
       track_node(q, n);
     }
-    if(has(message,"children"))for(const auto& child:array(at(message,"children"))) {
+    if(!cancelled_terminal&&has(message,"children"))for(const auto& child:array(at(message,"children"))) {
       const auto bid=get<std::string>(child,"branch_id");
       check(get<std::string>(child,"parent_branch_id")==get<std::string>(message,"branch_id"),"Child announcement parent mismatch");
       check(get<size_t>(child,"node_id")<node_count,"Invalid announced child node");
@@ -733,6 +839,7 @@ struct HeadRuntime::Impl {
       track_node(q, get<size_t>(child,"node_id"));
       if(!q->reports.count(bid))q->all_reports=false;
     }
+    if(cancelled_terminal)incoming.clear();
     for (auto &r : incoming) {
       check(get<size_t>(r, "node_id") == node, "Report origin mismatch");
       auto bid = get<std::string>(r, "branch_id");
@@ -742,7 +849,7 @@ struct HeadRuntime::Impl {
         check(it->second == hash, "Conflicting duplicate branch result");
       else {
         check(!q->finished && !q->merging, "Late unknown branch result");
-        q->digests.emplace(bid, std::move(hash));
+        q->digests.emplace(bid, std::move(hash));q->sync_idle.erase(bid);
         q->branch_received[bid] = received;
         // message owns this payload; validation above has already consumed it.
         // Keep the digest for retries, but transfer the large report only once.
@@ -756,13 +863,18 @@ struct HeadRuntime::Impl {
           // A delayed/lost admission ACK is inconclusive. A valid child report
           // proves execution; otherwise the declared missing branch times out.
           q->transfer_failures[get<std::string>(message,"branch_id")]=at(message,"error");
+          // Exhausted transport retries are ambiguous: allow a real child
+          // result to recover the query, but optionally bound this error-only
+          // grace period. It never returns an incomplete top-k as success.
+          if(transfer_recovery_ns&&!q->transfer_recovery_deadline)
+            q->transfer_recovery_deadline=std::min(q->deadline,stamp()+transfer_recovery_ns);
         } else q->error = get<std::string>(message, "error");
       }
       if (!incoming.empty()) {
         try {
           q->all_reports = validate_manifests(
               reports(*q), q->root, get<size_t>(q->state, "target_node"),
-              budget, slots, node_count, optional<bool>(at(config,"peer"),"allow_node_revisit",false));
+              budget, slots, node_count, (has(at(config,"peer"),"candidate_sync")&&get<bool>(at(at(config,"peer"),"candidate_sync"),"enabled")&&!dhpair::scoped(at(config,"peer")))?false:optional<bool>(at(config,"peer"),"allow_node_revisit",false),optional<bool>(at(config,"peer"),"region_tasks",false));
         } catch (const std::exception &e) {
           q->error = e.what();
         }
@@ -774,8 +886,11 @@ struct HeadRuntime::Impl {
         if (q->all_reports)
           q->trace["all_reports_received_ns"] = stamp();
       }
+      if(!q->all_reports)maybe_sync_probe(q);
       q->trace["last_report_received_ns"] = received;
     }
+    if (profile_head)
+      add(q->route_profile, "report_validation_under_query_lock_ms", (stamp()-query_lock_acquired)/1e6);
     ++q->responses;
     add(q->control, "rpc_count", 1);
     add(q->control, "request_bytes", double(bytes));
@@ -840,6 +955,7 @@ struct HeadRuntime::Impl {
                           [this] { return stopping; }))
           return;
         const auto now = stamp();
+        const auto registry_work_started = profile_head ? now : 0;
         ++maintenance_ticks[lane];
         auto &expired = expiry[lane];
         while (!expired.empty() && now - expired.front().second > retention_ns) {
@@ -853,6 +969,11 @@ struct HeadRuntime::Impl {
         for (const auto &[id, q] : live[lane])
           selected.push_back(q);
         maintenance_visits[lane] += selected.size();
+        if (profile_head) {
+          const auto elapsed = stamp()-registry_work_started;
+          maintenance_registry_hold_ns += elapsed;
+          maintenance_registry_hold_max_ns = std::max(maintenance_registry_hold_max_ns, elapsed);
+        }
       }
       for (auto q : selected) {
         std::vector<size_t> renew;
@@ -861,6 +982,11 @@ struct HeadRuntime::Impl {
           const auto now = stamp();
           if (q->finished || q->merging)
             continue;
+          if(lane==q->maintenance_owner&&q->transfer_recovery_deadline&&
+             now>=q->transfer_recovery_deadline&&!q->all_reports) {
+            q->error="Child report recovery grace exceeded after transfer failure";
+            maybe_merge(q);continue;
+          }
           if (lane == q->maintenance_owner && now >= q->deadline) {
             q->error = q->transfer_failures.empty()?"Global query deadline exceeded":"Global query deadline exceeded; child report missing after transfer failure";
             maybe_merge(q);
@@ -910,7 +1036,10 @@ struct HeadRuntime::Impl {
           // merging fences new reports; duplicate RPCs are checked by digest.
           // The final result becomes the sole owner of the report buffers.
           A owned;owned.reserve(q->reports.size());
-          for(auto& [id,report]:q->reports)owned.push_back(std::move(report));
+          for(auto& [id,report]:q->reports) {
+            apply_delivery_metrics(*q,id,report);
+            owned.push_back(std::move(report));
+          }
           q->reports.clear();rs=std::move(owned);
         } else rs = reports(*q);
         const double aggregate_cpu = thread_cpu_ms();
@@ -934,7 +1063,23 @@ struct HeadRuntime::Impl {
         stats["original_entry_node"]=at(q->state,"original_entry_node");
         stats["replica_unavailable_fallback"]=q->replica_fallback;
         if(has(q->state,"replica_version"))stats["replica_version"]=at(q->state,"replica_version");
-        if(null(q->replica_validation)){
+        const bool has_replica_reports = std::any_of(array(out.at("branch_reports")).begin(),
+            array(out.at("branch_reports")).end(), [](const V& b){return has(b,"replica_version");});
+        if(q->entry_returns && !q->replica_fallback && has_replica_reports){
+          const auto version=get<std::string>(q->state,"replica_version");
+          const auto source=get<size_t>(q->state,"original_entry_node");
+          bool returned=false;uint64_t remaining=0, first=UINT64_MAX;
+          for(const auto& b:array(out.at("branch_reports"))){
+            if(optional<std::string>(b,"replica_version","")!=version || !has(b,"fork_events"))continue;
+            for(const auto& event:array(at(b,"fork_events"))){
+              if(get<size_t>(event,"target")!=source)continue;
+              auto when=get<uint64_t>(event,"dispatch_submitted_ns");
+              if(when<first){first=when;remaining=get<uint64_t>(event,"remaining_before");returned=true;}
+            }
+          }
+          q->entry_returns->record(returned,remaining);
+        }
+        if(null(q->replica_validation) && has_replica_reports){
           std::lock_guard<std::mutex> lock(observation_mu);
           for(const auto& b:array(out.at("branch_reports")))if(has(b,"replica_version")){
             auto version=get<std::string>(b,"replica_version");
@@ -984,7 +1129,7 @@ struct HeadRuntime::Impl {
                                     q->lease_inflight.empty();
         stats["metrics_complete_excluding_pending_transfers"]=stats["metrics_complete"];
         bool transfers_complete=true;
-        for(const auto& report:array(out.at("branch_reports")))transfers_complete &= optional<bool>(report,"transfer_metrics_complete",true);
+        for(const auto& report:array(out.at("branch_reports")))transfers_complete &= optional<bool>(report,"transfer_metrics_complete",true)&&!optional<bool>(report,"region_task_mode",false);
         stats["transfer_metrics_complete"]=transfers_complete;
         stats["metrics_complete"]=cast<bool>(stats["metrics_complete"])&&transfers_complete;
         stats["head_merge_cpu_ms"] = thread_cpu_ms() - cpu_start;
@@ -1017,13 +1162,21 @@ struct HeadRuntime::Impl {
         stats["latency_breakdown_fraction"] = std::move(fractions);
       } catch (const std::exception &e) {
         q->error = e.what();
+        // Errors share the same completion boundary as successful searches.
+        // Diagnostic timestamps must include this field before finalization.
+        q->trace["native_ready_ns"] = stamp();
         result =
             M{{"status", "error"},
               {"error", q->error},
               {"request_id", q->id},
               {"ids", A{}},
               {"stats", M{{"metrics_complete", false},
-                          {"latency_ms", (stamp() - q->submitted) / 1e6}}}};
+                          {"latency_ms", (stamp() - q->submitted) / 1e6},
+                          {"transfer_failures_observed",q->transfer_failures},
+                          {"announced_children",q->announced_children},
+                          {"branch_report_received_ns",q->branch_received},
+                          {"entry_rpc",q->entry},
+                          {"native_head_timestamps",q->trace}}}};
         cancel_nodes.assign(q->nodes.begin(), q->nodes.end());
       }
       q->finished = true;
@@ -1042,6 +1195,16 @@ struct HeadRuntime::Impl {
       // a completion boundary; they must release the benchmark admission slot.
       result.map()["retrieval_done_ns"] = has(at(result,"stats"),"native_head_timestamps")
           ? at(at(at(result,"stats"),"native_head_timestamps"),"native_ready_ns") : V(stamp());
+      // Observe terminal outcomes without consuming result payloads in Python.
+      // This uses the existing finalization critical section; failure history
+      // is bounded and contains no vector, token or intermediate search state.
+      if (q->error.empty()) ++successful_queries;
+      else {
+        ++failed_queries;
+        if (recent_failures.size() == 16) recent_failures.pop_front();
+        recent_failures.emplace_back(M{{"request_id", q->id},
+            {"error", q->error.substr(0, 512)}, {"time_ns", stamp()}});
+      }
       if (!q->completion) finished.push_back(std::move(result));
       for (auto &registry : live) registry.erase(q->id);
       expiry[q->maintenance_owner].emplace_back(q->id, stamp());
@@ -1083,11 +1246,19 @@ struct HeadRuntime::Impl {
                                  {"ticks", maintenance_ticks[i]}, {"query_visits", maintenance_visits[i]},
                                  {"lease_attempts", lease_attempts[i]}});
       snapshot = M{{"active", uint64_t(active)},
+             {"successful_queries", successful_queries},
+             {"failed_queries", failed_queries},
+             {"recent_failures", A(recent_failures.begin(), recent_failures.end())},
              {"maintenance_mode", per_node_maintenance ? "per_node" : "single"},
              {"maintenance_threads", uint64_t(maintenance_count)},
              {"maintenance_lanes", std::move(maintenance)},
              {"completed_pending", uint64_t(finished.size())},
-             {"retained_identities", uint64_t(queries.size())}};
+             {"profile_head_enabled", profile_head},
+             {"maintenance_registry_hold_ns", maintenance_registry_hold_ns},
+             {"maintenance_registry_hold_max_ns", maintenance_registry_hold_max_ns},
+             {"retained_identities", uint64_t(queries.size())},
+             {"registry_buckets",uint64_t(queries.bucket_count())},{"registry_rehashes",registry_rehashes},
+             {"registry_rehash_ns",registry_rehash_ns},{"registry_rehash_max_ns",registry_rehash_max_ns}};
     }
     // Resource counts are individual snapshots, not one atomic system state.
     snapshot["routes"] = routes->metrics();
@@ -1106,6 +1277,7 @@ struct HeadRuntime::Impl {
   }
   void replica_routes(V rows) {
     auto next=std::make_shared<ReplicaRoutes>();
+    auto previous=std::atomic_load(&replica_directory);
     for(const auto& row:array(rows)) {
       auto source=get<size_t>(row,"source"),target=get<size_t>(row,"target");
       auto fraction=get<double>(row,"fraction");auto version=get<std::string>(row,"version");
@@ -1113,16 +1285,42 @@ struct HeadRuntime::Impl {
       auto ttl=get<uint64_t>(row,"ttl_ms");
       check(source<node_count&&target<node_count&&source!=target&&std::isfinite(fraction)&&fraction>=0&&fraction<=1&&
         !version.empty()&&version.size()<=128&&std::isfinite(lower)&&std::isfinite(upper)&&lower<=upper&&ttl>0&&ttl<=60000,"Invalid replica route");
-      ReplicaRoute r{source,target,version,fraction,lower,upper,stamp()+ttl*1000000};
+      auto family=optional<std::string>(row,"family","");check(family.size()<=128,"Invalid replica family");
+      ReplicaRoute r{source,target,version,family,fraction,lower,upper,stamp()+ttl*1000000};
       for(const auto& id:array(at(row,"entries"))){auto weighted=r;
+        if(covered_entry_admission){
+          auto old=previous->find(cast<uint64_t>(id));
+          if(old!=previous->end())for(const auto& choice:old->second)
+            if(choice.version==version&&choice.source==source&&choice.target==target)weighted.returns=choice.returns;
+          if(!weighted.returns)weighted.returns=std::make_shared<EntryReturnCounters>(entry_counter_stripes);
+        }
         if(has(row,"entry_weights")){const auto& weights=at(row,"entry_weights").map();auto i=weights.find(std::to_string(cast<uint64_t>(id)));
           check(i!=weights.end(),"Missing entry weight");double weight=number(i->second);check(std::isfinite(weight)&&weight>=0&&weight<=1,"Invalid entry weight");weighted.fraction*=weight;}
-        check(next->emplace(cast<uint64_t>(id),weighted).second,"Ambiguous replica entry");
+        auto& choices=(*next)[cast<uint64_t>(id)];double total=weighted.fraction;
+        if(!choices.empty())check(optional<bool>(at(config,"peer"),"region_tasks",false)&&
+          !optional<bool>(at(config,"load_balance"),"peer_routes_enabled",false),"Multiple replica routes require root-only region tasks");
+        for(const auto& old:choices){
+          if(covered_entry_admission && old.family!=family && !old.family.empty() && !family.empty())continue;
+          check(!family.empty()&&old.family==family&&old.source==source&&old.target!=target&&old.version!=version&&
+                old.min_score==lower&&old.max_score==upper,"Ambiguous replica entry");
+          total+=old.fraction;
+        }
+        check(total<=1.+1e-12,"Replica entry fractions exceed one");choices.push_back(std::move(weighted));
       }
     }
     std::atomic_store(&replica_directory,std::shared_ptr<const ReplicaRoutes>(next));
   }
   V replica_observations(){A out;std::lock_guard<std::mutex> lock(observation_mu);out.swap(observations);return out;}
+  V replica_entry_statistics(){
+    A out;auto directory=std::atomic_load(&replica_directory);
+    for(const auto& [entry,choices]:*directory)for(const auto& r:choices)if(r.returns){
+      auto value=r.returns->snapshot();auto& m=value.map();
+      if(get<uint64_t>(value,"completed")==0)continue;
+      m["entry"]=entry;m["version"]=r.version;m["initial_budget"]=uint64_t(budget);
+      out.push_back(std::move(value));
+    }
+    return out;
+  }
   void close() {
     std::lock_guard<std::mutex> closing(close_mu);
     if (closed)
@@ -1168,5 +1366,6 @@ V HeadRuntime::completed(size_t n, uint64_t ms) {
 V HeadRuntime::metrics() const { return impl_->metrics(); }
 void HeadRuntime::replica_routes(V routes){impl_->replica_routes(std::move(routes));}
 V HeadRuntime::replica_observations(){return impl_->replica_observations();}
+V HeadRuntime::replica_entry_statistics(){return impl_->replica_entry_statistics();}
 void HeadRuntime::close() { impl_->close(); }
 } // namespace dhruntime

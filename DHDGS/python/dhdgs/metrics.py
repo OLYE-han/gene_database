@@ -105,11 +105,17 @@ def imbalance(values):
 WORK_TIMINGS = ('pread_ms','rabitq_ms','exact_distance_ms','service_ms',
                 'server_thread_cpu_ms','coordinator_thread_cpu_ms',
                 'io_batch_wall_ms','io_capacity_wait_ms','io_queue_wait_ms','io_read_residence_ms',
-                'query_ready_queue_ms','query_compute_slice_wall_ms','query_io_wait_ms',
+                'query_ready_queue_ms','query_actor_serial_wait_ms','query_runnable_queue_ms','query_compute_slice_wall_ms','query_io_wait_ms',
                 'query_admission_queue_ms','query_executor_start_wait_ms',
                 'query_transfer_finalize_wait_ms','query_branch_wall_ms','query_state_other_ms',
                 'peer_transfer_queue_ms','peer_pool_wait_ms','peer_connect_ms','peer_send_ms',
-                'peer_response_wait_ms','peer_transfer_wall_ms')
+                'peer_response_wait_ms','peer_transfer_wall_ms',
+                'pull_wait_ms','pull_dispatch_queue_ms','pull_network_ms',
+                'pull_resume_queue_ms','pull_source_queue_ms','pull_source_cpu_ms',
+                'pull_source_read_ms','pull_source_service_ms',
+                'one_sided_record_ms','one_sided_code_ms','one_sided_auth_ms',
+                'one_sided_lane_queue_ms','one_sided_filter_ms','one_sided_filter_cpu_ms',
+                'one_sided_result_ms','one_sided_result_cpu_ms','pull_install_ms','pull_install_cpu_ms','lazy_refine_cpu_ms','lazy_refine_wait_ms')
 
 
 def summarize_query_timings(queries):

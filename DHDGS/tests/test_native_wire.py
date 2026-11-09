@@ -34,6 +34,7 @@ class Server(socketserver.ThreadingTCPServer):
         self.action = action
         self.accepted = 0
         self.release = threading.Event()
+        self.received_on = {}
         outer = self
         class Handler(socketserver.BaseRequestHandler):
             def handle(self):
@@ -42,6 +43,7 @@ class Server(socketserver.ThreadingTCPServer):
                 while True:
                     try:
                         req = receive(self.request)
+                        outer.received_on[req['request_id']] = self.request
                         data = outer.action(req, outer)
                         if data is None:
                             return
@@ -72,6 +74,32 @@ def echo(req, server):
 
 @unittest.skipUnless(_native is not None and hasattr(_native, 'NativeWireClient'), 'native wire unavailable')
 class NativeWireTests(unittest.TestCase):
+    def test_probing_unused_socket_does_not_refresh_its_activity(self):
+        initial = threading.Barrier(2)
+        def action(req, server):
+            if req['request_id'].startswith('initial'):
+                initial.wait(2)
+            return echo(req, server)
+        server, client, endpoint = self.connect(action, connections=2)
+        for i in range(2):
+            client.submit(endpoint, dict(request_id=f'initial{i}'))
+        self.assertTrue(all(r['ok'] for r in self.collect(client, 2)))
+        time.sleep(1.1)  # Above client probe age, below fixture server expiry.
+        client.submit(endpoint, dict(request_id='probe'))
+        self.assertTrue(self.collect(client, 1)[0]['ok'])
+        used = server.received_on['probe']
+        idle = next(s for k,s in server.received_on.items()
+                    if k.startswith('initial') and s is not used)
+        # Emulate the peer's idle expiry after a probe of this unused socket.
+        # A probe is not traffic visible to that peer, so its idle timer did
+        # not restart. Reuse must probe again, not treat this as a fresh socket.
+        idle.shutdown(socket.SHUT_RDWR)
+        idle.close()
+        for i in range(2):
+            client.submit(endpoint, dict(request_id=f'burst{i}'))
+        results = self.collect(client, 2)
+        self.assertTrue(all(r['ok'] for r in results), results)
+
     def test_reconnect_before_reusing_server_expired_idle_socket(self):
         server,client,endpoint=self.connect(connections=1)
         client.submit(endpoint,dict(request_id='before-idle'))

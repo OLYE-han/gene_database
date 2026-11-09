@@ -6,6 +6,7 @@ api:
   max_connections: 4096
   max_message_bytes: 1048576
   reactors: 8
+  response_batch_size: 8 # 每轮编码上限，随后推进网络收发；0 保留旧的整批编码方式
 client:
   host: 127.0.0.1
   port: 29910
@@ -21,7 +22,7 @@ experiment:
   concurrency:
   - 1024
   search_threads: 64
-  search_budget: 200
+  search_budget: 128 # 2026-11-05 起默认预算，质量目标 Recall@10 约 0.95
   route_threads: 32
   merge_threads: 8
   data_ports:

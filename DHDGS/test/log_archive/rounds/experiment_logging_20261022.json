@@ -1,0 +1,23 @@
+{
+  "id": "experiment_logging_20261022",
+  "round_id": "experiment_logging_20261022",
+  "title": "2026-10-22 实验日志流程接入与校验",
+  "status": "已完成",
+  "started_at": "2026-10-22T23:15:41+08:00",
+  "ended_at": "2026-10-22T23:15:41+08:00",
+  "purpose": "将每轮实验的时间、目的、代码变更、产物与建议持久化，避免仅依赖对话记忆。",
+  "hypothesis": "运行边界自动记录和按 ID 更新可保留成功/失败状态，同时不干扰测量热路径。",
+  "expected": "同一实验重复生成报告不重复追加；并发记录不丢失；失败保留证据。",
+  "configuration": "Intel-35 本地临时目录，离线功能校验；未启动集群或重新运行性能实验。",
+  "variables": "历史日志未单列，参见原始详细记录",
+  "code_changes": "- 新增 AGENTS.md、tools/experiment_log.py、test/EXPERIMENT_WORKFLOW.md、TestLog.md。\n- 网络 API run.py 接入逐 case 生命周期，write_report.py 接入报告收尾；新增 experiment.yaml 历史补记；更新 test/README.md、.gitignore。",
+  "revision": "391a67715264adde28108331e9b16fa5b4add3ed",
+  "results": "通过幂等更新、成功/异常生命周期、24 个并发记录者完整性检查；3 个 Python 文件语法通过，已有日志全部产物链接存在。未测量新的 QPS/p99。",
+  "artifacts": "- [流程文档](test/EXPERIMENT_WORKFLOW.md)；[日志工具](tools/experiment_log.py)；[历史实验元数据](test/network_api_load_20261022/experiment.yaml)。\n- 验证为临时目录中的离线断言，无性能图表；校验结论保存在本条日志。",
+  "next_steps": "后续每轮实验使用独立 ID 与目录；完成离线报告后补齐实际结论。旧 runner 使用时接入相同流程，异常退出后检查未结束条目。",
+  "updated_at": "2026-10-22T23:15:41+08:00",
+  "log_group": "评测接口与实验流程",
+  "summary": "实验日志工具通过幂等、异常生命周期及24个并发记录者校验，建立自动记录流程，未进行性能测量",
+  "report_label": "验证记录",
+  "report": "test/log_archive/rounds/experiment_logging_20261022.md"
+}

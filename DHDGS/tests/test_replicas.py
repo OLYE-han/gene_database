@@ -42,7 +42,7 @@ class ReplicaTests(unittest.TestCase):
         self.c = NativeRuntimeTests.config(self, native_data=True, native_head=True)
         self.c['search']['max_expansions'] = 256
         b = copy.deepcopy(yaml.safe_load((ROOT/'configs/dhdgs.yaml').read_text())['load_balance'])
-        b.update(enabled=True, mode='static', selection_policy='entry_worksets', max_target_shard_fraction=10., sample_every=1, max_region_rows=1000, max_core_rows=1000,
+        b.update(enabled=True, mode='static', planner_mode='inline', selection_policy='entry_worksets', max_target_shard_fraction=10., sample_every=1, max_region_rows=1000, max_core_rows=1000,
                  reserve_disk_bytes=1048576, operation_timeout_s=20., min_validation_queries=2)
         self.c['load_balance'] = b
         # Reserve query and maintenance ports as pairs before starting servers.
@@ -191,6 +191,7 @@ class ControllerPolicyTests(unittest.TestCase):
         from dhdgs.load_balance import LoadBalancer
         x=LoadBalancer.__new__(LoadBalancer)
         x.b=yaml.safe_load((ROOT/'configs/dhdgs.yaml').read_text())['load_balance']
+        x.b['planner_mode']='inline'  # This fixture exercises the synchronous legacy trigger.
         x.lock=threading.RLock();x.active=x.in_progress=x.last_pair=None
         x.streak=0;x.cooldown_until=0;x.loads={};x.rates=defaultdict(float);x.logged=[]
         x.log=lambda event,**kw:x.logged.append((event,kw))
@@ -212,7 +213,8 @@ class ControllerPolicyTests(unittest.TestCase):
             now=15+i
             for s in x.loads.values():s['updated']=now
             x.control(now)
-        self.assertEqual(x.created,dict(source=0,target=1))
+        self.assertEqual({k:v for k,v in x.created.items() if k != '_planning_elapsed_seconds'},dict(source=0,target=1))
+        self.assertGreaterEqual(x.created['_planning_elapsed_seconds'],0.)
         self.assertEqual(sum(e=='IMBALANCED' for e,_ in x.logged),1)
 
     def test_idle_target_is_not_throttled_by_historical_wait(self):
@@ -234,7 +236,8 @@ class ControllerPolicyTests(unittest.TestCase):
         x.rates[1]=1000;x.adjust(now);self.assertEqual(x.active['fraction'],.2)
         x.active['last_use']=0;x.active['published']=0;x.rates[1]=1e-20
         x.retired=False
-        def retire():x.retired=True
+        def retire(version=None,wait=True):
+            self.assertEqual(version,'r');self.assertFalse(wait);x.retired=True
         x.retire=retire;x.adjust(now)
         self.assertTrue(x.retired)
 

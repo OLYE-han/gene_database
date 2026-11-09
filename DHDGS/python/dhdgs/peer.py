@@ -26,6 +26,7 @@ def execution_signature(c):
     fields={k:c[k] for k in ('search','scheduler','quantization','data')}
     fields['peer_protocol']='bounded_revisit_parallel_local_v2' if c['peer'].get('allow_node_revisit',False) else 'single_visit_parallel_local_v1'
     if c['peer'].get('logical_region_visits',False):fields['peer_protocol']='logical_region_full_exclusion_v3'
+    if c['peer'].get('region_tasks',False):fields['peer_protocol']='query_region_tasks_v4'
     fields['peer']={k:v for k,v in c['peer'].items() if not k.startswith('head_')}
     # Entry transport scheduling does not change data-node execution. Omit the
     # optional head-only setting, preserving signatures of archived configs.

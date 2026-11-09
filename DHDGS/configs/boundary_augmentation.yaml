@@ -1,0 +1,12 @@
+# Merge this section into load_balance; opt-in construction only, search unchanged.
+load_balance:
+  boundary_augmentation:
+    enabled: true
+    mode: representative
+    per_direction: 1024
+    projection_bits: 8
+    seed: 20261106
+    max_connector_hops: 3
+    max_extra_bytes: 3221225472
+    max_plan_seconds: 300.0
+    scan_block_rows: 8192

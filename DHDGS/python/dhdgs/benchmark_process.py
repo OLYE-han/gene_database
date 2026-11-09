@@ -146,9 +146,9 @@ class ReconciledRecords:
             complete=True
             stats['metrics_complete_at_delivery']=stats['metrics_complete']
             for branch in q.get('branch_reports',[]):
-                if branch.get('transfer_metrics_complete',True):continue
+                if branch.get('transfer_metrics_complete',True) and not branch.get('region_task_mode',False):continue
                 record=self.transfers.get((q['request_id'],branch['branch_id']))
-                if record is None or record['pending_transfers']:
+                if record is None or record['pending_transfers'] or record.get('peer_visit_pending',0):
                     complete=False;continue
                 old=branch.get('peer_transfer',{});new={k:v for k,v in record.items() if k.startswith('peer_')}
                 branch['peer_transfer_at_publication']=old
@@ -156,7 +156,8 @@ class ReconciledRecords:
                 branch['transfer_metrics_source']='post_query_node_snapshot'
                 def delta(key):return new.get(key,0)-old.get(key,0)
                 for key in ('peer_transfer_queue_ms','peer_pool_wait_ms','peer_connect_ms','peer_send_ms',
-                            'peer_response_wait_ms','peer_transfer_wall_ms','peer_connections_created','peer_connections_reused'):
+                            'peer_response_wait_ms','peer_transfer_wall_ms','peer_connections_created','peer_connections_reused',
+                            'peer_visit_rpc_count','peer_visit_wall_ms','peer_region_reserve_rpc_count','peer_region_reserve_wall_ms','peer_pull_rpc_count','peer_pull_wall_ms'):
                     stats[key]=stats.get(key,0)+delta(key)
                 rpc,tx,rx=delta('peer_rpc_count'),delta('peer_request_bytes'),delta('peer_response_bytes')
                 for key in ('peer_branch_rpc_count','rpc_count','all_protocol_rpc_count'):stats[key]+=rpc
@@ -164,7 +165,8 @@ class ReconciledRecords:
                 for key in ('peer_response_bytes','response_bytes'):stats[key]+=rx
                 for key in ('wire_bytes','all_protocol_bytes'):stats[key]+=tx+rx
                 children=len(branch.get('children',[]))
-                stats['rpc_retries']+=max(0,new.get('peer_rpc_count',0)-children)-max(0,old.get('peer_rpc_count',0)-children)
+                retries=lambda x:max(0,x.get('peer_rpc_count',0)-x.get('peer_visit_rpc_count',0)-x.get('peer_region_reserve_rpc_count',0)-x.get('peer_pull_rpc_count',0)-children)
+                stats['rpc_retries']+=retries(new)-retries(old)
             stats['transfer_metrics_complete']=complete
             stats['metrics_complete']=bool(stats['metrics_complete_excluding_pending_transfers'] and complete and stats['rpc_retries']==0)
             stats['transfer_metrics_reconciled_offline']=True

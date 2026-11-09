@@ -50,10 +50,14 @@ class NativeRuntimeTests(unittest.TestCase):
         c['network']['transport'] = 'tcp'
         c['search'].update(execution='peer', max_expansions=64)
         c['metrics']['lifecycle_trace'] = True
-        for node in c['cluster']['nodes']:
-            with socket.socket() as sock:
+        sockets = []
+        try:
+            for node in c['cluster']['nodes']:
+                sock = socket.socket(); sockets.append(sock)
                 sock.bind(('127.0.0.1', 0))
                 node['port'] = sock.getsockname()[1]
+        finally:
+            for sock in sockets: sock.close()
         validate({k: v for k, v in c.items() if not k.startswith('_')})
         return c
 
@@ -313,6 +317,7 @@ class NativeRuntimeTests(unittest.TestCase):
         futures = [engine.search_async(self.x[i], i) for i in [0, 35, 70]]
         libc = ctypes.PyDLL(None)
         libc.usleep.argtypes = [ctypes.c_uint]
+        hold_started = time.monotonic_ns()
         libc.usleep(150_000)
         released = time.monotonic_ns()
         actual = [future.result(3) for future in futures]
@@ -326,7 +331,7 @@ class NativeRuntimeTests(unittest.TestCase):
             # Verify the measured hold actually overlaps delivery, rather than
             # assuming every native query finishes within the first 100 ms.
             self.assertGreaterEqual(b['stats']['api_result_delivery_ms'],
-                (released-b['stats']['native_head_timestamps']['native_ready_ns'])/1e6-1.)
+                (min(released, hold_started+150_000_000)-b['stats']['native_head_timestamps']['native_ready_ns'])/1e6-1.)
             self.assertAlmostEqual(sum(b['stats']['latency_breakdown_ms'].values()), b['stats']['latency_ms'], places=5)
             self.assertEqual(b['stats']['metrics_complete'], b['stats']['metrics_complete_excluding_pending_transfers'] and b['stats']['transfer_metrics_complete'])
 

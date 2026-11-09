@@ -1,0 +1,31 @@
+{
+  "id": "replica_branch_metrics_20261105",
+  "round_id": "replica_branch_metrics_20261105",
+  "title": "副本向第三节点分支的计量与历史样本复核",
+  "log_group": "负载均衡：选图、入口覆盖与源节点卸载",
+  "research_ids": [
+    "R001",
+    "R005"
+  ],
+  "purpose": "识别副本直接和后继分支到源/宿主/第三节点的频率、次数及预算",
+  "hypothesis": "源码允许第三节点分支；历史样本中直接派发和间接到达需要分开统计",
+  "expected": "获得可复用离线统计及可审计样本结果，不冒充最新全量性能测量",
+  "configuration": "新增离线工具；使用已结束D200历史all_open及T60保持阶段的紧凑样本；不启动三机服务",
+  "variables": "分支类别、源/宿主/第三节点、派发预算与实际子分支工作",
+  "code_changes": "仅新增Python离线统计模块、CLI与回归；搜索/网络运行时和默认配置不变",
+  "results": "新增无热路径改动的离线工具；历史995样本/217命中，后继第三节点1次且实际展开2；T60重复样本同一请求，不外推全量或当前D128新机制",
+  "artifacts": [
+    "test/replica_branch_metrics_20261105/REPORT.md",
+    "test/replica_branch_metrics_20261105/branch_statistics.png",
+    "test/replica_branch_metrics_20261105/all_open/events.csv",
+    "test/replica_branch_metrics_20261105/source_manifest.json"
+  ],
+  "next_steps": "后续当前版本负载测试保留全量分支字段，按直接/后继与物理目标汇总；不由历史样本推定当前频率",
+  "status": "已完成：离线计量与历史样本复核（非性能压测）",
+  "summary": "允许第三节点分支；旧D200全开放217个命中样本中直接0、后继1（0.46%，余量4/授权2）；9项计量回归通过",
+  "report": "test/replica_branch_metrics_20261105/REPORT.md",
+  "started_at": "2026-11-05T20:37:53+08:00",
+  "ended_at": "2026-11-05T20:44:51+08:00",
+  "updated_at": "2026-11-05T20:44:51+08:00",
+  "revision": "53b3b953d0f491019429da3535e182d7e56a804d"
+}

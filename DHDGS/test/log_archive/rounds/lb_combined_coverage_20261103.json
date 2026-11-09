@@ -1,0 +1,29 @@
+{
+  "id": "lb_combined_coverage_20261103",
+  "round_id": "lb_combined_coverage_20261103",
+  "title": "组合修复与同容量入口覆盖",
+  "status": "已完成",
+  "started_at": "2026-11-03T18:31:00+08:00",
+  "ended_at": "2026-11-03T19:36:34+08:00",
+  "purpose": "R001-A13/A15/A28、R002-A08：组合上下文锁外回收与自动增长/源容量/期限修复，检验同容量入口覆盖的真实卸载。",
+  "hypothesis": "组合后可可靠发布；增加已完整覆盖的历史入口可能增加源卸载，但须同时检验总CPU与命中质量。",
+  "expected": "同配置长流对照、同图入口配对、源/目标CPU与质量证据；不预设优化成功。",
+  "configuration": "Intel-35顶层+独立客户端，Intel-31/32/30数据0/1/2；自然200K、D200/C1024、主64/目标共享68、同RDMA/NUMA、暖缓存、总alpha≤0.3、全局3468185893字节、64种子、单目标、ready发布。",
+  "variables": "- observe/dynamic各600秒，另20秒预热；其余配置相同。\n- 同一254569行副本：off/64/候选256/候选1024/64/off，每段200K；合法入口0/64/72/90/64/0，路由份额0或0.9。\n- 候选均未通过质量，不执行原计划中选出合规配置后的额外动态确认；其他优化未执行。",
+  "code_changes": "本轮复用既有C++锁外回收和自动流水。新增automatic_pipeline.max_entry_candidates可选YAML参数、历史候选传递/验证/预算记账、完整成员不变断言及4项新语义测试；客户端仅增加精简配对标量。Research重构为8组已实现机制、26项未来表并保留33个历史锚点；DESIGN说明局部通过与质量边界。当前生产变更等于source_candidate快照，见final_source_verification.json。",
+  "revision": "53b3b953d0f491019429da3535e182d7e56a804d",
+  "results": "组合：成功QPS13657.22→13498.77，p99 190.77→202.44ms，失败165/8195340→132/8100271，预算超限0；1次实际构建成功发布，58.62秒，源0→目标2，实际3.442GB；48次规划前拒绝。固定图120万查询全部成功；64→90入口，额外8186字节，命中比两个64入口段平均增20.3%。90入口命中查询源CPU减少6.290ms，但全系统CPU增加3.957ms、配对Recall损失2.634pp；独立新增入口群体损失3.609pp，未通过0.5pp标准。默认max_entry_candidates=0。29项组合回归、37项入口/容量检查、三机各9项网络检查通过；全部服务关闭，无预约残留。启动前端口占用已保留重试；测量与清理后action日志参数重名错误已修正并保留，未影响已落盘测量。顺序短段有4.65%吞吐漂移，长测稳定性未验收。",
+  "artifacts": "- [完整报告](test/lb_combined_coverage_20261103/REPORT.md)\n- [组合对照图](test/lb_combined_coverage_20261103/combined_comparison.png)\n- [时间曲线](test/lb_combined_coverage_20261103/combined_timeseries.png)\n- [入口覆盖图](test/lb_combined_coverage_20261103/fixed_entries/entry_coverage_effect.png)\n- [质量与CPU代价](test/lb_combined_coverage_20261103/fixed_entries/quality_cost_tradeoff.png)\n- [配对汇总](test/lb_combined_coverage_20261103/fixed_entries/paired_summary.json)\n- [源码核对](test/lb_combined_coverage_20261103/final_source_verification.json)\n- [Research](Research.md)、[DESIGN](DESIGN.md#combined-coverage-20261103)",
+  "next_steps": "R001仍开放；只登记入口质量/全局净成本、有限预算回源与准备开销、Record/ACK长期回收等待办。组合兼容局部关闭；入口结构已实现但收益/质量未验收，不默认启用。",
+  "updated_at": "2026-11-03T19:36:34+08:00",
+  "log_group": "负载均衡：选图、入口覆盖与源节点卸载",
+  "summary": "组合修复兼容且成功发布副本，同容量入口64→90增加命中，但源CPU节省被总CPU增加和命中Recall下降2.634个百分点抵消，新增入口默认关闭；原始明细已清理",
+  "report": "test/lb_combined_coverage_20261103/REPORT.md",
+  "data_retention": {
+    "updated_at": "2026-11-05T11:00:47+08:00",
+    "maintenance_only": true,
+    "report": "test/storage_cleanup_keep_latest2_20261105/README.md",
+    "raw_measurements_partially_removed": true,
+    "retained": "报告/图表、汇总、源码与配置保留；详细删除路径见清单；最近两轮和共享复测资产未改动"
+  }
+}

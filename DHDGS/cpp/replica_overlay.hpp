@@ -6,10 +6,13 @@
 #include <vector>
 #include <unistd.h>
 
+namespace dhgrowth {class Cache;}
+
 namespace dhsearch {
 // Owns native buffers only. A queued/running branch pins this object; removal
 // from the admission directory cannot close its fd or release its code bank.
 struct ReplicaOverlay {
+  std::shared_ptr<dhgrowth::Cache> growth;
   int fd=-1;
   size_t stride=0,header=0,degree=0,code_bytes=0,extra_bytes=0;
   std::string version;

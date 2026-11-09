@@ -1,0 +1,29 @@
+{
+  "id": "pull_workers_threshold_20261031",
+  "round_id": "pull_workers_threshold_20261031",
+  "title": "主64＋副本专用4/8线程及剩余预算阈值快速筛选",
+  "status": "已完成",
+  "started_at": "2026-10-31T23:54:49+08:00",
+  "ended_at": "2026-11-02T00:45:22+08:00",
+  "purpose": "R001-A29：按用户要求仅副本节点增配4/8拉取续跑线程，细化剩余预算阈值，评价QPS及回源卸载/队列",
+  "hypothesis": "独立CPU亲和和适度尾部准入可减少专池排队；过低阈值覆盖不足，过高阈值使尾部/读队列过载",
+  "expected": "无失败、预算及重复执行违规；整体及命中Recall约≥95%；QPS可重复提高且源实际工作和runnable等待下降，不预设结果",
+  "configuration": "三数据节点主64；S30实际α约.2977/254696记录/102入口，份额.8、预算200、驻留144、RDMA、并发1024、暖缓存。11个短块60K；4方案各固定11K到达120K+饱和200K，合计19块194万次。正式结果仅服务停止后离线解析。",
+  "variables": "- 先同期无拉取/同步τ39；异步仅节点2主64+尾4/8，源读8仅节点0；共享CPU/独立SMT CPU；按短批反馈追加阈值，再对入选做独立200K确认及同到达率比较。\n- 候选重建固定false，图/预算/批8/轮8/4MiB不变；分开披露角色限定、亲和及阈值效果。\n- 11月2日恢复时外部tiered_ivf循环压测，允许共享机短批；保留外部负载，平均外部CPU>30核块剔除，独立同期重复基线判断波动；不将跨日期差异归因配置。\n- 实际短批：A/B/E8原组；B2同期复验；S8共享CPU、E4独立4、E8r独立8；独立8阈值38/39/40/51；C16上下文64→16。\n- 独立确认B/E8/A/C16顺序，各11K到达120K与饱和200K；正式request统计194万，确认200K含42898不同query行。归档并行2→8仅在服务停止后应用。",
+  "code_changes": "C++新增目标/源角色列表、尾部独立CPU亲和及实际池配置指标；Python YAML schema/验证、19项定向检查。主64保持，额外4/8只目标2；无预算/图/候选语义变更。默认关闭。冻结源码及逐机加载模块哈希通过核验。",
+  "revision": "53b3b953d0f491019429da3535e182d7e56a804d",
+  "results": "查询失败0；预算/同机实际重复展开/执行器身份/ready分解未发现违规；19项检查通过。200K无拉取12043，同步12587，异步8/额度64为12569，异步8/额度16为12609：相对同步-0.14%/+0.18%，未证明吞吐提升。回源90.52%/38.69%/40.59%/43.69%，每命中源展开40.57/25.54/26.02/26.93。容量16将累计尾队列6.77→.69ms、带宽696→467MiB/s；但同11K源runnable p95无拉取79.48/同步30.39/异步64 50.65/异步16 81.31ms。异步整体Recall约96.7%，命中约94.7%未过群体95%。4线程/共享CPU无优势，阈值38近于不拉取，40/51无收益。保留一例无服务分配的等待终止与重试、跨日恢复记录；共享机、物理读0、重复热点、有限复验。R001-A29/R001/R005/R008开放，默认关闭。",
+  "artifacts": "- [报告](test/pull_workers_threshold_20261031/REPORT.md)\n- [确认图](test/pull_workers_threshold_20261031/confirmation.png)\n- [负载曲线](test/pull_workers_threshold_20261031/load_comparison_paced.png)\n- [阈值对照](test/pull_workers_threshold_20261031/threshold_comparison.png)\n- [指标CSV](test/pull_workers_threshold_20261031/comparison.csv)\n- [审计](test/pull_workers_threshold_20261031/audit_final.json)\n- [代码快照](test/pull_workers_threshold_20261031/source_hashes.json)\n- [恢复审计](test/pull_workers_threshold_20261031/recovery_audit.json)\n- [研究记录](research/R001_ASYNC_RDMA_TAIL_PLAN.md)\n- [交付归档核验](test/pull_workers_threshold_20261031/delivery_archive.json)\n- [服务停止与端口核验](test/pull_workers_threshold_20261031/final_server_cleanup.json)",
+  "next_steps": "先保持逻辑源子任务候选/授权/停止语义等价；再以预计实际源子授权CPU、尾部队列和源runnable共同准入，单独消融max_wait暂停计时。独占窗口重复确认与冷SSD仍待测，不将局部排队下降视为全局收益。",
+  "updated_at": "2026-11-02T00:46:00+08:00",
+  "log_group": "副本回源与RDMA尾部执行",
+  "summary": "副本专用4/8线程与阈值筛选未显示稳定QPS收益，额度64→16减少尾队列与带宽但源排队恶化，命中质量未达标；原始明细已清理",
+  "report": "test/pull_workers_threshold_20261031/REPORT.md",
+  "data_retention": {
+    "updated_at": "2026-11-05T11:00:47+08:00",
+    "maintenance_only": true,
+    "report": "test/storage_cleanup_keep_latest2_20261105/README.md",
+    "raw_measurements_partially_removed": true,
+    "retained": "报告/图表、汇总、源码与配置保留；详细删除路径见清单；最近两轮和共享复测资产未改动"
+  }
+}

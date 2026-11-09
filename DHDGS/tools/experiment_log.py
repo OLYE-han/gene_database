@@ -10,6 +10,12 @@ import os
 import re
 import subprocess
 import tempfile
+import importlib.util
+
+_index_spec = importlib.util.spec_from_file_location(
+    'experiment_log_index', Path(__file__).with_name('experiment_log_index.py'))
+compact = importlib.util.module_from_spec(_index_spec)
+_index_spec.loader.exec_module(compact)
 
 ROOT = Path(__file__).resolve().parents[1]
 HEADER = "# DHDGS 实验日志\n\n时间使用 Asia/Shanghai（UTC+08:00）。围绕同一问题的一轮实验只保留一条汇总，包含各次测试改变的变量、结果及负面结论。\n单次测试的时间、配置和失败证据保存在 test/ 下；历史补记不推测缺失的起止时间。\n"
@@ -76,8 +82,10 @@ def record(metadata, log_path=None, *, round_id=None):
     # Offline journal writers only; this lock is unrelated to search threads.
     with path.with_suffix(path.suffix + ".lock").open("a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
-        content = path.read_text() if path.exists() else HEADER
-        if start in content:
+        content = path.read_text() if path.exists() else compact.HEADER
+        if compact.MARKER in content:
+            content = compact.publish(data, content, path, block)
+        elif start in content:
             a = content.index(start)
             b = content.index(end, a) + len(end)
             content = content[:a] + block.rstrip("\n") + content[b:]

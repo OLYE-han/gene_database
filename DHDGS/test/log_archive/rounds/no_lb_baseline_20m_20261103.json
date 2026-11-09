@@ -1,0 +1,29 @@
+{
+  "id": "no_lb_baseline_20m_20261103",
+  "round_id": "no_lb_baseline_20m_20261103",
+  "title": "R001 无负载均衡20分钟可回放基准",
+  "status": "已完成",
+  "started_at": "2026-11-03T18:17:43+08:00",
+  "ended_at": "2026-11-03T18:43:05+08:00",
+  "purpose": "排队、逐节点接纳、分窗与总体QPS以及完整查询时序基准",
+  "hypothesis": "去除全部LB开销并保留回收修复，可形成长期可重复基线",
+  "expected": "1200秒吞吐/排队曲线及完整可回放数据集",
+  "configuration": "三数据节点64/64/64，D200 C1024，热缓存；顶层32路由8合并",
+  "variables": "全部LB关闭；20秒独立预热；1200秒测量",
+  "code_changes": "增加累计接纳计数；实验客户端原生二进制账本与错误原因聚合",
+  "revision": "53b3b953d0f491019429da3535e182d7e56a804d",
+  "results": "1200秒成功QPS 11323.46；提交13,695,486、失败106,335；Recall 97.348539%。全LB关闭、64/64/64线程、完整时序13,695,486条及输入哈希验证；共享环境后台干扰不能直接对比旧版本。",
+  "artifacts": "[报告](test/no_lb_baseline_20m_20261103/REPORT.md)、[QPS](test/no_lb_baseline_20m_20261103/formal/throughput_20m.png)、[排队曲线](test/no_lb_baseline_20m_20261103/formal/node_load_20m.png)、[回放集](test/no_lb_baseline_20m_20261103/replay_dataset/README.md)、[历史2万QPS差异核对（已有记录分析，非新实验）](test/no_lb_baseline_20m_20261103/HISTORICAL_QPS_COMPARISON.md)、[近p50/p99查询时序与前端CPU配置诊断（离线）](test/no_lb_baseline_20m_20261103/query_timing/REPORT.md)",
+  "next_steps": "使用同到达时序与同查询序列两种口径进行无LB/LB配对测试；同时比较QPS、排队、源CPU与召回率",
+  "updated_at": "2026-11-03T18:44:32+08:00",
+  "log_group": "查询接纳、锁等待与长期稳定性",
+  "summary": "20分钟无LB自然回放成功QPS 11,323、失败106,335，第10–15分钟维护积压明显，离线分析另发现API外围等待与前端CPU配额变化；原始明细已清理",
+  "report": "test/no_lb_baseline_20m_20261103/REPORT.md",
+  "data_retention": {
+    "updated_at": "2026-11-05T11:00:47+08:00",
+    "maintenance_only": true,
+    "report": "test/storage_cleanup_keep_latest2_20261105/README.md",
+    "raw_measurements_partially_removed": true,
+    "retained": "报告/图表、汇总、源码与配置保留；详细删除路径见清单；最近两轮和共享复测资产未改动"
+  }
+}

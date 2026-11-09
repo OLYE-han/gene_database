@@ -1,0 +1,22 @@
+{
+  "id": "subgraph_pipeline_20261103",
+  "round_id": "subgraph_pipeline_20261103",
+  "title": "R001 子图规划与复制流水化",
+  "status": "已完成",
+  "started_at": "2026-11-03T00:30:00+08:00",
+  "ended_at": "2026-11-03T01:35:10+08:00",
+  "purpose": "缩短完整h跳副本规划到接流时间；不实现边扩张边复制",
+  "hypothesis": "完整计划逐份交付、邻接读计算流水和同版本缓存能缩短响应而保持成员/入口/容量语义",
+  "expected": "相同历史及容量下计划一致，首次接流及全部发布时间下降；统计前台QPS/排队影响，不预设收益",
+  "configuration": "Intel-31源、Intel-32/30目标、Intel-35顶层；每正式会话4×200K构建期间回放＋80K稳态，42898个不同test ID；native结果写tmpfs，停止服务后离线分析。源规划与复制实际重叠，缓存上限256MiB。",
+  "variables": "- 离线6组：原路径两次、同步缓存两次、2读线程＋校验复用、2读线程但关闭校验复用\n- 在线串行A→仅重叠→组合→串行B；固定α≤0.3/h=2/256入口/预算200/τ39/1024并发\n- 发现稳态p99回退后补组合复验，在80K稳态正式请求前增加80K预热；此前误配置外层11K被现有client_overrides覆盖，实测统一按饱和口径解释",
+  "code_changes": "完整计划流水API/源任务序号轮询；C++有界邻接读缓存与预取、完整核心枚举；同构建校验复用；失败撤回/取消/资源释放；统一YAML、CLI、89项相关回归。搜索算法和副本格式未改变。",
+  "revision": "53b3b953d0f491019429da3535e182d7e56a804d",
+  "results": "5个成功三机会话、440万正式请求零失败；相同子图α≤0.3。首次发布约57s→29–30s，全部约74s→46–48s；前60s完成量+14.5%–21.3%。短稳态QPS未提高，p99补测约200ms仍高于基线180–184ms；Recall配对均值损失≤0.120pp。89项相关回归通过，三机各9项网络检查通过。首次在线map键错误已修复并验证撤回；原Python/native聚合字段差异在旧模块也复现。暖缓存、重复查询、饱和回放、含客户端批次间隙；不推广冷SSD或未来负载。",
+  "artifacts": "- [报告](test/subgraph_pipeline_20261103/REPORT.md)\n- [阶段图](test/subgraph_pipeline_20261103/publication_times.png)\n- [三节点负载曲线](test/subgraph_pipeline_20261103/node_load.png)\n- [累计完成量](test/subgraph_pipeline_20261103/foreground_progress.png)\n- [源码及补丁](test/subgraph_pipeline_20261103/README.md)\n- [归档校验](test/subgraph_pipeline_20261103/archive_manifest.json)\n- [DESIGN §64](DESIGN.md#subgraph-pipeline-20261103)\n- [研究记录](research/R001_SUBGRAPH_PIPELINE.md)",
+  "next_steps": "边扩张边复制留作下一步；另验证持续稳态尾延迟、真实热点寿命和构建期间资源背压。",
+  "updated_at": "2026-11-03T01:35:37+08:00",
+  "log_group": "负载均衡：复制生效与生命周期",
+  "summary": "子图规划复制流水化将首次发布约57秒降至29–30秒，440万请求零失败且早期完成量增加，但稳态QPS未提高",
+  "report": "test/subgraph_pipeline_20261103/REPORT.md"
+}

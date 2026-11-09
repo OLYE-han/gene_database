@@ -3,7 +3,7 @@ from pathlib import Path
 import os,sys,json,yaml,subprocess,shlex,time,copy,concurrent.futures,hashlib,threading
 import msgpack
 import gzip
-CODE=Path(__file__).resolve().parents[1]
+CODE=Path(os.environ.get('DHDGS_RUNTIME_SOURCE',str(Path(__file__).resolve().parents[1])))
 P=Path(os.environ.get('DHDGS_PROJECT_ROOT',str(CODE)))
 SETTINGS=Path(os.environ['DHDGS_LOAD_SETTINGS']);S=yaml.safe_load(SETTINGS.read_text())
 ROOT=Path(S['experiment']['scratch']);SRC=CODE
@@ -159,8 +159,9 @@ def case(spec):
  for h in plan['deployment']['hosts']:h['root']=str(Path(h['root'])/name);h['state_file']=h['root']+'/state.json'
  for f in ['source_hashes.json']:
   if (R/f).exists():(dest/f).write_bytes((R/f).read_bytes())
- # Restore the original 2000-row validation selection; old scratch selection may be repeated.
- selection=json.loads(Path(plan['control']['query_selection']).read_text())['validation'];selection=list(dict.fromkeys(selection));save(case/'selection.json',{'validation':selection});plan['control']['query_selection']=str(case/'selection.json')
+ # Preserve request occurrences and order. Deduplicating vector IDs silently
+ # destroys hotspot frequencies in a workload with repeated requests.
+ selection=json.loads(Path(plan['control']['query_selection']).read_text())['validation'];save(case/'selection.json',{'validation':selection});plan['control']['query_selection']=str(case/'selection.json')
  (case/'plan.yaml').write_text(yaml.safe_dump(plan));(dest/'plan.yaml').write_text(yaml.safe_dump(plan));(dest/'head.yaml').write_text(yaml.safe_dump(headc))
  token=Path(plan['control']['token_file']).read_text().strip();collector=Collector(c,token);launched=[];engine=None
  print('START',name,flush=True)
@@ -192,13 +193,21 @@ def case(spec):
    client('profile',spec['replica_profile_count'],spec['replica_profile_selection']);collector.idle();time.sleep(.5)
    assert balance is not None
    with balance.lock:save(dest/'hotspot_observations.json',[{k:v for k,v in q.items() if k!='query_f32'} for q in balance.history])
-   if spec.get('replica_create'):
+  if spec.get('replica_create'):
     if spec.get('replica_plan_file'):replica_plan=json.loads(Path(spec['replica_plan_file']).read_text())
     else:replica_plan=balance.propose(spec['replica_source'],spec['replica_target'])
     save(dest/'replica_plan.json',replica_plan)
     try:
      replica_version=balance.create(replica_plan).result(headc['load_balance']['operation_timeout_s']*2)
-     balance.set_fraction(spec['replica_fraction']);save(dest/'replica_ready.json',dict(version=replica_version))
+     balance.set_fraction(spec['replica_fraction']);balance.publish(time.monotonic());save(dest/'replica_ready.json',dict(version=replica_version))
+     if spec.get('capture_replica_membership'):
+      # Offline evidence before warmup; never query-time serialization.
+      import base64
+      host=next(h for h in plan['deployment']['hosts'] if h['id']==replica_plan['target'])
+      script='import sys,json,base64,hashlib;from pathlib import Path;p=json.load(sys.stdin);b=(Path(p["root"])/"replicas"/p["version"]/"ids.npy").read_bytes();print(json.dumps(dict(data=base64.b64encode(b).decode(),sha256=hashlib.sha256(b).hexdigest())))'
+      evidence=command(host,script,dict(root=host['root'],version=replica_version))
+      raw=base64.b64decode(evidence.pop('data'));assert hashlib.sha256(raw).hexdigest()==evidence['sha256']
+      (dest/'membership.npy').write_bytes(raw);save(dest/'membership_identity.json',dict(version=replica_version,**evidence))
     except Exception as e:
      save(dest/'replica_rejected.json',dict(error=str(e)))
      if not spec.get('allow_replica_rejection',False):raise
@@ -297,5 +306,5 @@ for spec in S['cases']:
                  configuration=json.dumps(spec,ensure_ascii=False)+'；固定其余设置见本轮 plan.yaml/head.yaml/settings.yaml。',
                  results='待分析；尚无本轮性能结论。',artifacts=['输出目录：'+str(dest)],
                  next_steps='离线核验召回/失败/排空与协议，生成指标、时序图及网络利用率。')
- with experiment(metadata,dest/'experiment_log.json',round_id=R.name):case(spec)
+ with experiment(metadata,dest/'experiment_log.json',round_id=os.environ.get('DHDGS_ROUND_ID',R.name)):case(spec)
 save(R/'measurements_complete.json',{'time_ns':time.monotonic_ns()})

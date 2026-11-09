@@ -1,0 +1,29 @@
+{
+  "id": "resource_parallel_20261027",
+  "round_id": "resource_parallel_20261027",
+  "title": "R002共享CPU竞争复测与并行等待诊断",
+  "status": "已完成",
+  "started_at": "2026-10-27T02:14:10+08:00",
+  "ended_at": "2026-10-27T02:25:16+08:00",
+  "purpose": "核对低QPS是否来自共享CPU竞争；若仍异常定位锁与调度等待",
+  "hypothesis": "避开繁忙物理核可恢复吞吐；若未恢复则拆分锁/调度/CPU成本",
+  "expected": "同200K负载高召回无失败，QPS恢复到12000以上；不把低并发当作优化",
+  "configuration": "四机RDMA，64搜索线程/节点，预算200，并发1024，200K原始查询同序；路由32/合并8；Intel-35计算32-63/网络96-111/客户端112-127；其余沿用上轮",
+  "variables": "- 关闭热度及副本的基线\n- 开启热度与在线逻辑副本\n- 重复关闭热度及副本基线；必要时追加等待消融\n- 资源负载变化后补测原Intel-35 CPU布局，区分亲和性调整与宿主负载变化；搜索不改\n- 原布局在同期高CPU竞争下再次下降，追加切回新布局验证恢复；搜索和锁不改\n- 新布局复现低吞吐；正式测量期间采集perf CPU热点和硬件事件，诊断锁或内存竞争\n- 诊断版本拆分HNSW/种子准备CPU、合并取任务/查询锁/聚合/元数据/注册表等待；外部CPU忙碌/较空闲门控各200K，5秒perf采样",
+  "code_changes": "搜索实现未改；实验采样增加逐CPU与线程schedstat/亲和性记录；增加顶层阶段与锁等待时间点及回归断言，诊断版本含符号的-O3 native构建；未修改搜索/锁算法；后续补充plot_replica_load.py，读取既有压缩采样绘制负载/复制时序，未新增测试或修改搜索代码",
+  "revision": "00621f3d998fe7eb5f17467d2767b1e7dea4e494",
+  "results": "八组共160万查询均无失败。六组14855–17427 QPS，两组2695/737 QPS异常保留；最后组17414.10 QPS、p99 162.23ms、Recall@10 96.99605%。各节点64搜索线程实际并行，正常组锁等待均值约0.045/0.030ms。异常组缺细分锁证据，资源竞争不能归因为唯一原因，R002稳定性未解决。初次29项回归有一次聚合等价性失败；单项20次及全29项复跑通过，原因未定。热页缓存测试；原始帧已清理，详见RETENTION。；补充负载图显示副本1.018s启动、5.726s发布，发布后源节点仍持续满载，未观察到消除失衡。",
+  "artifacts": "- [报告](test/resource_parallel_20261027/REPORT.md)\n- [对比图](test/resource_parallel_20261027/comparison.png)\n- [跨节点p99时序图](test/resource_parallel_20261027/runs/placement_hotness_r1/cases/placement_hotness_r1/p99_timeline.png)\n- [保留记录](test/resource_parallel_20261027/RETENTION.md)\n- [代码与构建哈希](test/resource_parallel_20261027/final_binary_provenance.json)\n- [三节点负载与副本时间标注](test/resource_parallel_20261027/replica_load/README.md)",
+  "next_steps": "使用新时间点捕获真实退化窗口，区分锁/调度等待与CPU成本膨胀；资源隔离对照后再决定临界区或内存路径优化。不能以正常组替代稳定性验收。",
+  "updated_at": "2026-10-27T02:43:56+08:00",
+  "log_group": "搜索线程、并发与CPU资源",
+  "summary": "八组CPU竞争复测确认搜索实际并行、正常锁等待较低，但保留两组严重低QPS异常，副本发布后源节点仍满载；原始明细已清理",
+  "report": "test/resource_parallel_20261027/REPORT.md",
+  "data_retention": {
+    "updated_at": "2026-11-05T11:00:47+08:00",
+    "maintenance_only": true,
+    "report": "test/storage_cleanup_keep_latest2_20261105/README.md",
+    "raw_measurements_partially_removed": true,
+    "retained": "报告/图表、汇总、源码与配置保留；详细删除路径见清单；最近两轮和共享复测资产未改动"
+  }
+}

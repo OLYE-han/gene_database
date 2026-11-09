@@ -22,7 +22,7 @@ experiment:
   concurrency:
   - 1024
   search_threads: 64
-  search_budget: 200
+  search_budget: 128 # 与 runtime_config 的 search.max_expansions 保持一致
   route_threads: 32
   merge_threads: 8
   data_ports:

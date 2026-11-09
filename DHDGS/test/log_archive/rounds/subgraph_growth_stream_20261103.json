@@ -1,0 +1,22 @@
+{
+  "id": "subgraph_growth_stream_20261103",
+  "round_id": "subgraph_growth_stream_20261103",
+  "title": "R001 子图边扩张边复制",
+  "status": "已完成",
+  "started_at": "2026-11-03T11:53:45+08:00",
+  "ended_at": "2026-11-03T12:29:17+08:00",
+  "purpose": "将已接纳完整块的记录复制与同一子图后续扩张重叠",
+  "hypothesis": "保持成员和容量规则不变，稳定追加记录位置与最终封口能减少规划后等待传输时间",
+  "expected": "证明复制早于扩张结束、失败无半成品接流；测量首次/全部发布、前台吞吐和排队影响，不预设改善",
+  "configuration": "seq_2M/2560维，源Intel-31、目标Intel-32/30、顶层Intel-35；α≤0.3，h=2，冻结256入口；预算200/拉取阈值39/并发1024。每成功会话3×200K构建期回放＋20K短稳态，预热另计，暖缓存，结果写tmpfs并在服务停止后离线解析。",
+  "variables": "- 完整计划流水；增长复制单槽；增长复制双槽共享原带宽、16个chunk窗口与缓冲预算。\n- 单槽发现第二份9.28秒背压后改双槽；首次双槽被128MiB缓冲上限拒绝，改为每槽8个窗口后通过。\n- 协议/容量/取消/丢ACK/源预检拒绝等96项相关测试。",
+  "code_changes": "C++按接纳批次回调、追加记录写入器和加载器；Python增长生产者、能力3追加与封口协议、整组容量预约/回收、双槽共享带宽与窗口、最终声明摘要校验；统一YAML、研究/设计/锁文档及测试。搜索循环和图成员不变。",
+  "revision": "53b3b953d0f491019429da3535e182d7e56a804d",
+  "results": "三组成功三机会话共186万正式请求零查询失败；成员/入口/证书/预约相同。单槽全部发布55.26s，修正双槽47.23s，完整计划流水48.35s；首份29.92s对30.64s。两份各1.47GB在成员封口前获确认。96项相关测试通过，三机各9项原网络检查通过。稳态QPS16946对16939，未证明提升；双槽配对命中召回损失0.14485pp。基线外部fio、重复回放、约1.18s短稳态限制归因。保留单槽回退及一次双槽配置拒绝。原数据未改，全部实验服务已停，大型结果校验归档后清理。",
+  "artifacts": "- [报告](test/subgraph_growth_stream_20261103/REPORT.md)\n- [增长时序图](test/subgraph_growth_stream_20261103/growth_timeline.png)\n- [负载曲线](test/subgraph_growth_stream_20261103/node_load.png)\n- [发布阶段图](test/subgraph_growth_stream_20261103/publication_times.png)\n- [已测配置](test/subgraph_growth_stream_20261103/recommended.yaml)\n- [快照及哈希说明](test/subgraph_growth_stream_20261103/README.md)\n- [归档校验](test/subgraph_growth_stream_20261103/archive_manifest.json)\n- [研究方案](research/R001_SUBGRAPH_GROWTH_STREAM.md)\n- [DESIGN §65](DESIGN.md#subgraph-growth-stream-20261103)",
+  "next_steps": "空闲窗口复验；优先研究独立验证读取复用及量化依赖增量准备，保留最终完整性验证；R001吞吐和负载均衡目标仍开放。",
+  "updated_at": "2026-11-03T12:29:45+08:00",
+  "log_group": "负载均衡：复制生效与生命周期",
+  "summary": "边扩张边复制与双槽使全部发布55.26→47.23秒，186万请求零失败，短稳态QPS近似不变",
+  "report": "test/subgraph_growth_stream_20261103/REPORT.md"
+}

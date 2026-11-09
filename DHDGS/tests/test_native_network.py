@@ -22,13 +22,14 @@ class NetworkModuleTests(unittest.TestCase):
         cfg=policy(send_max_reactors=0,receive_max_reactors=0,
                    connections_per_endpoint_per_reactor=0,max_receive_connections=0,
                    min_connections_per_endpoint_per_reactor=1,async_connect=True,
-                   rebalance_connections=True,idle_ms=100)
+                   rebalance_connections=True,idle_ms=100,send_warmup_grace_ms=2000)
         c,s=self.make(cfg,delay=10);done=[]
         for i in range(120):self.assertTrue(c.submit('127.0.0.1',s.port(),{'request_id':i}))
         self.wait(lambda:(done.extend(c.poll()) or len(done)==120),timeout=10)
         self.assertTrue(all(x['ok'] for x in done))
         self.assertEqual(len({x['response']['request_id'] for x in done}),120)
         self.assertEqual(c.metrics()['max_reactors'],0)
+        self.assertEqual(c.metrics()['send_warmup_grace_ms'],2000)
         self.assertEqual(s.metrics()['max_connections'],0)
         self.assertGreater(c.metrics()['peak_reactors'],1)
         self.assertGreater(s.metrics()['network_module']['peak_reactors'],1)

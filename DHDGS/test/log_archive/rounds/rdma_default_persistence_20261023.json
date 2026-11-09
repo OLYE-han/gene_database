@@ -1,0 +1,22 @@
+{
+  "id": "rdma_default_persistence_20261023",
+  "round_id": "rdma_default_persistence_20261023",
+  "title": "默认RDMA方案持久化验证",
+  "status": "已完成",
+  "started_at": "2026-10-23T10:26:52+08:00",
+  "ended_at": "2026-10-23T10:46:28+08:00",
+  "purpose": "将已验收RDMA实现、默认参数和启动依赖移出实验临时目录",
+  "hypothesis": "固化配置与运行路径不会改变既有检索及传输行为",
+  "expected": "四机依赖核验、真实RDMA回归及小规模端到端查询通过",
+  "configuration": "Intel35顶层，Intel31/32/30数据；64搜索线程、预算200、推荐并发1024；功能验证不宣称新性能收益",
+  "variables": "历史日志未单列，参见原始详细记录",
+  "code_changes": "持久化默认RDMA YAML、保留pilot配置、增加独立部署/运行入口、修正旧配置迁移默认值",
+  "revision": "391a67715264adde28108331e9b16fa5b4add3ed",
+  "results": "47项回归通过，含真实IB与默认配置；最终配置2项复核通过。持久化入口预热2000/正式2000，零失败，Recall@10 97.34%，无预算越界/重访，实际RDMA，所有新服务退出。46条协议统计标记未闭合，保留限制。短验证不作为新性能选型。 最终启动固定到发布快照，额外128条端到端请求全部成功，实际RDMA且无预算/重访错误；1条协议统计未闭合。已核验三个远端源码与快照一致。",
+  "artifacts": "- [默认方案说明](docs/RDMA_DEFAULT.md)\n- [持久化验证报告](test/rdma_default_persistence_20261023/REPORT.md)\n- [部署核验](test/rdma_default_persistence_20261023/deployment_audit.json)\n- [端到端验证](test/rdma_default_smoke_20261023/REPORT.md)\n- 未生成新图表：本次为默认配置/部署验证，未执行性能扫描。\n- [固定发布入口复核](test/rdma_default_pinned_smoke_20261023/REPORT.md)",
+  "next_steps": "使用已持久化的默认入口开展后续实验；另行验证持续负载与冷SSD。",
+  "updated_at": "2026-10-23T10:46:28+08:00",
+  "log_group": "网络通信与动态扩缩容",
+  "summary": "固化RDMA默认配置、依赖与部署快照，47项回归及2,128条正式端到端请求通过，仍有少量协议统计未闭合",
+  "report": "test/rdma_default_persistence_20261023/REPORT.md"
+}

@@ -14,9 +14,10 @@ class Ticket {
   friend class Controller;
 public:
   Ticket(std::weak_ptr<Engine>, std::shared_ptr<Branch>);
-  void start(double admission_ms, double executor_start_ms, double ready_ms);
+  void start(double admission_ms, double executor_start_ms, double ready_ms, double actor_wait_ms = -1.);
   void child(dhwire::Value descriptor);
   void transfer_done(dhwire::Value peer_metrics, std::string error = "");
+  void network_event(dhwire::Value metrics); // Accounting only; never consumes child credit.
   void complete(dhwire::Value report);
   void fail(std::string error);
   void renew(double lease);

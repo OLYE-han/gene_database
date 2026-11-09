@@ -11,6 +11,7 @@ import msgpack
 
 def api_options(config,settings):
     api=copy.deepcopy(settings['api'])
+    api.setdefault('profile_response',config.get('metrics',{}).get('lifecycle_trace',False))
     n=copy.deepcopy(config['native_runtime']['network_module'])
     n.update(transport="tcp",enabled=True,receive_min_reactors=api['reactors'],receive_max_reactors=api.get('max_reactors',api['reactors']),
              handlers_per_receive_reactor=api['handlers'],receive_queue_capacity_per_reactor=api['queue_capacity'],

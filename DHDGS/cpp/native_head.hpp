@@ -20,11 +20,12 @@ public:
   V metrics() const;
   void replica_routes(V);
   V replica_observations();
+  V replica_entry_statistics();
   void close();
 };
 // Also exposed for protocol/adversarial tests without running searches.
 bool validate_manifests(const V &reports, const std::string &root, size_t node,
-                        size_t budget, size_t slots, size_t node_count, bool revisits=false);
+                        size_t budget, size_t slots, size_t node_count, bool revisits=false, bool fanout=false);
 V aggregate_native(const V &config, const V &reports, const V &transfer,
                    const V &involved);
 } // namespace dhruntime

@@ -1,0 +1,22 @@
+{
+  "id": "search_scaling_unbounded_20261023",
+  "round_id": "search_scaling_unbounded_20261023",
+  "title": "搜索线程16/32/48/64/96与无应用层上限动态网络扩缩容",
+  "status": "已完成",
+  "started_at": "2026-10-23T10:38:10+08:00",
+  "ended_at": "2026-10-23T14:11:40+08:00",
+  "purpose": "检验搜索线程增加能否提高吞吐、降低计算排队；定位非线性扩展原因并按证据优化",
+  "hypothesis": "解除网络线程/连接数量上限后，搜索工作量与可用物理核决定扩展曲线；NUMA、SMT、负载不均或控制开销可能限制加速",
+  "expected": "固定预算及查询质量，获得可解释的线程扩展曲线和网络资源时间序列，不预设线性加速成立",
+  "configuration": "Intel35 head+独立网络客户端；Intel31/32/30数据；seq_2M完整索引，预算200，top10，初始并发1024，每正式测试20万请求、预热2000；热缓存",
+  "variables": "- 搜索线程16/32/48/64/96，固定并发1024、预算200；原版每档2次，最终版16/32/48各1次、64/96各2次，每次20万请求、预热2000。\n- 所有服务端收发reactor、连接及公共API数量上限为0；busy-lane比例0.5、预热连接8、并行建连2、压力4样本、采样10ms、冷却100ms、空闲1500ms。网络资源动态增长/回收；CPU亲和范围固定，客户端容量4096。\n- 跳过已见RaBitQ估距关闭/开启；缩短顶层指标与接收扩容锁范围；计数器stripe=1/128；有预算ID直接寻址关闭/64MiB。\n- 96线程跨插槽物理核与原插槽物理核+SMT布局诊断；source/source_opt/source_head/source_lookup四个冻结版本、同二进制开关对照；全部负结果与重试保留。",
+  "code_changes": "实现网络数量上限0、繁忙lane比例扩容与空闲回收、轻量网络资源采样、压缩帧读取；增加skip_seen_estimates、有容量预算的native_id_lookup_bytes、可选expansion_counter_stripes及counter_update_ms；缩短顶层监测/接收扩容锁范围。当前工作区重新编译；没有替换既有默认发布快照。DESIGN §43、LOCKS §18及实验复现脚本同步更新。",
+  "revision": "6bfdad4cccbfbebeadab3a27ca5f3d93ae97e1c1",
+  "results": "33次正式测量660万请求全部成功，Recall@10 97.017%–97.060%，8892908个分支完整时序，预算/重访违规0。最终16/32/48/64/96线程QPS均值为6903/12962/19132/21315/19629；64线程比原版均值提升16.1%，两次p99为107.48/127.92ms；平均网络/控制残余16.94%/19.48%，固定近p99样本2.26%/1.33%，均通过既定吞吐与双占比条件。96线程理想线性扩展未达成：最忙节点每分支CPU成本4.961→8.661ms，另有NUMA/SMT及负载不均因素；同插槽SMT诊断22815 QPS但p99 129.60ms。分散计数器未稳定提速，网络仍存在未完全定位的长尾。1条在途心跳导致统计完整性标记未完成，结果与搜索时序完整。最新回归60通过/1项io_uring按配置跳过，四机源码和实际加载二进制核对通过。热缓存、2000条验证向量循环，不能外推冷SSD/百亿数据；64线程完整输出吞吐含最后同步落盘为10629–10820。lookup_s96在预热中因控制会话中断，保留证据后以retry重测；初次配置回归、构建辅助脚本及离线idle字段审计的错误已修正，均未混入成功性能结论。",
+  "artifacts": "- [完整报告](test/search_scaling_unbounded_20261023/REPORT.md)\n- [完整测量/验收/资源表](test/search_scaling_unbounded_20261023/RESULTS.md)\n- [吞吐、p99及排队曲线](test/search_scaling_unbounded_20261023/scaling_curves.png)\n- [同版本扩展效率](test/search_scaling_unbounded_20261023/scaling_efficiency.png)\n- [逐节点计算成本](test/search_scaling_unbounded_20261023/per_node_scaling.png)\n- [64线程跨节点p99时序](test/search_scaling_unbounded_20261023/cases/lookup_s64/p99_timeline.png)\n- [64线程复测p99时序](test/search_scaling_unbounded_20261023/cases/lookup_s64_repeat/p99_timeline.png)\n- [网络长尾负例](test/search_scaling_unbounded_20261023/network_tail_diagnosis.json)\n- [推荐配置摘要](test/search_scaling_unbounded_20261023/recommended.yaml)\n- [源码哈希核对](test/search_scaling_unbounded_20261023/final_source_audit.json)\n- [实际加载二进制/归档核对](test/search_scaling_unbounded_20261023/capture_audit.json)\n- [空闲资源回收](test/search_scaling_unbounded_20261023/idle_summary.json)\n- [最终进程核验](test/search_scaling_unbounded_20261023/final_process_audit.json)\n- [复现步骤](test/search_scaling_unbounded_20261023/USAGE.md)",
+  "next_steps": "当前吞吐候选为64线程，48线程单次p99更低；96线性目标尚未完成。增加reactor内部时间点，固定节点负载做NUMA局部/远端与量化码加载/算术剖析，再评估紧凑ID、邻居批量处理、NUMA局部缓存及热点分片负载均衡。进一步用更多独立查询、长期流量与冷SSD验证。",
+  "updated_at": "2026-10-23T14:11:40+08:00",
+  "log_group": "搜索线程、并发与CPU资源",
+  "summary": "16/32/48/64/96线程扫描中64线程均值21,315 QPS最佳，96线程未线性扩展，660万请求零失败，结论限于2K查询循环与暖缓存",
+  "report": "test/search_scaling_unbounded_20261023/REPORT.md"
+}

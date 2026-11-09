@@ -138,7 +138,7 @@ search:
   execution: peer           # peer 默认数据节点自主执行；reference 仅保留为实验对照
   top_k: 10
   frontier_size: 64
-  max_expansions: 192         # 2M 完整索引的 95% 目标校准值；128 在本轮校准中为94.92%
+  max_expansions: 128         # 2026-11-05 用户指定后续预算；pilot须单独记录实际Recall
   local_beam: 4
   max_inflight: 3
   exclude_self: true

@@ -443,6 +443,11 @@ public:
 };
 
 #include "replica_pack.hpp"
+#include "replica_planner.hpp"
+#include "replica_community.hpp"
+#include "replica_hop_expand.hpp"
+#include "replica_hop_capacity.hpp"
+#include "replica_geometry.hpp"
 #include "search_loop.hpp"
 #include "runtime_bindings.hpp"
 
@@ -451,6 +456,11 @@ void register_read_metrics(py::module_ &m);
 
 PYBIND11_MODULE(_native, m) {
   dhpack::bind(m);
+  dhcommunity::bind(m);
+  dhhop::bind(m);
+  dhcapacity::bind(m);
+  dhgeometry::bind(m);
+  m.def("replica_candidate",&dhplan::candidate);
   register_async_io(m);
   register_read_metrics(m);
   register_native_search(m);

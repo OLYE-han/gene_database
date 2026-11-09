@@ -1,0 +1,60 @@
+<!-- experiment:network_parallel_20261023:start -->
+## 四机64搜索线程网络并行与动态扩容优化（network_parallel_20261023）
+
+**状态**：已完成
+
+**开始时间**：2026-10-23T02:44:21+08:00
+
+**结束时间**：2026-10-23T06:00:10+08:00
+
+**目的 / 要解决的问题**：定位RDMA吞吐下降，优化网络线程、连接和排队，向端到端12000QPS及网络时延占比低于30%目标验证
+
+**假设**：按需建连长尾、接收扩容对已有连接无效及过度唤醒影响并行；Intel31搜索成本增长可能形成独立上限
+
+**期望效果**：相同索引/预算/召回下QPS≥12000，逐查询平均与固定近p99样本网络/控制残余占比均严格低于30%；负结果保留。
+
+**环境与配置 / 对照**：Intel35 head+client，Intel31/32/30数据节点，搜索64线程固定，预算200，top10；起点C512/50k查询，后续高并发与突发对照
+
+**本轮改变的变量**
+
+- 固定三数据节点各64搜索线程、预算200/top10、完整seq_2M索引；内部TCP/RDMA对照。
+- 负载与预热：并发256/512/1024/2048，请求数5万/10万/20万，预热2000/20000；最终对照固定20万请求、预热2000。长预热且与编译重叠的对照已排除。
+- 网络建连：按需建连与预热8连接，对同时建连设置上限2；同步、仅异步socket/connect、完整异步握手分别对照。
+- 动态网络配置：基线与queued压力扩容；激进配置发送4→16、接收8→24，最终发送4→32、接收8→32；阈值、采样、冷却及连接迁移批量随方案联合改变，非单变量消融。精确值见settings_all.yaml各case。
+- CPU/NUMA布局：默认调度、核隔离、NUMA交错、Intel31搜索CPU0–63/内存0–3与CPU64–127/内存4–7；Intel30网络预留物理核/不绑定/SMT对照。
+- 顶层与客户端：路由线程4档与原32档、API接收reactor 8/16、head入口发送4→16或8→32；glibc/jemalloc在数据节点、顶层和客户端分别对照，顶层localalloc及线程放置联合对照。
+- 容量与消费：接纳/保留身份扩至4096/262144；最终fdatasync由各lane独立执行改为所有网络生产者结束后执行，保留溢出与接纳失败结果。
+- 辅助定位：64线程共享pread描述符/独立open/dup微基准，缓存NUMA位置检查，35秒空闲扩缩容观察。每次实际变量组合、版本与失败状态见ALL_RUNS.md和各case配置。
+
+**代码改动**
+
+- 连接预热、并发建连上限、queued压力与接收连接迁移；部署编译器/退避问题修复见日志。
+- 在v1上增加CPU放置及因果派发/完成时间戳；不同YAML进行NUMA/扩容对照。
+- 有界异步socket/connect及调用/握手计时；CPU/索引内存位置对照。
+- 增加可选完整CM握手异步推进，保留部分移出模式及TCP。
+- 修复draining长连接迁移优先级和持久连接缩容；保留同期消费者溢出失败。
+- 在v5上增加独立客户端最终同步屏障；本阶段搜索/协议代码固定，变化为YAML、NUMA/分配器/API容量与实验采集。
+- 离线报告生成器增加YAML验收门限及逐项判定；按用户确认的双重占比标准重分类已有结果，保留原始测量与起止时间。
+
+**登记时 Git HEAD**：391a67715264adde28108331e9b16fa5b4add3ed
+
+**结果与限制**：RDMA通过验收：并发1024（2轮）、并发2048（1轮）；未通过：并发512（1轮）。验收同时要求QPS≥12000、平均及近p99样本网络/控制残余占比均严格低于30%；不是每条查询的比例保证。 最终指标见final_acceptance.json，主重复轮次QPS 16208.45、p99 146.148ms。
+
+**报告、图表与证据**
+
+- [REPORT.md](../../network_parallel_20261023/REPORT.md)
+- [performance_comparison.png](../../network_parallel_20261023/performance_comparison.png)
+- [final_concurrency.png](../../network_parallel_20261023/final_concurrency.png)
+- [p99_final.png](../../network_parallel_20261023/p99_final.png)
+- [ALL_RUNS.csv](../../network_parallel_20261023/ALL_RUNS.csv)
+- [final_acceptance.json](../../network_parallel_20261023/final_acceptance.json)
+- [acceptance.yaml](../../network_parallel_20261023/acceptance.yaml)
+- [recommended.yaml](../../network_parallel_20261023/recommended.yaml)
+- [单次测试历史日志归档](../../network_parallel_20261023/RUN_LOG_ARCHIVE.md)
+
+**下一步建议**：在相同资源与质量下验证持续负载和冷SSD；对搜索CPU、内存布局和负载不均做单变量消融。
+
+**日志更新时间**：2026-10-23T10:26:34+08:00
+**数据保留状态（2026-10-27）**：本轮大体积原始数据已按用户要求清理，报告/图表/汇总和选定样本保留；具体文件见[清理清单](../../storage_cleanup_20261027/README.md)。部分离线重分析需重新采集数据。
+
+<!-- experiment:network_parallel_20261023:end -->

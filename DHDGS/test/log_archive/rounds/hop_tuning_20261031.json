@@ -1,0 +1,29 @@
+{
+  "id": "hop_tuning_20261031",
+  "round_id": "hop_tuning_20261031",
+  "title": "容量、接流比例与尾部RDMA拉取阈值联合优化",
+  "status": "已完成",
+  "started_at": "2026-10-31T06:21:50+08:00",
+  "ended_at": "2026-10-31T11:50:09+08:00",
+  "purpose": "R001-A26：在95%质量约束下，以QPS优先联合改善回源与节点负载，核验α和尾部拉取阈值",
+  "hypothesis": "大图原先因固定0.8接流过载；适配接流可释放收益。小剩余预算批读可能比64阈值更合算，须以实际触发及源服务CPU证明",
+  "expected": "不预设正收益；与同核位置无副本及Hα0.8/p0.8比较QPS、回源、负载；拉取无收益则关闭",
+  "configuration": "seq_2M，原历史/校验/测试互斥ID；共享三机，暖缓存，64搜索线程/预算200/并发1024；新统一CPU放置；搜索实现先复用A25冻结快照",
+  "variables": "- F α=.1～.9联合p粗筛/细化、H与无副本对照；原绑核与迁移绑核分开统计，完整取值见settings.yaml\n- 剩余区域授权阈值τ=关闭/8/16/24/32/39/48/64，停留144、预算200、拉取包络固定\n- C入口重绑定消融：主区成员不变，5入口安全重绑定、移除3小区；相同p=.50对照F\n- 确认8组固定6000QPS和1组饱和各200K；原其余39组撤下保存，不当作失败请求\n- 快速1：同图p=.48/.50/.50/.48，快速2：.49/.50/.50/.49；均Cα=.9/τ39、64搜索线程/并发1024/每块200K，双方统一减轻跟踪",
+  "code_changes": "新增并接入hop_expansion.rebind_historical_entries及可选promote_covered_entries，成员不变、完整邻域/核心/附着球重验与目录容量计费，多区消费更新后的入口集合，12项定向检查通过。查询性能沿用A25冻结引擎；新增同图ABBA快速运行/离线4进程分析/4线程压缩及SHA归档、收益机会量核算与候选参数导出。未自动替换产品全局默认。",
+  "revision": "53b3b953d0f491019429da3535e182d7e56a804d",
+  "results": "本轮67组原正式测试+8个快速200K子块，合计682.2万正式请求，失败0。原确认48组完成9组，余39组按用户要求撤下；不声称原三重复完成。预建入口重绑定使同p=.50命中计算回源7.824%→3.923%；τ39约0.3%，但独立QPS收益未证实。两轮快速验证p=.50平均15168/15123QPS，分别较p=.48/.49高1.88%/1.38%，未达3%明显信号；停止微调，保留α=.9/p=.50/τ39为实验候选。正式/快速审计通过各自覆盖范围，快速阶段缺执行时间区间及完整晚到网络统计，R001继续开放。",
+  "artifacts": "- [最终报告](test/hop_tuning_20261031/CONCLUSION.md)\n- [推荐参数摘要](test/hop_tuning_20261031/selected_parameters.yaml)\n- [完整复放配置](test/hop_tuning_20261031/selected_settings.yaml)\n- [快速阶段审计](test/hop_tuning_20261031/audit_adaptive.json)\n- [容量曲线](test/hop_tuning_20261031/capacity_tradeoff.png)\n- [快速1结果图](test/hop_tuning_20261031/rapid_runs/rapid_admission_01/cases/rapid_admission_01/rapid_comparison.png)\n- [快速2结果图](test/hop_tuning_20261031/rapid_runs/rapid_admission_02/cases/rapid_admission_02/rapid_comparison.png)\n- [排队瓶颈切换图](test/hop_tuning_20261031/rapid_runs/rapid_admission_01/cases/rapid_admission_01/queue_crossover.png)\n- [收益机会量分析](test/hop_tuning_20261031/RAPID_COST_ANALYSIS.md)\n- [冻结源码hash](test/hop_tuning_20261031/engine_hashes.json)\n- [设计与范围](test/hop_tuning_20261031/IMPLEMENTATION.md)",
+  "next_steps": "停止微小份额扫描；以同总存储预算小批比较单目标大副本与双目标同族副本，评估新增边界回源是否抵消并行收益。再单独验证绑定不可变索引身份的校验证据缓存以降低约88.5秒接流准备时间。动态漂移/冷SSD/在线竞争与整体最优性仍待验证。",
+  "updated_at": "2026-10-31T11:50:23+08:00",
+  "log_group": "副本回源与RDMA尾部执行",
+  "summary": "联合调整容量、接流份额和拉取阈值可降低回源，但份额微调QPS差异不足3%，原确认按用户要求部分停止，保留候选而非全局最优结论；原始明细已清理",
+  "report": "test/hop_tuning_20261031/CONCLUSION.md",
+  "data_retention": {
+    "updated_at": "2026-11-05T11:00:47+08:00",
+    "maintenance_only": true,
+    "report": "test/storage_cleanup_keep_latest2_20261105/README.md",
+    "raw_measurements_partially_removed": true,
+    "retained": "报告/图表、汇总、源码与配置保留；详细删除路径见清单；最近两轮和共享复测资产未改动"
+  }
+}

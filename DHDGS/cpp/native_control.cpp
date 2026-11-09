@@ -60,7 +60,7 @@ struct Branch {
   bool late_error=false,late_error_acked=false;
   size_t transfers=0;
   double created=0.,touched=0.,lease=0.,deadline=0.,next=0.,done_at=0.;
-  double admission_ms=0.,executor_ms=0.,ready_ms=0.;
+  double admission_ms=0.,executor_ms=0.,ready_ms=0.,actor_wait_ms=-1.;
   uint64_t generation=0;
 };
 struct Timer {
@@ -84,6 +84,7 @@ struct Engine : std::enable_shared_from_this<Engine> {
   std::priority_queue<Timer,std::vector<Timer>,std::greater<Timer>> timers;
   A updates;
   size_t capacity=0,active=0,max_endpoints=0;
+  size_t timer_batch=256;
   uint64_t serial=0;
   double capacity_retry=0.,interval=0.,retention=0.,lease_seconds=0.,initial_delay=0.;
   M totals{{"sent",uint64_t(0)},{"errors",uint64_t(0)},{"queue_ms",0.},{"wall_ms",0.},
@@ -164,6 +165,7 @@ struct Engine : std::enable_shared_from_this<Engine> {
     const double now=seconds();
     st["query_admission_queue_ms"]=b->admission_ms;st["query_executor_start_wait_ms"]=b->executor_ms;
     st["query_ready_queue_ms"]=b->ready_ms;
+    if(b->actor_wait_ms>=0){st["query_actor_serial_wait_ms"]=b->actor_wait_ms;st["query_runnable_queue_ms"]=b->executor_ms;}
     st["query_transfer_finalize_wait_ms"]=(now-b->done_at)*1000;
     st["query_branch_wall_ms"]=(now-b->created)*1000;
     st["query_state_other_ms"]=std::max(0.,getnum(st,"query_branch_wall_ms")-
@@ -266,7 +268,7 @@ struct Engine : std::enable_shared_from_this<Engine> {
   }
   void timers_due() {
     const double now=seconds();
-    while(!timers.empty()&&timers.top().due<=now) {
+    for(size_t count=0;count<timer_batch&&!timers.empty()&&timers.top().due<=now;++count) {
       auto item=timers.top();timers.pop();auto b=item.branch.lock();
       if(!b)continue;
       auto branch_lock=b->guard();
@@ -472,10 +474,14 @@ void Engine::poll_reports() {
 }
 
 Ticket::Ticket(std::weak_ptr<Engine> e,std::shared_ptr<Branch> b):engine_(std::move(e)),branch_(std::move(b)){}
-void Ticket::start(double a,double x,double r) { if(auto e=engine_.lock()){auto b=branch_;auto work=[b,a,x,r]{auto lock=b->guard();if(b->done)return;b->status="running";b->admission_ms=a;b->executor_ms=x;b->ready_ms=r;};if(e->worker_reports)work();else e->enqueue(std::move(work));} }
+void Ticket::start(double a,double x,double r,double serial) { if(auto e=engine_.lock()){auto b=branch_;auto work=[b,a,x,r,serial]{auto lock=b->guard();if(b->done)return;b->status="running";b->admission_ms=a;b->executor_ms=x;b->ready_ms=r;b->actor_wait_ms=serial;};if(e->worker_reports)work();else e->enqueue(std::move(work));} }
 void Ticket::child(V descriptor) {if(auto e=engine_.lock()){auto b=branch_;
   if(e->worker_reports){auto lock=b->guard();if(!b->done){b->children.push_back(std::move(descriptor));++b->transfers;}return;}
   e->enqueue([e,b,d=std::move(descriptor)]()mutable{if(b->done)return;b->children.push_back(std::move(d));++b->transfers;e->ready(b);});}}
+void Ticket::network_event(V metrics){if(auto e=engine_.lock()){auto b=branch_;
+  auto work=[b,m=std::move(metrics)]{auto lock=b->guard();for(const auto& [key,value]:m.map())if(key.rfind("peer_",0)==0||key.rfind("candidate_",0)==0)Engine::add(b->peer,key,number(value));};
+  if(e->worker_reports)work();else e->enqueue(std::move(work));
+}}
 void Ticket::transfer_done(V metrics,std::string error) {if(auto e=engine_.lock()){auto b=branch_;
   if(e->worker_reports) {
     auto lock=b->guard();if(b->transfers)--b->transfers;b->touched=seconds();
@@ -523,6 +529,8 @@ static std::shared_ptr<Engine> make_engine(const V& c) {
   if(nc!=cfg.end()){
     const auto& n=nc->second.map();auto x=n.find("search_thread_reports"),data=n.find("data_enabled");
     e->worker_reports=x!=n.end()&&boolean(x->second)&&data!=n.end()&&boolean(data->second);
+    e->timer_batch=size_t(getnum(n,"lifecycle_timer_batch",256));
+    if(!e->timer_batch||e->timer_batch>65536)throw std::invalid_argument("Invalid lifecycle timer batch");
   }
   if(e->worker_reports&&!e->early_report)throw std::invalid_argument("search_thread_reports requires early_parent_report");
   e->report_limit=size_t(getnum(p,"max_active_queries",4096));
@@ -814,7 +822,7 @@ void Controller::poll_reports(){
 }
 void register_native_control(py::module_& m) {
   py::class_<Ticket,std::shared_ptr<Ticket>>(m,"ControlTicket")
-    .def("start",&Ticket::start).def("child",[](Ticket& t,py::object d){t.child(dhwire::from_python(d));})
+    .def("start",&Ticket::start,py::arg("admission_ms"),py::arg("executor_start_ms"),py::arg("ready_ms"),py::arg("actor_wait_ms")=-1.).def("child",[](Ticket& t,py::object d){t.child(dhwire::from_python(d));})
     .def("transfer_done",[](Ticket& t,py::object m,const std::string& e){t.transfer_done(dhwire::from_python(m),e);},py::arg("metrics"),py::arg("error")="")
     .def("complete",[](Ticket& t,py::object r){auto value=dhwire::from_python(r);py::gil_scoped_release release;t.complete(std::move(value));})
     .def("fail",&Ticket::fail).def("renew",&Ticket::renew).def("cancel",&Ticket::cancel);

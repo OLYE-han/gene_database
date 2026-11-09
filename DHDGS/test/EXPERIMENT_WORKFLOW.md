@@ -1,11 +1,11 @@
 # 实验日志流程
 
-围绕同一个问题的一轮实验在 [TestLog.md](../TestLog.md) 中只保留一条汇总，规则见 [AGENTS.md](../AGENTS.md)。一轮可以包含多种配置、重复测量、失败重试、微基准和功能回归；这些不各自新增主日志条目。日志工具在运行边界和离线分析阶段执行，不进入查询热路径。
+围绕同一个问题的一轮实验在 [TestLog.md](../TestLog.md) 中只保留一行，按问题归组、组内按开始时间升序排列，内容为时间、状态、一句话结论与报告链接，规则见 [AGENTS.md](../AGENTS.md)。一轮可以包含多种配置、重复测量、失败重试、微基准和功能回归；这些不各自新增主日志条目。完整元数据和详细日志保存在各轮目录及 `test/log_archive/rounds/`，日志工具只在运行边界和离线分析阶段执行。
 
 0. 阅读 [Research.md](../Research.md)，关联已有问题或先登记新问题。在本轮元数据中保存 `research_ids`（例如 `[R001, R002]`），并在 `purpose` 及报告中写明研究ID、对照和验收条件。研究ID用于跨轮次追踪；不能将它直接当作每轮日志ID。
-1. 在 `test/<轮次名>/experiment.yaml` 保存整轮元数据，`id` 和 `round_id` 均为稳定的轮次 ID。说明问题、假设、固定配置与期望效果；`variables` 列出本轮改变的变量、取值及对应测试，联合改动须注明，不能声称为单变量消融。新问题使用新轮次；同一轮的补充测试继续更新原条目。一个研究问题后续开展不同阶段的新轮次时，保留研究ID并使用新的round_id。
+1. 在 `test/<轮次名>/experiment.yaml` 保存整轮元数据，`id` 和 `round_id` 均为稳定的轮次 ID。说明问题、假设、固定配置与期望效果；`variables` 列出本轮改变的变量、取值及对应测试，联合改动须注明，不能声称为单变量消融。另填 `log_group`（复用主日志问题组）、`summary`（一句话概括目的/结果及关键限制）、`report`（相对DHDGS目录的具体报告路径）；运行中报告未生成时省略report或链接计划并设 `report_label: 计划（报告待生成）`。新问题使用新轮次；同一轮补充测试更新原条目，一轮涉及多个研究ID也仅选择一个主要问题组。
 2. 每次独立测试使用唯一 `id` 和输出目录，`round_id` 指向本轮。`experiment()` 记录真实起止时间和成功/异常状态到各次测试的 `experiment_log.json`。`id != round_id` 时不会写入主日志；不能把子测试元数据的 `id` 改成轮次 ID，否则会覆盖整轮结论。
-3. 用整轮 `experiment()` 包裹测试集合与清理；分析和报告完成后，在同一条主日志汇总变量变化、关键结果、失败/重试、代码变更、报告/图表与下一步建议。使用整轮元数据更新：
+3. 用整轮 `experiment()` 包裹测试集合与清理；分析和报告完成后，更新完整元数据以及一句话 `summary`、实际 `report`。工具将变量变化、失败/重试、代码变更、图表与建议写到详细记录，主日志只更新一行。使用整轮元数据更新：
 
    ```sh
    .venv/bin/python tools/experiment_log.py --metadata test/<轮次名>/experiment.yaml
@@ -40,13 +40,23 @@ with experiment(round_metadata, root / 'experiment_log.json') as whole:
 # 离线补齐报告，回填Research尝试；若验证成功则更新DESIGN及解决状态。
 # 再发布整轮结果/变量/产物，同一个 round id 只占一条主日志。
 summary = json.loads((root / 'experiment_log.json').read_text())
-summary.update(status='已完成', results=round_results, artifacts=report_links)
+summary.update(status='已完成', results=round_results, artifacts=report_links,
+               log_group='查询接纳、锁等待与长期稳定性',
+               summary=one_sentence_conclusion, report='test/<轮次名>/REPORT.md',
+               report_label='报告')
 summary = record(summary)
 (root / 'experiment_log.json').write_text(json.dumps(summary, ensure_ascii=False, indent=2))
 ```
 
 已有网络 API、TCP/RDMA 与网络并行 runner、回归入口和报告脚本的子记录均指定所属轮次。各目录的 `experiment.yaml` 保留整轮汇总；历史脚本若再用于新问题，应新建目录和元数据，不能复用历史结论。`record()` 不自动推断问题归属，也不从子测试推断父轮次状态。单独执行子测试入口时，调用方仍须维护整轮生命周期和最终汇总。
 
-日志工具使用离线文件锁和原子替换保护主日志，避免不同轮次互相覆盖；这不是查询系统中的锁。旧的逐测试主日志归档到相应轮次目录的 `RUN_LOG_ARCHIVE.md`，主日志保留变量汇总及归档链接，不删除失败证据。
+日志工具使用离线文件锁和原子替换保护主日志，避免不同轮次互相覆盖；这不是查询系统中的锁。每轮完整Markdown和JSON保存到 `test/log_archive/rounds/<round_id>.{md,json}`，旧标题锚点和稳定轮次ID保持可跳转。2026-11-03整理前的全文见[历史日志](log_archive/TestLog_20261103.md)，旧逐测试记录仍见各轮 `RUN_LOG_ARCHIVE.md`；主日志不重复长篇元数据，不删除失败证据。没有显式摘要的旧调用会生成有长度限制的摘要，收尾时仍应人工核对关键负面结论。
 
 研究台账是持续记录，实验日志是一轮执行记录，DESIGN是已验证方法的设计依据；三者互相链接但不互相替代。文档、链接核验和历史回填不触发新性能实验日志。Research的新问题/尝试模板见 [模板](../Research.md#template)。
+
+
+## 长时实验的数据记录（2026-11-03）
+
+长时或高负载回放默认不保存逐查询的完整原始结果。用YAML配置时间窗口、样本率和样本上限：所有查询参与计数、成功/失败、延迟直方图、召回及所需资源指标汇总，仅稀疏保存核对时间戳所需字段；副本生命周期事件单独记录。监控优先使用轻量累计计数，避免反复导出保留查询状态。
+
+空完成窗口必须保留为0 QPS，延迟和召回留空；无副本命中时回源率标为不适用。分别给出成功吞吐和包含失败的完成速率，并说明发送窗口、排空时间、分位近似精度、失败及条件指标分母。保留可重绘的汇总/精简捕获、配置和源码哈希；完成校验后可删除重复的临时监控大文件。不要为了曲线好看删除停顿或失败区间。示例：[30分钟自然流](lb_sustained_20261103/REPORT.md)。

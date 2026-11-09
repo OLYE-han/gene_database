@@ -1,0 +1,32 @@
+{
+  "id": "entry_threshold_sweep_20261104",
+  "round_id": "entry_threshold_sweep_20261104",
+  "title": "R001 固定副本入口回源预算阈值20至100短测",
+  "research_ids": [
+    "R001-A15",
+    "R005",
+    "R006",
+    "R008"
+  ],
+  "log_group": "负载均衡：选图、入口覆盖与源节点卸载",
+  "summary": "入口未收敛，按用户要求删除测试数据及图表，撤回性能排序；由收敛实验替代",
+  "purpose": "R001/F02：隔离入口累计平均回源预算阈值对接流、回源、质量、吞吐及源工作影响",
+  "hypothesis": "更低阈值更严格，回源下降可能主要来自入口关闭与接流减少；净收益需实验",
+  "expected": "固定成员/份额/请求序列，9阈值+100重复，明确remaining/回源/接流/Recall/QPS/ready",
+  "configuration": "相同历史200K文件/ID/truth SHA256、冻结模块、D200/beam11/C1536/三节点64线程与绑定；固定254369记录/2527入口/.9份额、pull关闭；建图后重预热与前后基线",
+  "variables": "20–100 fraction=T/200，32次与5秒不变；600K条件化+400K测量，100首尾重复；用户要求先诊断低QPS，新增原流程/建图空闲/全开放连续重复及末尾基线",
+  "code_changes": "测试删除，原脚本与固定计划作为新轮输入复用，无生产代码修改",
+  "results": "原始测量与图表已删除，未收敛结果不作为真实性能或阈值选择证据；仅保留这一撤销记录",
+  "artifacts": [
+    "test/entry_threshold_converged_20261104/PLAN.md"
+  ],
+  "next_steps": "运行收敛实验",
+  "report": "test/entry_threshold_converged_20261104/PLAN.md",
+  "report_label": "替代实验计划",
+  "status": "已撤销并删除",
+  "started_at": "2026-11-04T14:06:23+08:00",
+  "ended_at": "2026-11-04T14:30:46+08:00",
+  "analysis_completed_at": "2026-11-04T14:36:32+08:00",
+  "updated_at": "2026-11-04T14:47:54+08:00",
+  "revision": "53b3b953d0f491019429da3535e182d7e56a804d"
+}
