@@ -19,6 +19,8 @@ public:
   V completed(size_t maximum, uint64_t timeout_ms);
   V metrics() const;
   void replica_routes(V);
+  void entry_routing(V);
+  V entry_routing_metrics() const;
   V replica_observations();
   V replica_entry_statistics();
   void close();

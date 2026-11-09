@@ -1,5 +1,7 @@
 # DHDGS
 
+**当前最佳增长实现：indexed（2026-11-09 用户选定）。** 主模板采用不可变增量目录、2ms维护合并、`full_hot_batch`热点提升，关闭持久化流水；缓存100条、top20、β=0.1、搜索预算128。增长总开关独立，使用时按实验启用。serial和pipeline保留作对照。选定说明、完整实验配置和质量限制见 [DESIGN](DESIGN.md#indexed-current-baseline-20261109)。本次选择不代表远端服务已重新部署。
+
 后续优化入口：[Research.md](Research.md)。按问题记录证据、候选方案及每轮尝试；验证可行后更新 [DESIGN.md](DESIGN.md) 并标记解决，实验轮次仍统一记录在 [TestLog.md](TestLog.md)。当前首个主攻方向是 [R001：负载不均与热点子图复制](Research.md#r001)。
 
 **当前默认（2026-11-05 用户决定）：原成本分支策略，全局搜索预算128，目标 Recall@10 约95%。** RDMA 数据拉取与候选同步默认关闭，代码和历史实验保留但暂停维护；节点间 RDMA 消息传输继续使用。最新预算对照在原策略D128下测得 Recall@10=95.1130%、QPS=29,755.84、p99=128.381ms，条件与限制见[报告](test/budget_sweep_after_return_20261105/REPORT.md)和[基线说明](DESIGN.md#baseline-original-128-20261105)。
@@ -142,3 +144,5 @@ C++完成报告和控制发送路径已实现。在完整实验YAML中设置`pee
 负载均衡研究原型：见 [R001实现与配置](research/R001_IMPLEMENTATION.md)、[质量/性能实验](test/load_balance_20261026/REPORT.md)。`load_balance.enabled` 默认关闭；只有独立质量及来源净卸载校准通过的副本才能分流。
 
 无LB吞吐复验配置：[运行参数](configs/dhdgs_no_lb_throughput.yaml)、[部署参数](configs/rdma_no_lb_throughput.yaml)、[复现](test/no_lb_qps_recovery_20261103/REPRODUCE.md)。200K唯一输入、D200、C1536、三数据节点各64线程，600秒实测21,396成功QPS、零失败、Recall@10 96.884%；暖缓存与长期验证限制见[报告](test/no_lb_qps_recovery_20261103/REPORT.md)。 此处为历史D200测量；运行与部署模板现已改为128，复现历史结果须使用该轮冻结配置。
+
+动态入口默认采用用户选定的最短队列：`load_balance.entry_routing.mode: least_queue`、`telemetry: true`，每20ms采样、100ms过期；主模板及动态副本模板已同步。每次只从源及已登记的可用副本中选择一个首跳，等长随机打散，负载过期保守回源，不改预算/边界分支。`fixed`、`cost`保留显式对照，历史冻结配置不改写；从旧配置派生运行时须显式补齐该块。[实验结果](test/entry_routing_20261109/REPORT.md)与[配置及实现边界](DESIGN.md#dynamic-entry-routing-20261109)记录S30/D80收益、p99取舍及未达严格95%的质量限制。

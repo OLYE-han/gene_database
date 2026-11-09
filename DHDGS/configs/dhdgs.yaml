@@ -255,13 +255,13 @@ peer:
     cache_records: 100
     promotion_hot_vertices: 20
     growth_fraction: 0.10
-    promotion_trigger: full_no_singleton
+    promotion_trigger: full_hot_batch # Selected indexed baseline: full cache and >=20 hot records.
     persist: true
-    indexed_directory: false # Immutable durable index + monotone negative cache filter.
-    persistence_pipeline: false # Prepare concurrently with a single ordered journal writer.
+    indexed_directory: true # 2026-11-09 selected baseline: immutable directory + negative cache filter.
+    persistence_pipeline: false # Keep optional pipeline for ablation; indexed is the selected baseline.
     persistence_queue_batches: 2 # Includes the frame currently being written.
     persistence_queue_bytes: 134217728 # Serialized pending frames; each also obeys maintenance_bytes.
-    maintenance_interval_ms: 0 # 0 keeps legacy wake-on-hit; test 2 ms with the pipeline.
+    maintenance_interval_ms: 2 # Selected indexed baseline; 0 restores legacy wake-on-hit.
     lock_sample_every: 0 # 0 disables shared read-lock sampling; e.g. 256 for diagnostics.
     cache_bytes: 67108864
     max_path_records: 128
@@ -516,6 +516,17 @@ storage:
   page_bytes: 4096
 version: 1
 load_balance:
+  # 2026-11-09: least runnable queue is the selected first-hop default.
+  # Dynamic modes use positive fraction as eligibility, not a probability cap.
+  entry_routing:
+    mode: least_queue  # fixed | least_queue | cost
+    telemetry: true
+    poll_ms: 20
+    ttl_ms: 100
+    temperature_ms: 5.0
+    prior_ms: 5.0
+    cpu_threshold: 0.9
+    cpu_penalty_ms: 2.0
   # All included HNSW portals open; close on high expected return budget per query.
   entry_admission:
     enabled: false

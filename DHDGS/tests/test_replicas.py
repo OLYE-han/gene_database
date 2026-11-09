@@ -42,6 +42,9 @@ class ReplicaTests(unittest.TestCase):
         self.c = NativeRuntimeTests.config(self, native_data=True, native_head=True)
         self.c['search']['max_expansions'] = 256
         b = copy.deepcopy(yaml.safe_load((ROOT/'configs/dhdgs.yaml').read_text())['load_balance'])
+        # These protocol fixtures require deterministic fraction-based placement.
+        # Entry-routing tests opt into telemetry/dynamic modes via their hook.
+        b['entry_routing'].update(mode='fixed', telemetry=False)
         b.update(enabled=True, mode='static', planner_mode='inline', selection_policy='entry_worksets', max_target_shard_fraction=10., sample_every=1, max_region_rows=1000, max_core_rows=1000,
                  reserve_disk_bytes=1048576, operation_timeout_s=20., min_validation_queries=2)
         self.c['load_balance'] = b

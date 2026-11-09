@@ -1377,6 +1377,14 @@ struct DataRuntime::Impl {
   dhwire::Reply handle(V request, uint64_t received, size_t bytes,bool on_start_worker=false) {
     check(get<size_t>(request, "version") == 1, "Unsupported protocol");
     auto op = get<std::string>(request, "op");
+    if(op=="peer_routing_load"){
+      check(get<std::string>(request,"epoch")==get<std::string>(meta,"epoch"),"Routing load epoch mismatch");
+      // Constant-size snapshot, no retained contexts, trace export or registry walk.
+      auto q=compute_metrics();
+      return dhwire::Reply{M{{"ok",true},{"result",M{{"epoch",at(meta,"epoch")},{"sampled_ns",stamp()},
+        {"queued",at(q,"queued")},{"active",at(q,"active")},{"workers",at(q,"workers")},
+        {"cpu_ns",cpu_ns.load()},{"wall_ns",work_ns.load()},{"completed",completed_work.load()}}}}};
+    }
     if(op=="peer_one_sided_connect"&&optional<bool>(request,"demand_shared",false)){
       const auto& peer=at(config,"peer");check(has(peer,"demand_growth")&&get<bool>(at(peer,"demand_growth"),"enabled")&&bool(one_source),"Demand source unavailable");
       check(get<std::string>(request,"epoch")==get<std::string>(meta,"epoch")&&get<std::string>(request,"signature")==signature&&get<size_t>(request,"source")==sid,"Demand source identity mismatch");

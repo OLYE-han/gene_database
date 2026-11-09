@@ -1193,7 +1193,7 @@ class LoadBalancer:
                 self.publish(now)
                 if self.b['mode'] == 'dynamic':
                     if self.b.get('planner_mode','inline')=='native_async':self.poll_plan(now)
-                    if now-self.last_adjust >= self.b['route_adjust_ms']/1000:
+                    if self.b.get('entry_routing',{}).get('mode','fixed')=='fixed' and now-self.last_adjust >= self.b['route_adjust_ms']/1000:
                         self.adjust(now); self.last_adjust=now
                     if now-self.last_control >= self.b['control_interval_ms']/1000:
                         self.last_control=now

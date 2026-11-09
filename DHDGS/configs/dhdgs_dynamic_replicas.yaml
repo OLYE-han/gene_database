@@ -66,6 +66,16 @@ hotness:
   queue_batches: 16
   top_k: 4096
 load_balance:
+  # Match the selected first-hop default; independent of replica construction.
+  entry_routing:
+    mode: least_queue
+    telemetry: true
+    poll_ms: 20
+    ttl_ms: 100
+    temperature_ms: 5.0
+    prior_ms: 5.0
+    cpu_threshold: 0.9
+    cpu_penalty_ms: 2.0
   # All included HNSW portals open; close on high expected return budget per query.
   entry_admission:
     enabled: true

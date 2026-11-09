@@ -137,6 +137,8 @@ public:
     {py::gil_scoped_release release;runtime_->submit(std::move(raw),qid,{},[promise](V r){promise->set_value(std::move(r));},std::move(v));out=result.get();}
     return dhwire::to_python(out);
   }
+  void entry_routing(py::object options){auto v=dhwire::from_python(options);py::gil_scoped_release release;runtime_->entry_routing(std::move(v));}
+  py::object entry_routing_metrics(){V v;{py::gil_scoped_release release;v=runtime_->entry_routing_metrics();}return dhwire::to_python(v);}
   void replica_routes(py::object routes){auto v=dhwire::from_python(routes);py::gil_scoped_release release;runtime_->replica_routes(std::move(v));}
   py::object replica_observations(){V v;{py::gil_scoped_release release;v=runtime_->replica_observations();}return dhwire::to_python(v);}
   py::object replica_entry_statistics(){V v;{py::gil_scoped_release release;v=runtime_->replica_entry_statistics();}return dhwire::to_python(v);}
@@ -444,6 +446,8 @@ inline void bind_runtime(py::module_ &m) {
   py::class_<HeadBinding>(m, "NativeHead")
       .def("route_info",&HeadBinding::route_info)
       .def("validate_replica",&HeadBinding::validate_replica)
+      .def("entry_routing",&HeadBinding::entry_routing)
+      .def("entry_routing_metrics",&HeadBinding::entry_routing_metrics)
       .def("replica_routes",&HeadBinding::replica_routes)
       .def("replica_observations",&HeadBinding::replica_observations)
       .def("replica_entry_statistics",&HeadBinding::replica_entry_statistics)

@@ -178,9 +178,14 @@
 <!-- experiment:demand_growth_20261106:end -->
 
 <!-- experiment:demand_pipeline_20261109:start -->
-<!-- testlog-entry:{"id":"demand_pipeline_20261109","group":"负载均衡：选图、入口覆盖与源节点卸载","started_at":"2026-11-09T10:02:42+08:00","status":"已完成","summary":"自然/热点无副本为2.85万/1.73万QPS，增量目录优化使S30/D80吞吐提高31.8%/9.6%，写盘流水无稳定额外收益且副本Recall仍不足95%","report":"test/demand_pipeline_20261109/REPORT.md","report_label":"报告","aliases":["无副本基线归因与增量缓存持久化流水线demand_pipeline_20261109"]} -->
-- <a id="demand_pipeline_20261109"></a><a id="无副本基线归因与增量缓存持久化流水线demand_pipeline_20261109"></a>**2026-11-09 10:02:42**（已完成）：自然/热点无副本为2.85万/1.73万QPS，增量目录优化使S30/D80吞吐提高31.8%/9.6%，写盘流水无稳定额外收益且副本Recall仍不足95%（[报告](test/demand_pipeline_20261109/REPORT.md)；[详细记录](test/log_archive/rounds/demand_pipeline_20261109.md)）。
+<!-- testlog-entry:{"id":"demand_pipeline_20261109","group":"负载均衡：选图、入口覆盖与源节点卸载","started_at":"2026-11-09T10:02:42+08:00","status":"已完成","summary":"自然/热点无副本为2.85万/1.73万QPS，目录优化使S30/D80吞吐提高31.8%/9.6%并被选为indexed基线，流水无稳定额外收益且副本Recall不足95%","report":"test/demand_pipeline_20261109/REPORT.md","report_label":"报告","aliases":["无副本基线归因与增量缓存持久化流水线demand_pipeline_20261109"]} -->
+- <a id="demand_pipeline_20261109"></a><a id="无副本基线归因与增量缓存持久化流水线demand_pipeline_20261109"></a>**2026-11-09 10:02:42**（已完成）：自然/热点无副本为2.85万/1.73万QPS，目录优化使S30/D80吞吐提高31.8%/9.6%并被选为indexed基线，流水无稳定额外收益且副本Recall不足95%（[报告](test/demand_pipeline_20261109/REPORT.md)；[详细记录](test/log_archive/rounds/demand_pipeline_20261109.md)）。
 <!-- experiment:demand_pipeline_20261109:end -->
+
+<!-- experiment:entry_routing_20261109:start -->
+<!-- testlog-entry:{"id":"entry_routing_20261109","group":"负载均衡：选图、入口覆盖与源节点卸载","started_at":"2026-11-09T14:05:39+08:00","status":"已完成","summary":"同图最短队列使S30/D80吞吐+21.1%/+4.0%、p99−32.0%/−44.9%，成本模式仅S30尾部更优；干扰组排除，严格95%召回仍未通过","report":"test/entry_routing_20261109/REPORT.md","report_label":"报告","aliases":["固定图下最短队列与全路径成本入口调度对照entry_routing_20261109"]} -->
+- <a id="entry_routing_20261109"></a><a id="固定图下最短队列与全路径成本入口调度对照entry_routing_20261109"></a>**2026-11-09 14:05:39**（已完成）：同图最短队列使S30/D80吞吐+21.1%/+4.0%、p99−32.0%/−44.9%，成本模式仅S30尾部更优；干扰组排除，严格95%召回仍未通过（[报告](test/entry_routing_20261109/REPORT.md)；[详细记录](test/log_archive/rounds/entry_routing_20261109.md)）。
+<!-- experiment:entry_routing_20261109:end -->
 
 ## 负载均衡：访问语义与正确性
 

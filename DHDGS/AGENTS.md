@@ -10,6 +10,10 @@
 
 ## 实验记录
 
+- **2026-11-09 用户选定最短队列为默认首跳路由。** 新运行及后续副本实验使用 `load_balance.entry_routing.mode: least_queue`、`telemetry: true`、`poll_ms: 20`、`ttl_ms: 100`；主模板与动态副本模板已同步。只比较同一HNSW入口的源和有效副本，队列相等随机打散，过期信息保守回源；正fraction为可选资格，0关闭。保留fixed/cost显式对照；历史冻结配置和缺失该块的兼容语义不改写，新实验派生旧配置时须显式补齐该块。indexed、D128、普通pull/sync关闭的决定不变。采用配置不等于已远端重部署，也不表示95%副本Recall已验收，见 [DESIGN](DESIGN.md#dynamic-entry-routing-20261109)。
+
+- **2026-11-09 用户选定当前最佳实现为 indexed。** 后续副本缓存增长使用 `peer.demand_growth.indexed_directory: true`、`maintenance_interval_ms: 2`、`persistence_pipeline: false`，提升触发沿用获选实验的 `promotion_trigger: full_hot_batch`。主模板 `configs/dhdgs.yaml` 已同步；增长总开关独立且默认关闭，普通pull/sync仍关闭，D128不变。serial/pipeline及冻结配置保留作显式对照，不自动继续pipeline选优。当前采用决定与质量限制见 [DESIGN](DESIGN.md#indexed-current-baseline-20261109)；复现完整性能条件使用原报告中的冻结配置，不把仅修改主模板视为已部署。
+
 - 用户手写待办保存在 [todo.md](todo.md)，与自动生成的 `TestLog.md` 分离。日志整理、实验收尾不得重写该文件；未获用户要求，不自动执行或改写其中的待办及优先级。
 
 用户要求：`TestLog.md` 是简明索引，按同一研究问题归组、组内按开始时间从早到晚排序，每轮实验（可包含多次独立测试）仅用一句话概括并链接具体报告，此要求适用于后续所有实验任务。

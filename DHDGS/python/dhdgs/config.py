@@ -146,6 +146,7 @@ SCHEMA = {
 }
 
 
+SCHEMA['load_balance']['entry_routing']={'mode':str,'telemetry':bool,'poll_ms':int,'ttl_ms':int,'temperature_ms':float,'prior_ms':float,'cpu_threshold':float,'cpu_penalty_ms':float}
 SCHEMA['load_balance']['fast_core']={'enabled':bool,'seed_count':int,'hops':int}
 SCHEMA['load_balance']['automatic_pipeline']={'enabled':bool,'max_targets':int,'max_seed_entries':int,
     'planning_seconds':float,'finish_reserve_seconds':float,'min_capacity_bytes':int,'max_entry_candidates':int}
@@ -173,7 +174,7 @@ def _check(values, schema, path=""):
     optional={'listen_backlog','rpc_tcp_nodelay'} if path=='network' else set()
     if path=='':optional={'native_runtime','benchmark_results','load_balance','hotness'}  # Archived plans remain usable.
     if path=='load_balance':optional={'hop_expansion','locality','adaptive_expansion','adaptive_decay','community_poll_ms','community_hops','community_top_k','community_seed_starts','community_hot_closure','community_ppr_rounds','community_ppr_candidates','community_ppr_iterations','community_ppr_vertices','community_ppr_restart','community_ppr_tolerance','community_byte_price','community_max_edge_scans','community_adjacency_bytes','community_max_plan_ms','replica_transfer_mode','producer_queue_bytes','transfer_buffer_budget_bytes','replica_write_workers','replica_loader','planner_mode','planner_max_age_ms','publication_mode','compute_region_quality','replica_id_lookup_bytes','progressive_validation','validation_publish_batch','portal_budget_fraction','native_replica_pack','copy_pressure_source_queue','quality_weight_routing','reuse_observed_baseline','lifecycle_poll_ms','max_total_replica_bytes','selection_policy','target_queue_limit_ms','min_entry_validation_queries','validation_mode','max_validation_queries','shadow_overlap_min','min_replica_expansions','max_early_exit_fraction','quality_walk_steps','entry_weight_floor','entry_weight_power','max_peer_entries','peer_routes_enabled','max_target_shard_fraction'}
-    if path=='load_balance':optional.update({'boundary_augmentation','geometry','fast_core','layout_policy','partitioned_regions','automatic_pipeline','capacity_policy','online_policy','entry_admission'})
+    if path=='load_balance':optional.update({'entry_routing','boundary_augmentation','geometry','fast_core','layout_policy','partitioned_regions','automatic_pipeline','capacity_policy','online_policy','entry_admission'})
     if path=='load_balance.automatic_pipeline':optional.add('max_entry_candidates')
     if path=='load_balance.entry_admission':optional.update({'score_mode','max_mean_remaining_fraction','max_expected_remaining_budget'})
     if path=='load_balance.partitioned_regions':optional.add('pipeline')
@@ -244,6 +245,13 @@ def validate(c):
     chunk=c['metrics'].get('snapshot_chunk_bytes',262144)
     if not 0<chunk<=min(16777216,c['network']['max_message_bytes']//2):raise ValueError('Invalid metrics snapshot chunk limit')
     lb=c.get('load_balance')
+    if lb and lb.get('entry_routing'):
+        e=lb['entry_routing']
+        if (e['mode'] not in ('fixed','least_queue','cost') or
+            (e['mode']!='fixed' and not e['telemetry']) or
+            not 1<=e['poll_ms']<=e['ttl_ms']<=60000 or e['temperature_ms']<=0 or e['prior_ms']<=0 or
+            e['cpu_threshold']<0 or e['cpu_penalty_ms']<0):
+            raise ValueError('Invalid entry_routing')
     if lb is not None:
         admission=lb.get('entry_admission')
         if admission:

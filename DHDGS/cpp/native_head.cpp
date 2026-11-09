@@ -1,6 +1,7 @@
 #include "native_network.hpp"
 #include "native_head.hpp"
 #include "entry_return_counters.hpp"
+#include "entry_routing.hpp"
 #include "logical_region.hpp"
 #include "replica_pair_scope.hpp"
 #include "native_pool.hpp"
@@ -351,6 +352,9 @@ struct HeadRuntime::Impl {
     V query_id, state, original_seeds;
     M route_profile;
     bool replica_fallback=false;
+    std::shared_ptr<dhentry::Cost> placement_cost;
+    std::shared_ptr<dhentry::Ticket> placement_ticket;
+    M placement_trace;
     HeadRuntime::Completion completion;
     V replica_validation;
     std::shared_ptr<EntryReturnCounters> entry_returns;
@@ -377,8 +381,12 @@ struct HeadRuntime::Impl {
     }
   };
   V config, manifest;
+  dhentry::Policy placement;
+  std::thread load_sampler;
+  std::atomic<bool> stop_sampler{false};
+  std::mutex sampler_mu;std::condition_variable sampler_wake;
   RouteFunction route;
-  struct ReplicaRoute {size_t source,target;std::string version,family;double fraction,min_score,max_score;uint64_t expires;std::shared_ptr<EntryReturnCounters> returns{};};
+  struct ReplicaRoute {size_t source,target;std::string version,family;double fraction,min_score,max_score;uint64_t expires;std::shared_ptr<EntryReturnCounters> returns{};std::shared_ptr<dhentry::Cost> cost{};};
   using ReplicaRoutes=std::unordered_map<uint64_t,std::vector<ReplicaRoute>>;
   std::shared_ptr<const ReplicaRoutes> replica_directory=std::make_shared<const ReplicaRoutes>();
   std::atomic<uint64_t> replica_lookup{0},replica_match{0},replica_stale{0},replica_score_reject{0},replica_probability_reject{0};
@@ -453,6 +461,8 @@ struct HeadRuntime::Impl {
       endpoints.emplace_back(get<std::string>(n, "host"),
                              get<uint16_t>(n, "port"));
     node_count = endpoints.size();
+    V lb=has(config,"load_balance")?at(config,"load_balance"):V(M{});
+    placement.init(node_count,has(lb,"entry_routing")?at(lb,"entry_routing"):V(M{}));
     const auto maintenance_mode = optional<std::string>(nc, "head_maintenance_mode", "single");
     check(maintenance_mode == "single" || maintenance_mode == "per_node", "Invalid head maintenance mode");
     per_node_maintenance = maintenance_mode == "per_node";
@@ -508,6 +518,7 @@ struct HeadRuntime::Impl {
     try {
       for (size_t i = 0; i < maintenance_count; ++i)
         timers.emplace_back([this, i] { maintain(i); });
+      if(placement.options->telemetry)load_sampler=std::thread([this]{sample_load();});
     } catch (...) {
       { std::lock_guard<std::mutex> l(mu); stopping = true; }
       wake.notify_all();
@@ -516,6 +527,25 @@ struct HeadRuntime::Impl {
     }
   }
   ~Impl() { close(); }
+  void sample_load(){
+    pthread_setname_np(pthread_self(),"dhdgs-load");
+    while(!stop_sampler.load()){
+      for(size_t i=0;i<node_count;++i){auto n=placement.nodes[i];bool expected=false;
+        if(!n->polling.compare_exchange_strong(expected,true))continue;
+        V request=M{{"version",uint64_t(1)},{"op","peer_routing_load"},{"epoch",at(manifest,"epoch")}};
+        try{
+          if(!leases->submit(endpoints[i],std::move(request),[this,i,n](dhwire::Result r){
+            try{check(r.ok,r.error.c_str());check(get<bool>(r.response,"ok"),"Routing load failed");
+              const auto& v=at(r.response,"result");check(get<std::string>(v,"epoch")==get<std::string>(manifest,"epoch"),"Routing epoch changed");
+              placement.update(i,v,stamp(),(r.done_ns-r.queued_ns)/1e6);
+            }catch(...){++n->errors;}n->polling=false;
+          })){++n->errors;n->polling=false;}
+        }catch(...){++n->errors;n->polling=false;}
+      }
+      std::unique_lock<std::mutex> lock(sampler_mu);
+      sampler_wake.wait_for(lock,std::chrono::milliseconds(std::atomic_load(&placement.options)->poll_ms),[this]{return stop_sampler.load();});
+    }
+  }
   // Caller holds q->mu. All users of mu release it before locking a query.
   void track_node(const std::shared_ptr<Query> &q, size_t node) {
     if (!q->nodes.insert(node).second || !per_node_maintenance || q->finished || q->merging)
@@ -601,6 +631,8 @@ struct HeadRuntime::Impl {
                       q->nodes.erase(rejected);track_node(q,source);
                       if(per_node_maintenance){std::lock_guard<std::mutex> registry(mu);
                         live[rejected].erase(q->id);q->maintenance_owner=source;}
+                      if(q->placement_ticket){q->placement_ticket=std::make_shared<dhentry::Ticket>(placement.nodes[source]);
+                        q->placement_cost=placement.sources[source];q->placement_trace["fallback_target"]=uint64_t(source);}
                       q->replica_fallback=true;retry=true;
                     } else {
                     check(get<bool>(at(r.response, "result"), "accepted"),
@@ -650,6 +682,9 @@ struct HeadRuntime::Impl {
       sm["route_entry_id"]=entry_id;sm["route_entry_estimate"]=estimate;
       sm["original_entry_node"]=at(s,"target_node");
       auto directory=std::atomic_load(&replica_directory);auto found=directory->find(entry_id);
+      const auto placement_start=stamp();
+      auto routing_options=std::atomic_load(&placement.options);
+      dhentry::Choice placement_choice;
       ReplicaRoute forced{};bool validating=!null(q->replica_validation);
       if(!validating){++replica_lookup;if(found!=directory->end())++replica_match;}
       const ReplicaRoute* selected=nullptr;
@@ -657,6 +692,17 @@ struct HeadRuntime::Impl {
         check(entry_id==get<uint64_t>(v,"entry_id")&&get<size_t>(s,"target_node")==get<size_t>(v,"source"),"Validation entry changed");
         auto target=get<size_t>(v,"target");check(target<node_count,"Invalid validation destination");
         forced={get<size_t>(v,"source"),target,get<std::string>(v,"version"),"",1.,-1e300,1e300,stamp()+timeout_ns};selected=&forced;
+      }else if(found!=directory->end()&&routing_options->mode!="fixed"){
+        uint64_t hash=1469598103934665603ULL;for(unsigned char ch:q->id){hash^=ch;hash*=1099511628211ULL;}
+        const auto source=get<size_t>(s,"target_node");
+        std::vector<dhentry::Candidate> candidates{{source,placement.sources[source]}};
+        std::vector<const ReplicaRoute*> choices{nullptr};
+        for(const auto& r:found->second)if(r.source==source&&r.fraction>0&&stamp()<r.expires&&estimate>=r.min_score&&estimate<=r.max_score){
+          candidates.push_back({r.target,r.cost});choices.push_back(&r);}
+        placement_choice=placement.choose(candidates,stamp(),double(hash>>11)*(1.0/9007199254740992.0));
+        if(placement_choice.index>=0)selected=choices[placement_choice.index];
+        // A missing/stale source snapshot returns to the canonical source.
+        // An expired replica is never eligible merely because its queue was short.
       }else if(found!=directory->end()){
         uint64_t hash=1469598103934665603ULL;
         for(unsigned char ch:q->id){hash^=ch;hash*=1099511628211ULL;}
@@ -702,6 +748,13 @@ struct HeadRuntime::Impl {
             add(replica_access_counts[r.version].map(),"entry_selected",1);
           }
       }
+      const auto placed=get<size_t>(s,"target_node");
+      auto cost=selected?selected->cost:placement.sources[placed];
+      const auto selection_ns=stamp()-placement_start;
+      placement.selection_ns+=selection_ns;
+      M choice_trace{{"mode",routing_options->mode},{"target",uint64_t(placed)},
+        {"selection_ms",selection_ns/1e6},{"snapshot_age_ms",placement_choice.age_ms},
+        {"selected_queue",uint64_t(placement_choice.queued)},{"score",placement_choice.score},{"stale_fallback",placement_choice.stale}};
       sm["internal_validation"]=validating;
       if(optional<bool>(at(config,"peer"),"logical_region_visits",false))dhregion::normalize(s);
       q->input.clear();
@@ -709,6 +762,10 @@ struct HeadRuntime::Impl {
         std::lock_guard<std::mutex> l(q->mu);
         if (q->finished || q->merging)
           return;
+        if(!validating&&routing_options->telemetry){
+          q->placement_cost=std::move(cost);q->placement_ticket=std::make_shared<dhentry::Ticket>(placement.nodes[placed]);
+          ++placement.nodes[placed]->selected;q->placement_trace=std::move(choice_trace);
+        }
         auto &m = s.map();
         m["query_request_id"] = q->id;
         m["branch_id"] = q->root;
@@ -1058,6 +1115,8 @@ struct HeadRuntime::Impl {
         out["request_id"] = q->id;
         out["epoch"] = at(manifest, "epoch");
         out["metric"] = at(manifest, "metric");
+        if(q->placement_cost)q->placement_cost->observe(rs);
+        if(!q->placement_trace.empty())stats["entry_placement"]=q->placement_trace;
         out["branch_reports"] = std::move(rs);
         stats["route_entry_id"]=at(q->state,"route_entry_id");
         stats["original_entry_node"]=at(q->state,"original_entry_node");
@@ -1179,6 +1238,7 @@ struct HeadRuntime::Impl {
                           {"native_head_timestamps",q->trace}}}};
         cancel_nodes.assign(q->nodes.begin(), q->nodes.end());
       }
+      q->placement_ticket.reset();q->placement_cost.reset();
       q->finished = true;
       q->finished_ns = stamp();
       q->reports.clear();
@@ -1268,6 +1328,7 @@ struct HeadRuntime::Impl {
     snapshot["network_lease"] = leases->metrics();
     snapshot["entry_pending"] = uint64_t(entries->pending());
     snapshot["replica_selected"]=replica_selected.load();
+    snapshot["entry_routing"]=placement.metrics(stamp());
     snapshot["replica_routing_funnel"]=M{{"queries",replica_lookup.load()},{"directory_match",replica_match.load()},
       {"stale_or_source_mismatch",replica_stale.load()},{"score_rejected",replica_score_reject.load()},
       {"probability_rejected",replica_probability_reject.load()},{"selected",replica_selected.load()}};
@@ -1287,6 +1348,14 @@ struct HeadRuntime::Impl {
         !version.empty()&&version.size()<=128&&std::isfinite(lower)&&std::isfinite(upper)&&lower<=upper&&ttl>0&&ttl<=60000,"Invalid replica route");
       auto family=optional<std::string>(row,"family","");check(family.size()<=128,"Invalid replica family");
       ReplicaRoute r{source,target,version,family,fraction,lower,upper,stamp()+ttl*1000000};
+      // All registered entries of the same physical replica share bounded
+      // full-path cost statistics; source priors are per physical base shard.
+      for(const auto& id:array(at(row,"entries"))){auto old=previous->find(cast<uint64_t>(id));
+        if(old!=previous->end())for(const auto& choice:old->second)
+          if(choice.version==version&&choice.source==source&&choice.target==target){r.cost=choice.cost;break;}
+        if(r.cost)break;
+      }
+      if(!r.cost)r.cost=std::make_shared<dhentry::Cost>(node_count);
       for(const auto& id:array(at(row,"entries"))){auto weighted=r;
         if(covered_entry_admission){
           auto old=previous->find(cast<uint64_t>(id));
@@ -1332,6 +1401,7 @@ struct HeadRuntime::Impl {
       for (const auto &[id, q] : queries)
         selected.push_back(q);
     }
+    stop_sampler=true;sampler_wake.notify_all();if(load_sampler.joinable())load_sampler.join();
     wake.notify_all();
     for (auto &timer : timers)
       if (timer.joinable()) timer.join();
@@ -1364,6 +1434,8 @@ V HeadRuntime::completed(size_t n, uint64_t ms) {
   return impl_->completed(n, ms);
 }
 V HeadRuntime::metrics() const { return impl_->metrics(); }
+void HeadRuntime::entry_routing(V options){impl_->placement.configure(options);}
+V HeadRuntime::entry_routing_metrics()const{return impl_->placement.metrics(stamp());}
 void HeadRuntime::replica_routes(V routes){impl_->replica_routes(std::move(routes));}
 V HeadRuntime::replica_observations(){return impl_->replica_observations();}
 V HeadRuntime::replica_entry_statistics(){return impl_->replica_entry_statistics();}

@@ -21,7 +21,10 @@ class DemandCacheTests(unittest.TestCase):
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup)
         self.config=copy.deepcopy(yaml.safe_load((ROOT/'configs/dhdgs.yaml').read_text())['peer']['demand_growth'])
-        self.config.update(cache_records=4,promotion_hot_vertices=2,growth_fraction=.1)
+        # Preserve the serial/strict control when deployment defaults select indexed.
+        self.config.update(cache_records=4,promotion_hot_vertices=2,growth_fraction=.1,
+            promotion_trigger='full_no_singleton',indexed_directory=False,
+            persistence_pipeline=False,maintenance_interval_ms=0)
         self.graph={'0':[1,2,3,4,5,6,7],**{str(i):[]for i in range(1,8)}}
 
     def make(self,graph=None,source_bytes=1000000):
